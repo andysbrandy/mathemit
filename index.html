@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Die Formen-Werkstatt – Dreiecke & Vierecke</title>
+<title>Die Formen-Werkstatt – Mathe für die Mittelschule</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -27,6 +27,16 @@
     --error-soft:#FBE1E3;
     --muted:#5B6E85;
     --line:#C9D8E5;
+    --kreis:#E0598B;
+    --kreis-soft:#FBE0EC;
+    --koerper:#4A7FD6;
+    --koerper-soft:#E1EAFB;
+    --bruch:#9C4F96;
+    --bruch-soft:#F1DFF0;
+    --prozent:#2AA9C9;
+    --prozent-soft:#DBF2F8;
+    --textaufgabe:#B9781F;
+    --textaufgabe-soft:#F5E7D2;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -190,7 +200,7 @@
       </svg>
       <div>
         <h1>Die Formen-Werkstatt</h1>
-        <p>Dreiecke &amp; Vierecke üben – so oft du willst</p>
+        <p>Dreiecke, Vierecke, Kreise, Körper, Brüche &amp; Prozent üben – so oft du willst</p>
       </div>
     </div>
     <div class="stats">
@@ -207,6 +217,7 @@
   </div>
 
   <div class="chips" id="chips"></div>
+  <div class="chips" id="gradeChips"></div>
 
   <div class="board">
     <div class="figure-panel">
@@ -232,6 +243,10 @@
   <div class="session-row">
     <span id="sessionStat">0 Aufgaben gelöst · 0 richtig</span>
     <div class="badges" id="badges"></div>
+  </div>
+  <div class="session-row">
+    <span>Dein Fortschritt wird automatisch in diesem Browser gespeichert.</span>
+    <button class="btn" id="resetBtn" style="background:var(--error); padding:6px 14px; font-size:.78rem; box-shadow:none;">Fortschritt zurücksetzen</button>
   </div>
 
 </div>
@@ -323,7 +338,12 @@
 
   var COLORS = {
     dreieck: {main:"var(--triangle)", soft:"var(--triangle-soft)"},
-    viereck: {main:"var(--viereck)", soft:"var(--viereck-soft)"}
+    viereck: {main:"var(--viereck)", soft:"var(--viereck-soft)"},
+    kreis: {main:"var(--kreis)", soft:"var(--kreis-soft)"},
+    koerper: {main:"var(--koerper)", soft:"var(--koerper-soft)"},
+    bruch: {main:"var(--bruch)", soft:"var(--bruch-soft)"},
+    prozent: {main:"var(--prozent)", soft:"var(--prozent-soft)"},
+    textaufgabe: {main:"var(--textaufgabe)", soft:"var(--textaufgabe-soft)"}
   };
 
   /* Build full SVG markup for a polygon with optional side/angle labels & marks */
@@ -390,18 +410,142 @@
     var badge = document.getElementById("topicBadge");
     badge.textContent = badgeText;
     badge.style.background = badgeColor;
-    var path = host.querySelector("path.shape-outline");
-    if(path && path.getTotalLength){
-      var len = path.getTotalLength();
-      path.style.strokeDasharray = len;
-      path.style.strokeDashoffset = len;
-      path.getBoundingClientRect(); // force reflow
-      path.style.transition = "stroke-dashoffset 0.9s cubic-bezier(.3,.7,.3,1)";
-      requestAnimationFrame(function(){ path.style.strokeDashoffset = "0"; });
-    }
+    var paths = host.querySelectorAll("path.shape-outline");
+    paths.forEach(function(path){
+      if(path && path.getTotalLength){
+        var len = path.getTotalLength();
+        path.style.strokeDasharray = len;
+        path.style.strokeDashoffset = len;
+        path.getBoundingClientRect(); // force reflow
+        path.style.transition = "stroke-dashoffset 0.9s cubic-bezier(.3,.7,.3,1)";
+        requestAnimationFrame(function(){ path.style.strokeDashoffset = "0"; });
+      }
+    });
   }
 
-  /* ============ Shape templates ============ */
+  /* ============ Neue Zeichen-Helfer: Kreis, Körper, Bruch-/Prozent-Balken ============ */
+
+  function circleFigureSVG(rValue, given, color, soft){
+    // rValue: die angegebene Zahl (Radius oder Durchmesser je nach 'given')
+    var r = given==="d" ? rValue/2 : rValue;
+    var scale = 8; // px pro cm, angepasst für r bis ~10cm im 300x220-Feld
+    var Rpx = Math.min(r*scale, 85);
+    var cx=150, cy=112;
+    var pathD = "M "+(cx+Rpx)+" "+cy+" A "+Rpx+" "+Rpx+" 0 1 0 "+(cx-Rpx)+" "+cy+" A "+Rpx+" "+Rpx+" 0 1 0 "+(cx+Rpx)+" "+cy;
+    var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    svg += '<path class="shape-outline" d="'+pathD+'" fill="'+soft+'" stroke="'+color+'" stroke-width="3.5"/>';
+    svg += '<circle cx="'+cx+'" cy="'+cy+'" r="2.5" fill="'+color+'"/>';
+    if(given==="d"){
+      svg += '<line class="measure-line" x1="'+(cx-Rpx)+'" y1="'+cy+'" x2="'+(cx+Rpx)+'" y2="'+cy+'"/>';
+      svg += '<text class="dim-label" x="'+cx+'" y="'+(cy-10)+'" text-anchor="middle">d = '+rValue+' cm</text>';
+    } else {
+      svg += '<line class="measure-line" x1="'+cx+'" y1="'+cy+'" x2="'+(cx+Rpx)+'" y2="'+cy+'"/>';
+      svg += '<text class="dim-label" x="'+(cx+Rpx/2)+'" y="'+(cy-10)+'" text-anchor="middle">r = '+rValue+' cm</text>';
+    }
+    svg += '</svg>';
+    return svg;
+  }
+
+  /* Schematischer Quader/Würfel in Kavalierprojektion (Vorder-, Deck- und Seitenfläche) */
+  function boxFigureSVG(l,b,h, color, soft, isCube){
+    var scale = Math.min(150/Math.max(l,h,6), 12);
+    var w = l*scale, hh = h*scale;
+    var dep = Math.min(b*scale*0.55, 55); // gestauchte Tiefe für die Optik, feste Obergrenze
+    var ang = 32*Math.PI/180;
+    var ddx = dep*Math.cos(ang), ddy = -dep*Math.sin(ang);
+    var x0 = 62, y0 = 150-hh; // front-top-left als Referenz -> unten ausrichten
+    var FTL={x:x0,y:y0}, FTR={x:x0+w,y:y0}, FBR={x:x0+w,y:y0+hh}, FBL={x:x0,y:y0+hh};
+    var BTL={x:FTL.x+ddx,y:FTL.y+ddy}, BTR={x:FTR.x+ddx,y:FTR.y+ddy}, BBR={x:FBR.x+ddx,y:FBR.y+ddy};
+
+    function poly(pts){ return pts.map(function(p){return p.x+" "+p.y;}).join(" L "); }
+    var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    // Deckfläche (oben) - etwas heller
+    svg += '<path d="M '+poly([FTL,FTR,BTR,BTL])+' Z" fill="'+soft+'" fill-opacity="0.55" stroke="'+color+'" stroke-width="2.5" stroke-linejoin="round"/>';
+    // Seitenfläche (rechts) - etwas dunkler
+    svg += '<path d="M '+poly([FTR,FBR,BBR,BTR])+' Z" fill="'+color+'" fill-opacity="0.28" stroke="'+color+'" stroke-width="2.5" stroke-linejoin="round"/>';
+    // Vorderfläche - Haupt-Reveal-Pfad
+    svg += '<path class="shape-outline" d="M '+poly([FTL,FTR,FBR,FBL])+' Z" fill="'+soft+'" stroke="'+color+'" stroke-width="3.5" stroke-linejoin="round"/>';
+
+    if(isCube){
+      svg += '<text class="dim-label" x="'+((FBL.x+FBR.x)/2)+'" y="'+(FBL.y+16)+'" text-anchor="middle">a = '+l+' cm</text>';
+      svg += tickMarks(FBL,FBR,1,color);
+      svg += tickMarks(FTL,FBL,1,color);
+      svg += tickMarks(FBR,BBR,1,color);
+    } else {
+      svg += '<text class="dim-label" x="'+((FBL.x+FBR.x)/2)+'" y="'+(FBL.y+16)+'" text-anchor="middle">l = '+l+' cm</text>';
+      svg += '<text class="dim-label" x="'+(FTL.x-8)+'" y="'+((FTL.y+FBL.y)/2)+'" text-anchor="end" dominant-baseline="middle">h = '+h+' cm</text>';
+      svg += '<text class="dim-label" x="'+((FBR.x+BBR.x)/2+6)+'" y="'+((FBR.y+BBR.y)/2+12)+'" text-anchor="start">b = '+b+' cm</text>';
+    }
+    svg += '</svg>';
+    return svg;
+  }
+
+  /* Schematischer Zylinder (zwei Ellipsen + Höhenlinien) */
+  function cylinderFigureSVG(r,h,color,soft){
+    var scaleR = Math.min(70/Math.max(r,4), 14);
+    var Rpx = r*scaleR;
+    var Hpx = Math.min(h*10, 140);
+    var cx = 150, topY = 45;
+    var ry = Math.max(Rpx*0.32, 10);
+    var botY = topY+Hpx;
+    var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    svg += '<path class="shape-outline" d="M '+(cx-Rpx)+' '+topY+' L '+(cx-Rpx)+' '+botY+' M '+(cx+Rpx)+' '+topY+' L '+(cx+Rpx)+' '+botY+'" fill="none" stroke="'+color+'" stroke-width="3.5"/>';
+    svg += '<ellipse cx="'+cx+'" cy="'+botY+'" rx="'+Rpx+'" ry="'+ry+'" fill="'+soft+'" stroke="'+color+'" stroke-width="3"/>';
+    svg += '<ellipse cx="'+cx+'" cy="'+topY+'" rx="'+Rpx+'" ry="'+ry+'" fill="'+soft+'" stroke="'+color+'" stroke-width="3"/>';
+    svg += '<line class="measure-line" x1="'+cx+'" y1="'+topY+'" x2="'+(cx+Rpx)+'" y2="'+topY+'"/>';
+    svg += '<text class="dim-label" x="'+(cx+Rpx/2)+'" y="'+(topY-8)+'" text-anchor="middle">r = '+r+' cm</text>';
+    svg += '<line class="measure-line" x1="'+(cx-Rpx-14)+'" y1="'+topY+'" x2="'+(cx-Rpx-14)+'" y2="'+botY+'"/>';
+    svg += '<text class="dim-label" x="'+(cx-Rpx-22)+'" y="'+((topY+botY)/2)+'" text-anchor="end" dominant-baseline="middle">h = '+h+' cm</text>';
+    svg += '</svg>';
+    return svg;
+  }
+
+  /* Bruchbalken: Rechteck in 'denom' gleiche Teile geteilt, 'num' davon eingefärbt */
+  function fractionBarSVG(num, denom, color, soft, y){
+    y = y===undefined? 70 : y;
+    var x0=30, w=240, h=60;
+    var segW = w/denom;
+    var svg = "";
+    for(var i=0;i<denom;i++){
+      var fill = i<num ? color : soft;
+      svg += '<rect x="'+(x0+i*segW)+'" y="'+y+'" width="'+segW+'" height="'+h+'" fill="'+fill+'" stroke="var(--ink)" stroke-width="1.5"/>';
+    }
+    svg += '<rect class="shape-outline" x="'+x0+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="none" stroke="var(--ink)" stroke-width="3"/>';
+    return svg;
+  }
+
+  function fractionFigureSVG(num, denom, color, soft){
+    var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    svg += fractionBarSVG(num,denom,color,soft,80);
+    svg += '<text class="dim-label" x="150" y="60" text-anchor="middle" font-size="16">'+num+' / '+denom+'</text>';
+    svg += '</svg>';
+    return svg;
+  }
+
+  function fractionPairFigureSVG(num1,denom1,num2,denom2,color,soft){
+    var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    svg += '<text class="dim-label" x="150" y="35" text-anchor="middle" font-size="14">'+num1+'/'+denom1+'</text>';
+    svg += fractionBarSVG(num1,denom1,color,soft,45);
+    svg += '<text class="dim-label" x="150" y="130" text-anchor="middle" font-size="14">'+num2+'/'+denom2+'</text>';
+    svg += fractionBarSVG(num2,denom2,color,soft,140);
+    svg += '</svg>';
+    return svg;
+  }
+
+  /* Prozentbalken: Anteil 'part' von 'total' eingefärbt */
+  function percentBarSVG(part, total, color, soft, caption){
+    var x0=25, w=250, h=54, y=95;
+    var pct = Math.max(0, Math.min(1, part/total));
+    var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    svg += '<rect x="'+x0+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+soft+'" stroke="var(--ink)" stroke-width="1.5"/>';
+    svg += '<rect x="'+x0+'" y="'+y+'" width="'+(w*pct)+'" height="'+h+'" fill="'+color+'"/>';
+    svg += '<rect class="shape-outline" x="'+x0+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="none" stroke="var(--ink)" stroke-width="3"/>';
+    svg += '<text class="dim-label" x="150" y="'+(y-14)+'" text-anchor="middle">'+caption+'</text>';
+    svg += '</svg>';
+    return svg;
+  }
+
+
 
   function triangleFromSides(a,b,c){
     // c = AB (base), a = BC, b = CA
@@ -793,6 +937,218 @@
     return ex;
   }
 
+  /* ============ Phase 3: Kreis ============ */
+
+  function genKreisUmfang(){
+    var r = rand(2,10);
+    var given = Math.random()<0.4 ? "d" : "r";
+    var value = given==="d" ? r*2 : r;
+    var svg = circleFigureSVG(value, given, COLORS.kreis.main, COLORS.kreis.soft);
+    var ex = baseEx("kreis","umfang");
+    ex.question = given==="d"
+      ? "Berechne den Umfang dieses Kreises (Durchmesser gegeben)."
+      : "Berechne den Umfang dieses Kreises (Radius gegeben).";
+    ex.hint = "Formel: U = 2 · π · r (bzw. U = π · d). Rechne mit π ≈ 3,14.";
+    ex.svg=svg; ex.badge="Kreis · Umfang"; ex.badgeColor=COLORS.kreis.main;
+    ex.inputType="number"; ex.unit="cm"; ex.tolerance=0.3;
+    ex.answer = 2*Math.PI*r;
+    ex.explanation = "U = 2 · π · r ≈ 2 · 3,14 · "+r+" cm = "+fmt(2*3.14*r)+" cm.";
+    return ex;
+  }
+
+  function genKreisFlaeche(){
+    var r = rand(2,10);
+    var given = Math.random()<0.4 ? "d" : "r";
+    var value = given==="d" ? r*2 : r;
+    var svg = circleFigureSVG(value, given, COLORS.kreis.main, COLORS.kreis.soft);
+    var ex = baseEx("kreis","flaeche");
+    ex.question = given==="d"
+      ? "Berechne die Fläche dieses Kreises (Durchmesser gegeben)."
+      : "Berechne die Fläche dieses Kreises (Radius gegeben).";
+    ex.hint = "Formel: A = π · r². Rechne mit π ≈ 3,14.";
+    ex.svg=svg; ex.badge="Kreis · Fläche"; ex.badgeColor=COLORS.kreis.main;
+    ex.inputType="number"; ex.unit="cm²"; ex.tolerance=Math.max(0.5, r*0.15);
+    ex.answer = Math.PI*r*r;
+    ex.explanation = "A = π · r² ≈ 3,14 · "+r+"² cm² = 3,14 · "+(r*r)+" cm² = "+fmt(3.14*r*r)+" cm².";
+    return ex;
+  }
+
+  /* ============ Phase 3: Körper (Volumen) ============ */
+
+  function genQuaderVolumen(){
+    var l=rand(3,10), b=rand(2,8), h=rand(2,8);
+    var svg = boxFigureSVG(l,b,h,COLORS.koerper.main,COLORS.koerper.soft,false);
+    var ex = baseEx("koerper","volumen");
+    ex.question = "Berechne das Volumen dieses Quaders.";
+    ex.hint = "Formel: V = l · b · h. (Skizze schematisch)";
+    ex.svg=svg; ex.badge="Quader · Volumen"; ex.badgeColor=COLORS.koerper.main;
+    ex.inputType="number"; ex.unit="cm³";
+    ex.answer = l*b*h;
+    ex.explanation = "V = l · b · h = "+l+" cm · "+b+" cm · "+h+" cm = "+(l*b*h)+" cm³.";
+    return ex;
+  }
+
+  function genWuerfelVolumen(){
+    var a = rand(2,9);
+    var svg = boxFigureSVG(a,a,a,COLORS.koerper.main,COLORS.koerper.soft,true);
+    var ex = baseEx("koerper","volumen");
+    ex.question = "Berechne das Volumen dieses Würfels.";
+    ex.hint = "Formel: V = a · a · a = a³. (Skizze schematisch)";
+    ex.svg=svg; ex.badge="Würfel · Volumen"; ex.badgeColor=COLORS.koerper.main;
+    ex.inputType="number"; ex.unit="cm³";
+    ex.answer = a*a*a;
+    ex.explanation = "V = a³ = "+a+" cm · "+a+" cm · "+a+" cm = "+(a*a*a)+" cm³.";
+    return ex;
+  }
+
+  function genZylinderVolumen(){
+    var r = rand(2,7), h = rand(3,12);
+    var svg = cylinderFigureSVG(r,h,COLORS.koerper.main,COLORS.koerper.soft);
+    var ex = baseEx("koerper","volumen");
+    ex.question = "Berechne das Volumen dieses Zylinders.";
+    ex.hint = "Formel: V = π · r² · h. Rechne mit π ≈ 3,14. (Skizze schematisch)";
+    ex.svg=svg; ex.badge="Zylinder · Volumen"; ex.badgeColor=COLORS.koerper.main;
+    ex.inputType="number"; ex.unit="cm³"; ex.tolerance=Math.max(1, r*r*h*0.02);
+    ex.answer = Math.PI*r*r*h;
+    ex.explanation = "V = π · r² · h ≈ 3,14 · "+r+"² · "+h+" cm³ = 3,14 · "+(r*r)+" · "+h+" cm³ = "+fmt(3.14*r*r*h)+" cm³.";
+    return ex;
+  }
+
+  /* ============ Phase 3: Brüche ============ */
+
+  function gcd(a,b){ return b===0 ? a : gcd(b, a%b); }
+
+  function genBruchKuerzen(){
+    var q = rand(2,6), p;
+    do{ p = rand(1,q-1); } while(gcd(p,q)!==1);
+    var k = rand(2,4);
+    var num = p*k, denom = q*k;
+    var svg = fractionFigureSVG(num, denom, COLORS.bruch.main, COLORS.bruch.soft);
+    var correct = p+"/"+q;
+    var distractSet = [num+"/"+denom, (p+1)+"/"+q, p+"/"+(q+1)];
+    var options = shuffle([correct].concat(distractSet));
+    var ex = baseEx("bruch","bruch");
+    ex.question = "Kürze den Bruch "+num+"/"+denom+" so weit wie möglich.";
+    ex.hint = "Suche die größte Zahl, durch die Zähler und Nenner beide teilbar sind.";
+    ex.svg=svg; ex.badge="Bruch · Kürzen"; ex.badgeColor=COLORS.bruch.main;
+    ex.inputType="mc"; ex.choices=options; ex.correctIndex=options.indexOf(correct);
+    ex.explanation = num+"/"+denom+" : "+k+" = "+correct+".";
+    return ex;
+  }
+
+  function genBruchAddition(){
+    var d = rand(4,10);
+    var n1 = rand(1,d-2), n2 = rand(1,d-n1-1);
+    if(n2<1) n2=1;
+    var sumNum = n1+n2;
+    var svg = fractionPairFigureSVG(n1,d,n2,d,COLORS.bruch.main,COLORS.bruch.soft);
+    var correct = sumNum+"/"+d;
+    var distractSet = [sumNum+"/"+(2*d), (sumNum+1)+"/"+d, n1+"/"+d];
+    var options = shuffle([correct].concat(distractSet));
+    var ex = baseEx("bruch","bruch");
+    ex.question = "Rechne: "+n1+"/"+d+" + "+n2+"/"+d+" = ?";
+    ex.hint = "Bei gleichem Nenner werden nur die Zähler addiert, der Nenner bleibt gleich.";
+    ex.svg=svg; ex.badge="Bruch · Addition"; ex.badgeColor=COLORS.bruch.main;
+    ex.inputType="mc"; ex.choices=options; ex.correctIndex=options.indexOf(correct);
+    ex.explanation = n1+"/"+d+" + "+n2+"/"+d+" = ("+n1+"+"+n2+")/"+d+" = "+correct+".";
+    return ex;
+  }
+
+  function genBruchVergleich(){
+    var denomsPool = [2,3,4,5,6,8,10];
+    var d1,d2,n1,n2, attempts=0;
+    do{
+      d1 = choice(denomsPool);
+      do{ d2 = choice(denomsPool); } while(d2===d1);
+      n1 = rand(1,d1-1);
+      n2 = rand(1,d2-1);
+      attempts++;
+    } while(Math.abs(n1/d1 - n2/d2) < 0.03 && attempts<50);
+    if(Math.abs(n1/d1 - n2/d2) < 0.03){
+      // Deterministischer Fallback für den (extrem unwahrscheinlichen) Fall,
+      // dass auch nach 50 Versuchen kein klar unterscheidbares Paar gefunden wurde.
+      d1=2; n1=1; d2=3; n2=1; // 1/2 vs. 1/3 - eindeutig unterschiedlich
+    }
+    var bigger = (n1/d1 > n2/d2) ? n1+"/"+d1 : n2+"/"+d2;
+    var svg = fractionPairFigureSVG(n1,d1,n2,d2,COLORS.bruch.main,COLORS.bruch.soft);
+    var options = [n1+"/"+d1, n2+"/"+d2];
+    var ex = baseEx("bruch","bruch");
+    ex.question = "Welcher Bruch ist größer: "+n1+"/"+d1+" oder "+n2+"/"+d2+"?";
+    ex.hint = "Vergleiche die eingefärbten Anteile der beiden Balken.";
+    ex.svg=svg; ex.badge="Bruch · Vergleichen"; ex.badgeColor=COLORS.bruch.main;
+    ex.inputType="mc"; ex.choices=options; ex.correctIndex=options.indexOf(bigger);
+    ex.explanation = bigger+" ist der größere Bruch.";
+    return ex;
+  }
+
+  /* ============ Phase 3: Prozentrechnen ============ */
+
+  function genProzentVonZahl(){
+    var p = choice([5,10,20,25,50,75]);
+    var denomReduced = 100/gcd(p,100);
+    var base = denomReduced*rand(1,12);
+    var answer = p*base/100;
+    var svg = percentBarSVG(p,100,COLORS.prozent.main,COLORS.prozent.soft, p+"% von "+base+" = ?");
+    var ex = baseEx("prozent","prozent");
+    ex.question = "Wie viel sind "+p+"% von "+base+"?";
+    ex.hint = "Formel: Anteil = (Prozentsatz : 100) · Grundwert.";
+    ex.svg=svg; ex.badge="Prozent · Berechnen"; ex.badgeColor=COLORS.prozent.main;
+    ex.inputType="number"; ex.unit="";
+    ex.answer = answer;
+    ex.explanation = p+"% von "+base+" = ("+p+" : 100) · "+base+" = "+fmt(answer)+".";
+    return ex;
+  }
+
+  function genProzentAnteil(){
+    var total = choice([4,5,8,10,20,25,40,50]);
+    var valid = [];
+    for(var k=1;k<total;k++){ if((k*100)%total===0) valid.push(k); }
+    var part = choice(valid);
+    var percent = part*100/total;
+    var svg = percentBarSVG(part,total,COLORS.prozent.main,COLORS.prozent.soft, part+" von "+total);
+    var ex = baseEx("prozent","prozent");
+    ex.question = part+" von "+total+" sind wie viel Prozent?";
+    ex.hint = "Formel: Prozentsatz = (Anteil : Grundwert) · 100.";
+    ex.svg=svg; ex.badge="Prozent · Anteil"; ex.badgeColor=COLORS.prozent.main;
+    ex.inputType="number"; ex.unit="%";
+    ex.answer = percent;
+    ex.explanation = "("+part+" : "+total+") · 100 = "+fmt(percent)+"%.";
+    return ex;
+  }
+
+  /* ============ Phase 3: Textaufgaben ============ */
+
+  function genTextaufgabeGarten(){
+    var l = rand(5,18), b = rand(3,14);
+    var maxDim=Math.max(l,b), scale=170/maxDim;
+    var w=l*scale, h=b*scale, x0=(300-w)/2, y0=(220-h)/2;
+    var pts=[{x:x0,y:y0},{x:x0+w,y:y0},{x:x0+w,y:y0+h},{x:x0,y:y0+h}];
+    var svg = polygonSVG(pts,{color:COLORS.textaufgabe.main, soft:COLORS.textaufgabe.soft, sideLabels:[l+" m", b+" m", l+" m", b+" m"], labelOffset:16});
+    var ex = baseEx("textaufgabe","textaufgabe");
+    ex.question = "Ein rechteckiger Garten ist "+l+" m lang und "+b+" m breit. Rund um den Garten soll ein Zaun gebaut werden. Wie viele Meter Zaun werden benötigt?";
+    ex.hint = "Der Zaun läuft rundherum – gesucht ist der Umfang: U = 2 · (l + b).";
+    ex.svg=svg; ex.badge="Textaufgabe · Garten"; ex.badgeColor=COLORS.textaufgabe.main;
+    ex.inputType="number"; ex.unit="m";
+    ex.answer = 2*(l+b);
+    ex.explanation = "U = 2 · (l + b) = 2 · ("+l+" m + "+b+" m) = "+(2*(l+b))+" m.";
+    return ex;
+  }
+
+  function genTextaufgabePizza(){
+    var n = choice([6,8,10,12]);
+    var k = rand(1,n-1);
+    var svg = fractionFigureSVG(k,n,COLORS.textaufgabe.main,COLORS.textaufgabe.soft);
+    var percent = (k/n)*100;
+    var ex = baseEx("textaufgabe","textaufgabe");
+    ex.question = "Eine Pizza wird in "+n+" gleich große Stücke geschnitten. Anna isst "+k+" Stücke. Wie viel Prozent der Pizza hat sie gegessen?";
+    ex.hint = "Zuerst als Bruch aufschreiben ("+k+"/"+n+"), dann in Prozent umrechnen (· 100).";
+    ex.svg=svg; ex.badge="Textaufgabe · Pizza"; ex.badgeColor=COLORS.textaufgabe.main;
+    ex.inputType="number"; ex.unit="%"; ex.tolerance=0.6;
+    ex.answer = percent;
+    ex.explanation = k+"/"+n+" = "+fmt(percent)+"%.";
+    return ex;
+  }
+
   /* ============ Pools & Modes ============ */
   var GEN = {
     dreieckWinkel: genDreieckWinkel,
@@ -806,7 +1162,19 @@
     dreieckErkennen: genDreieckErkennen,
     viereckErkennen: genViereckErkennen,
     eigenschaftenDreieck: genEigenschaftenDreieck,
-    eigenschaftenViereck: genEigenschaftenViereck
+    eigenschaftenViereck: genEigenschaftenViereck,
+    kreisUmfang: genKreisUmfang,
+    kreisFlaeche: genKreisFlaeche,
+    quaderVolumen: genQuaderVolumen,
+    wuerfelVolumen: genWuerfelVolumen,
+    zylinderVolumen: genZylinderVolumen,
+    bruchKuerzen: genBruchKuerzen,
+    bruchAddition: genBruchAddition,
+    bruchVergleich: genBruchVergleich,
+    prozentVonZahl: genProzentVonZahl,
+    prozentAnteil: genProzentAnteil,
+    textaufgabeGarten: genTextaufgabeGarten,
+    textaufgabePizza: genTextaufgabePizza
   };
 
   var MODES = [
@@ -814,12 +1182,35 @@
     {id:"dreieck", label:"🔺 Dreiecke", pool:["dreieckWinkel","dreieckUmfang","dreieckFlaeche","dreieckErkennen","eigenschaftenDreieck"]},
     {id:"viereck", label:"◻ Vierecke", pool:["viereckWinkel","viereckUmfang","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","viereckErkennen","eigenschaftenViereck"]},
     {id:"winkel", label:"📐 Winkel", pool:["dreieckWinkel","viereckWinkel"]},
-    {id:"umfang-flaeche", label:"📏 Umfang & Fläche", pool:["dreieckUmfang","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche"]}
+    {id:"umfang-flaeche", label:"📏 Umfang & Fläche", pool:["dreieckUmfang","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche"]},
+    {id:"kreis", label:"⭕ Kreis", pool:["kreisUmfang","kreisFlaeche"]},
+    {id:"koerper", label:"📦 Körper", pool:["quaderVolumen","wuerfelVolumen","zylinderVolumen"]},
+    {id:"bruch-prozent", label:"➗ Brüche & Prozent", pool:["bruchKuerzen","bruchAddition","bruchVergleich","prozentVonZahl","prozentAnteil"]},
+    {id:"textaufgaben", label:"📖 Textaufgaben", pool:["textaufgabeGarten","textaufgabePizza"]}
+  ];
+
+  /* Schulstufen-Zuordnung je Übungstyp (1.–4. Klasse Mittelschule) */
+  var GRADE_TAGS = {
+    dreieckWinkel:[2,3], viereckWinkel:[2,3], dreieckUmfang:[2,3], viereckUmfang:[2,3],
+    dreieckFlaeche:[2,3], rechteckFlaeche:[2,3], parallelogrammFlaeche:[3], trapezFlaeche:[3],
+    dreieckErkennen:[2,3], viereckErkennen:[2,3], eigenschaftenDreieck:[2,3], eigenschaftenViereck:[2,3],
+    kreisUmfang:[3,4], kreisFlaeche:[3,4],
+    quaderVolumen:[2,3], wuerfelVolumen:[2,3], zylinderVolumen:[4],
+    bruchKuerzen:[1,2], bruchAddition:[1,2], bruchVergleich:[1,2],
+    prozentVonZahl:[3,4], prozentAnteil:[3,4],
+    textaufgabeGarten:[2,3], textaufgabePizza:[2,3]
+  };
+  var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
+  var GRADES = [
+    {id:"all", label:"Alle Schulstufen"},
+    {id:"12", label:"1./2. Klasse"},
+    {id:"34", label:"3./4. Klasse"}
   ];
 
   /* ============ Game state ============ */
   var state = {
     mode: "alles",
+    grade: "all",
     points: 0,
     streak: 0,
     bestStreak: 0,
@@ -851,6 +1242,41 @@
   var ENCOURAGE_OK = ["Super gemacht! 🎉","Genau richtig! 👏","Klasse, weiter so! ✨","Stark! Das sitzt. 💪","Perfekt gelöst! 🌟","Richtig! Du bist auf einem guten Weg. 🚀"];
   var ENCOURAGE_BAD = ["Nicht ganz – schau dir die Erklärung an. 🧭","Fast! Lies dir die Lösung durch. 📘","Kein Problem, das übst du gleich noch mal. 🔁","Diesmal nicht, aber dranbleiben lohnt sich! 🌱"];
 
+  /* ============ Fortschritt speichern (Phase 2) ============ */
+  var STORAGE_KEY = "formenwerkstatt_progress_v1";
+  function saveProgress(){
+    try{
+      var data = {
+        points:state.points, streak:state.streak, bestStreak:state.bestStreak,
+        solved:state.solved, correct:state.correct, badges:state.badges,
+        mode:state.mode, grade:state.grade
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }catch(e){ /* z. B. Privatmodus ohne Speicherzugriff - Fortschritt bleibt dann nur für diese Sitzung erhalten */ }
+  }
+  function loadProgress(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return;
+      var d = JSON.parse(raw);
+      state.points = d.points||0;
+      state.streak = d.streak||0;
+      state.bestStreak = d.bestStreak||0;
+      state.solved = d.solved||0;
+      state.correct = d.correct||0;
+      state.badges = d.badges||[];
+      state.mode = MODES.some(function(m){return m.id===d.mode;}) ? d.mode : "alles";
+      state.grade = GRADES.some(function(g){return g.id===d.grade;}) ? d.grade : "all";
+    }catch(e){ /* beschädigter oder fehlender Speicher wird ignoriert, App startet mit Standardwerten */ }
+  }
+  function resetProgress(){
+    state.points=0; state.streak=0; state.bestStreak=0; state.solved=0; state.correct=0; state.badges=[];
+    try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+    updateStatsUI();
+  }
+
+  loadProgress();
+
   /* ============ Rendering ============ */
   var chipsHost = document.getElementById("chips");
   MODES.forEach(function(m){
@@ -862,9 +1288,26 @@
       state.mode = m.id;
       Array.prototype.forEach.call(chipsHost.children, function(c){ c.classList.remove("active"); });
       btn.classList.add("active");
+      saveProgress();
       nextExercise();
     });
     chipsHost.appendChild(btn);
+  });
+
+  var gradeChipsHost = document.getElementById("gradeChips");
+  GRADES.forEach(function(g){
+    var btn = document.createElement("button");
+    btn.className = "chip" + (g.id===state.grade?" active":"");
+    btn.textContent = g.label;
+    btn.dataset.grade = g.id;
+    btn.addEventListener("click", function(){
+      state.grade = g.id;
+      Array.prototype.forEach.call(gradeChipsHost.children, function(c){ c.classList.remove("active"); });
+      btn.classList.add("active");
+      saveProgress();
+      nextExercise();
+    });
+    gradeChipsHost.appendChild(btn);
   });
 
   function updateStatsUI(){
@@ -915,12 +1358,30 @@
 
   var eyebrowMap = {
     winkel:"Winkel berechnen", umfang:"Umfang berechnen", flaeche:"Fläche berechnen",
-    erkennen:"Form erkennen", eigenschaften:"Wahr oder falsch"
+    erkennen:"Form erkennen", eigenschaften:"Wahr oder falsch",
+    volumen:"Volumen berechnen", bruch:"Mit Brüchen rechnen", prozent:"Prozent berechnen",
+    textaufgabe:"Textaufgabe lösen"
   };
 
-  function nextExercise(){
+  function poolForCurrentFilters(){
     var mode = MODES.filter(function(m){return m.id===state.mode;})[0];
-    var key = choice(mode.pool);
+    var pool = mode.pool;
+    if(state.grade && state.grade!=="all"){
+      var allowed = GRADE_GROUPS[state.grade];
+      var filtered = pool.filter(function(k){
+        var tags = GRADE_TAGS[k];
+        return tags && tags.some(function(g){ return allowed.indexOf(g)!==-1; });
+      });
+      if(filtered.length>0) pool = filtered;
+      // Falls die Kombination aus Thema und Schulstufe leer wäre, bleibt vorsichtshalber
+      // der ungefilterte Themen-Pool erhalten, statt dass keine Aufgabe erscheint.
+    }
+    return pool;
+  }
+
+  function nextExercise(){
+    var pool = poolForCurrentFilters();
+    var key = choice(pool);
     var ex = GEN[key]();
     state.current = ex;
     state.answered = false;
@@ -977,6 +1438,7 @@
     }
     checkBadges();
     updateStatsUI();
+    saveProgress();
 
     var fb = document.getElementById("feedback");
     fb.className = "feedback show " + (isCorrect?"ok":"bad");
@@ -995,7 +1457,7 @@
     if(raw===""){ input.focus(); return; }
     var val = parseFloat(raw);
     if(isNaN(val)) { input.focus(); return; }
-    var isCorrect = Math.abs(val - ex.answer) < 0.05;
+    var isCorrect = Math.abs(val - ex.answer) < (ex.tolerance || 0.05);
     input.disabled = true;
     finishRound(isCorrect, ex.explanation);
   }
@@ -1013,6 +1475,11 @@
 
   document.getElementById("checkBtn").addEventListener("click", handleCheck);
   document.getElementById("nextBtn").addEventListener("click", nextExercise);
+  document.getElementById("resetBtn").addEventListener("click", function(){
+    if(window.confirm("Wirklich den gesamten Fortschritt (Punkte, Serie, Abzeichen) in diesem Browser löschen?")){
+      resetProgress();
+    }
+  });
 
   updateStatsUI();
   nextExercise();

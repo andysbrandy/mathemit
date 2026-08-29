@@ -122,6 +122,71 @@
     padding:4px 10px; border-radius:999px; color:#fff;
   }
 
+  /* Curriculum Badge – kleines Notiz-Icon, hand-written-Style */
+  .curriculum-badge{
+    position:absolute; top:10px; right:10px;
+    display:flex; align-items:center; gap:5px;
+    background:#fff; border:1px solid var(--line);
+    border-radius:8px; padding:4px 8px;
+    font-family:'Fredoka',sans-serif; font-weight:600;
+    font-size:.65rem; color:var(--muted);
+    cursor:pointer; transition:all 0.15s ease;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08);
+  }
+  .curriculum-badge:hover{
+    background:var(--paper); border-color:var(--muted);
+    transform:translateY(-1px);
+    box-shadow:0 2px 6px rgba(0,0,0,0.12);
+  }
+  .curriculum-icon{ font-size:.75rem; }
+  .curriculum-text{ white-space:nowrap; }
+
+  /* Curriculum Modal */
+  .curriculum-modal{
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.5); z-index:1000;
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+  }
+  .curriculum-modal-content{
+    background:#fff; border:1px solid var(--line);
+    border-radius:16px; max-width:520px; width:100%;
+    max-height:80vh; overflow-y:auto;
+    padding:24px; position:relative;
+    box-shadow:0 8px 32px rgba(0,0,0,0.15);
+  }
+  .curriculum-modal-close{
+    position:absolute; top:12px; right:12px;
+    background:none; border:none; font-size:1.5rem;
+    cursor:pointer; color:var(--muted); line-height:1;
+    width:32px; height:32px; border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .curriculum-modal-close:hover{ background:var(--paper); color:var(--ink); }
+  .curriculum-modal-title{
+    font-family:'Fredoka',sans-serif; font-weight:600;
+    font-size:1.2rem; margin:0 0 16px 0; color:var(--ink);
+  }
+  .curriculum-modal-body{ line-height:1.6; font-size:.9rem; }
+  .curriculum-modal-body .curriculum-block{
+    border:1px dashed var(--line); border-radius:8px;
+    padding:12px; margin-bottom:12px; background:var(--paper);
+  }
+  .curriculum-modal-block .code{
+    font-family:'JetBrains Mono',monospace; font-weight:700;
+    font-size:.8rem; color:var(--viereck); margin-bottom:4px;
+  }
+  .curriculum-modal-block .desc{ color:var(--ink); }
+  .curriculum-modal-block .kompetenz{
+    font-size:.82rem; color:var(--muted); margin-top:4px;
+    font-style:italic;
+  }
+  .curriculum-modal-block .grades{
+    display:inline-block; margin-top:6px;
+    font-family:'JetBrains Mono',monospace; font-weight:600;
+    font-size:.75rem; color:var(--gold);
+  }
+
   .question-panel{display:flex; flex-direction:column; gap:14px;}
   .question-eyebrow{
     font-family:'Fredoka',sans-serif; font-weight:600; font-size:.75rem; text-transform:uppercase;
@@ -223,6 +288,10 @@
   <div class="board">
     <div class="figure-panel">
       <span class="topic-badge" id="topicBadge">Dreieck</span>
+      <span class="curriculum-badge" id="curriculumBadge" style="display:none;" title="Lehrplan-Informationen">
+        <span class="curriculum-icon">📋</span>
+        <span class="curriculum-text">Lehrplan</span>
+      </span>
       <div id="figureHost"></div>
     </div>
     <div class="question-panel">
@@ -237,6 +306,17 @@
       <div class="answer-row">
         <button class="btn primary" id="checkBtn">Prüfen</button>
         <button class="btn next" id="nextBtn">Nächste Aufgabe →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal für ausführliche Lehrplan-Informationen -->
+  <div id="curriculumModal" class="curriculum-modal" style="display:none;">
+    <div class="curriculum-modal-content">
+      <button class="curriculum-modal-close" id="curriculumModalClose">&times;</button>
+      <h3 class="curriculum-modal-title">Österreichischer Lehrplan – Bildungsstandards</h3>
+      <div id="curriculumModalBody">
+        <!-- Inhalt wird per JS eingefügt -->
       </div>
     </div>
   </div>
@@ -605,8 +685,59 @@
 
   /* ============ Exercise generators ============ */
 
+  // Globaler Schlüssel für das aktuelle Curriculum-Mapping
+  // wird in GEN-Wrappern gesetzt, damit der Code in den Generatoren unverändert bleibt
+  var _currentCurriculumKey = null;
+
   function baseEx(category, topic){
-    return {category:category, topic:topic};
+    return {category:category, topic:topic, curriculumKey:_currentCurriculumKey};
+  }
+
+  /* ============ Curriculum UI: Badge & Modal ============ */
+  function updateCurriculumBadge(curriculumKey){
+    var badge = document.getElementById("curriculumBadge");
+    if(!badge) return;
+    if(curriculumKey && CURRICULUM_MAP[curriculumKey]){
+      badge.style.display = "flex";
+      badge.dataset.curriculumKey = curriculumKey;
+    } else {
+      badge.style.display = "none";
+    }
+  }
+
+  function openCurriculumModal(){
+    var badge = document.getElementById("curriculumBadge");
+    if(!badge) return;
+    var key = badge.dataset.curriculumKey;
+    if(!key || !CURRICULUM_MAP[key]) return;
+
+    var mapping = CURRICULUM_MAP[key];
+    var grades = GRADE_TAGS[key] || [];
+    var body = document.getElementById("curriculumModalBody");
+
+    var html = '<div class="curriculum-modal-block">';
+    html += '<div class="kompetenz">Konkrete Kompetenz: <strong>'+mapping.kompetenz+'</strong></div>';
+    html += '<div class="grades">📚 Schulstufe: ' + grades.map(function(g){ return g+". Klasse"; }).join(", ") + '</div>';
+    html += '</div>';
+
+    html += '<div style="font-weight:600; margin: 12px 0 8px;">Zugeordnete Bildungsstandards (BMBWF):</div>';
+    mapping.codes.forEach(function(code){
+      html += '<div class="curriculum-block">';
+      html += '<div class="code">Code: '+code+'</div>';
+      html += '<div class="desc">'+LEHRPLAN[code]+'</div>';
+      html += '</div>';
+    });
+
+    html += '<div style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--line); font-size:.78rem; color:var(--muted);">';
+    html += 'Referenz: <em>BMBWF Lehrplan 2023 – Mathematik, AHS-Unterstufe / Mittelschule. Kompetenzbereiche H1–H4 (Handlungsdimension) und I1–I3 (Inhaltsdimension).</em>';
+    html += '</div>';
+
+    body.innerHTML = html;
+    document.getElementById("curriculumModal").style.display = "flex";
+  }
+
+  function closeCurriculumModal(){
+    document.getElementById("curriculumModal").style.display = "none";
   }
 
   // 1) Winkelsumme im Dreieck
@@ -1151,31 +1282,39 @@
   }
 
   /* ============ Pools & Modes ============ */
+  // Hilfsfunktion: setzt _currentCurriculumKey und ruft den Generator auf
+  function withCurriculum(key, fn){
+    return function(){
+      _currentCurriculumKey = key;
+      return fn();
+    };
+  }
+
   var GEN = {
-    dreieckWinkel: genDreieckWinkel,
-    viereckWinkel: genViereckWinkel,
-    dreieckUmfang: genDreieckUmfang,
-    viereckUmfang: genViereckUmfang,
-    dreieckFlaeche: genDreieckFlaeche,
-    rechteckFlaeche: genRechteckFlaeche,
-    parallelogrammFlaeche: genParallelogrammFlaeche,
-    trapezFlaeche: genTrapezFlaeche,
-    dreieckErkennen: genDreieckErkennen,
-    viereckErkennen: genViereckErkennen,
-    eigenschaftenDreieck: genEigenschaftenDreieck,
-    eigenschaftenViereck: genEigenschaftenViereck,
-    kreisUmfang: genKreisUmfang,
-    kreisFlaeche: genKreisFlaeche,
-    quaderVolumen: genQuaderVolumen,
-    wuerfelVolumen: genWuerfelVolumen,
-    zylinderVolumen: genZylinderVolumen,
-    bruchKuerzen: genBruchKuerzen,
-    bruchAddition: genBruchAddition,
-    bruchVergleich: genBruchVergleich,
-    prozentVonZahl: genProzentVonZahl,
-    prozentAnteil: genProzentAnteil,
-    textaufgabeGarten: genTextaufgabeGarten,
-    textaufgabePizza: genTextaufgabePizza
+    dreieckWinkel:        withCurriculum("dreieckWinkel",         genDreieckWinkel),
+    viereckWinkel:        withCurriculum("viereckWinkel",         genViereckWinkel),
+    dreieckUmfang:        withCurriculum("dreieckUmfang",         genDreieckUmfang),
+    viereckUmfang:        withCurriculum("viereckUmfang",         genViereckUmfang),
+    dreieckFlaeche:       withCurriculum("dreieckFlaeche",        genDreieckFlaeche),
+    rechteckFlaeche:      withCurriculum("rechteckFlaeche",       genRechteckFlaeche),
+    parallelogrammFlaeche:withCurriculum("parallelogrammFlaeche", genParallelogrammFlaeche),
+    trapezFlaeche:        withCurriculum("trapezFlaeche",         genTrapezFlaeche),
+    dreieckErkennen:      withCurriculum("dreieckErkennen",       genDreieckErkennen),
+    viereckErkennen:      withCurriculum("viereckErkennen",       genViereckErkennen),
+    eigenschaftenDreieck: withCurriculum("eigenschaftenDreieck",  genEigenschaftenDreieck),
+    eigenschaftenViereck: withCurriculum("eigenschaftenViereck",  genEigenschaftenViereck),
+    kreisUmfang:          withCurriculum("kreisUmfang",           genKreisUmfang),
+    kreisFlaeche:         withCurriculum("kreisFlaeche",          genKreisFlaeche),
+    quaderVolumen:        withCurriculum("quaderVolumen",         genQuaderVolumen),
+    wuerfelVolumen:       withCurriculum("wuerfelVolumen",        genWuerfelVolumen),
+    zylinderVolumen:      withCurriculum("zylinderVolumen",       genZylinderVolumen),
+    bruchKuerzen:         withCurriculum("bruchKuerzen",          genBruchKuerzen),
+    bruchAddition:        withCurriculum("bruchAddition",         genBruchAddition),
+    bruchVergleich:       withCurriculum("bruchVergleich",        genBruchVergleich),
+    prozentVonZahl:       withCurriculum("prozentVonZahl",        genProzentVonZahl),
+    prozentAnteil:        withCurriculum("prozentAnteil",         genProzentAnteil),
+    textaufgabeGarten:    withCurriculum("textaufgabeGarten",     genTextaufgabeGarten),
+    textaufgabePizza:     withCurriculum("textaufgabePizza",      genTextaufgabePizza)
   };
 
   var MODES = [
@@ -1202,6 +1341,72 @@
     textaufgabeGarten:[2,3], textaufgabePizza:[2,3]
   };
   var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
+  var GRADES = [
+    {id:"all", label:"Alle Schulstufen"},
+    {id:"12", label:"1./2. Klasse"},
+    {id:"34", label:"3./4. Klasse"}
+  ];
+
+  /* ============ Österreichischer Lehrplan: Bildungsstandards & Kompetenzbereiche ============
+   * Quellen-Grundlage: BMBWF Lehrplan 2023 (Mathematik, AHS-Unterstufe / Mittelschule)
+   * sowie "Komp[e]tenzorientierter Unterricht" – Kompetenzbereiche H1–H4, I1–I3
+   * Codierung: <Schulstufe>.<Kompetenzbereich>-<Laufnummer>
+   *  – Kompetenzbereiche: H1 Zahlen & Maße, H2 Variable & Funktionen, H3 Figuren & Körper, H4 Statistik
+   *  – I1 Modellieren, I2 Operieren, I3 Interpretieren
+   */
+  var LEHRPLAN = {
+    "H3.I1":  "Figuren und Körper in der Umwelt erkennen und beschreiben",
+    "H3.I2":  "Eigenschaften von Dreiecken, Vierecken und Kreisen benennen und anwenden",
+    "H3.I3":  "Umfang und Flächeninhalt ebener Figuren berechnen",
+    "H3.I4":  "Volumen und Oberfläche von Körpern berechnen",
+    "H3.I5":  "Winkelbeziehungen und Winkelsummen nutzen",
+    "H1.I1":  "Mit Brüchen rechnen und diese in Alltagskontexten anwenden",
+    "H1.I2":  "Prozentbegriff verstehen und Prozentrechnungen durchführen",
+    "H1.I3":  "Größen in unterschiedlichen Maßeinheiten darstellen und umrechnen",
+    "I1.M1":  "Sachverhalte aus dem Alltag in mathematische Modelle übersetzen",
+    "I2.M1":  "Mathematische Verfahren sicher und sinnvoll anwenden",
+    "I3.M1":  "Ergebnisse interpretieren, prüfen und in Alltagssprache erklären"
+  };
+  // Curriculum-Mapping pro Übungstyp (Codes verweisen auf LEHRPLAN)
+  var CURRICULUM_MAP = {
+    dreieckWinkel:        {codes:["H3.I5","H3.I1"], kompetenz:"Winkelsumme im Dreieck anwenden"},
+    viereckWinkel:        {codes:["H3.I5","H3.I1"], kompetenz:"Winkelsumme im Viereck anwenden"},
+    dreieckUmfang:        {codes:["H3.I3","I2.M1"], kompetenz:"Umfang eines Dreiecks berechnen"},
+    viereckUmfang:        {codes:["H3.I3","I2.M1"], kompetenz:"Umfang eines Vierecks berechnen"},
+    dreieckFlaeche:       {codes:["H3.I3","I2.M1"], kompetenz:"Flächeninhalt eines Dreiecks berechnen"},
+    rechteckFlaeche:      {codes:["H3.I3","I2.M1"], kompetenz:"Flächeninhalt eines Rechtecks berechnen"},
+    parallelogrammFlaeche:{codes:["H3.I3","I2.M1"], kompetenz:"Flächeninhalt eines Parallelogramms berechnen"},
+    trapezFlaeche:        {codes:["H3.I3","I2.M1"], kompetenz:"Flächeninhalt eines Trapezes berechnen"},
+    dreieckErkennen:      {codes:["H3.I1","H3.I2"], kompetenz:"Dreiecksarten unterscheiden"},
+    viereckErkennen:      {codes:["H3.I1","H3.I2"], kompetenz:"Vierecksarten unterscheiden"},
+    eigenschaftenDreieck: {codes:["H3.I2","I3.M1"], kompetenz:"Eigenschaften von Dreiecken begründet angeben"},
+    eigenschaftenViereck: {codes:["H3.I2","I3.M1"], kompetenz:"Eigenschaften von Vierecken begründet angeben"},
+    kreisUmfang:          {codes:["H3.I3","I2.M1"], kompetenz:"Umfang eines Kreises berechnen (U = 2·π·r)"},
+    kreisFlaeche:         {codes:["H3.I3","I2.M1"], kompetenz:"Flächeninhalt eines Kreises berechnen (A = π·r²)"},
+    quaderVolumen:        {codes:["H3.I4","I2.M1"], kompetenz:"Volumen eines Quaders berechnen"},
+    wuerfelVolumen:       {codes:["H3.I4","I2.M1"], kompetenz:"Volumen eines Würfels berechnen"},
+    zylinderVolumen:      {codes:["H3.I4","I2.M1"], kompetenz:"Volumen eines Zylinders berechnen"},
+    bruchKuerzen:         {codes:["H1.I1","I2.M1"], kompetenz:"Brüche kürzen und erweitern"},
+    bruchAddition:        {codes:["H1.I1","I2.M1"], kompetenz:"Brüche addieren und subtrahieren"},
+    bruchVergleich:       {codes:["H1.I1","I3.M1"], kompetenz:"Brüche vergleichen und ordnen"},
+    prozentVonZahl:       {codes:["H1.I2","I1.M1"], kompetenz:"Prozentwert berechnen (Alltagskontext)"},
+    prozentAnteil:        {codes:["H1.I2","I1.M1"], kompetenz:"Prozentanteile in Sachsituationen bestimmen"},
+    textaufgabeGarten:    {codes:["I1.M1","I3.M1","H1.I3"], kompetenz:"Sachaufgabe mit Längen/Flächen modellieren und lösen"},
+    textaufgabePizza:     {codes:["I1.M1","H1.I1","H1.I2"], kompetenz:"Bruch- und Prozentaufgabe aus dem Alltag lösen"}
+  };
+
+  /* ============ Schreibweise nach österreichischem Lehrplan ============
+   * – Komma als Dezimaltrennzeichen (z. B. 3,14)
+   * – Tausender-Punkt (z. B. 1.250)
+   * – SI-konforme Einheiten in der im österreichischen Unterricht üblichen Kurzform
+   */
+  function fmtAT(x){
+    // Zahl in österreichische Notation umwandeln (Komma als Dezimaltrennzeichen)
+    if(Math.abs(x) >= 1000){
+      return x.toFixed(2).replace(".",",").replace(/\B(?=(\d{3})+(?!\d))/g,".");
+    }
+    return x.toFixed(2).replace(".",",");
+  }
   var GRADES = [
     {id:"all", label:"Alle Schulstufen"},
     {id:"12", label:"1./2. Klasse"},
@@ -1391,6 +1596,7 @@
     document.getElementById("questionText").textContent = ex.question;
     document.getElementById("hintText").textContent = ex.hint || "";
     renderFigure(ex.svg, ex.badge, ex.badgeColor);
+    updateCurriculumBadge(ex.curriculumKey);
 
     var answerArea = document.getElementById("answerArea");
     answerArea.innerHTML = "";
@@ -1480,6 +1686,29 @@
     if(window.confirm("Wirklich den gesamten Fortschritt (Punkte, Serie, Abzeichen) in diesem Browser löschen?")){
       resetProgress();
     }
+  });
+
+  /* Curriculum Badge & Modal: Event-Handler */
+  var curriculumBadgeEl = document.getElementById("curriculumBadge");
+  if(curriculumBadgeEl){
+    curriculumBadgeEl.addEventListener("click", openCurriculumModal);
+  }
+  var curriculumModalCloseEl = document.getElementById("curriculumModalClose");
+  if(curriculumModalCloseEl){
+    curriculumModalCloseEl.addEventListener("click", closeCurriculumModal);
+  }
+  // Schließen bei Klick außerhalb des Modals
+  var curriculumModalEl = document.getElementById("curriculumModal");
+  if(curriculumModalEl){
+    curriculumModalEl.addEventListener("click", function(e){
+      if(e.target === curriculumModalEl){
+        closeCurriculumModal();
+      }
+    });
+  }
+  // ESC-Taste schließt das Modal
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape") closeCurriculumModal();
   });
 
   updateStatsUI();

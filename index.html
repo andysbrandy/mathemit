@@ -1281,6 +1281,170 @@
     return ex;
   }
 
+  /* ============ Schreibweise nach österreichischem Lehrplan ============
+   * – Komma als Dezimaltrennzeichen (z. B. 3,14)
+   * – Tausender-Punkt (z. B. 1.250)
+   * – Euro-Schreibweise: Betrag mit " €" (z. B. 12,50 €)
+   * – Mathematische Symbole: ∢ (rechter Winkel), △, □, ◯, cm², cm³
+   */
+  function fmtAT(x){
+    // Zahl in österreichische Notation umwandeln (Komma als Dezimaltrennzeichen)
+    var s = (Math.round(x*100)/100).toString();
+    var parts = s.split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return parts.join(",");
+  }
+  // Euro-Beträge: "12,50 €" (österreichische Schreibweise)
+  function fmtEUR(x){
+    return fmtAT(x) + " €";
+  }
+
+  /* ============ Österreich-Kontext: Personen, Orte, Produkte, Kultur ============
+   * Bewusst österreichisch (z. B. "Sackerl" statt Tüte, "Schularbeit" statt Klassenarbeit,
+   * "Jause" statt Pausenbrot). Eine einheitliche Sprachstimme für alle Schüler/innen in AT.
+   */
+  var AUSTRIA = {
+    vornamen:  ["Lena","Thomas","Sophie","Jakob","Anna","Paul","Sarah","Felix","Mira","David","Emma","Elias","Nora","Matteo","Ida","Florian"],
+    familien:  ["Huber","Bauer","Müller","Wagner","Gruber","Steiner","Hofer","Berger","Weber","Fuchs","Maier","Winkler","Schmid","Keller","Schwarz"],
+    staedte:   ["Wien","Graz","Linz","Salzburg","Innsbruck","Klagenfurt","Villach","Wels","Sankt Pölten","Dornbirn","Steyr","Wiener Neustadt","Feldkirch","Bregenz","Leonding","Klosterneuburg"],
+    sehenswuerdigkeiten:{
+      "Wien":       ["Stephansdom","Schloss Schönbrunn","Prater","Belvedere","Riesenrad","Hundertwasserhaus","Donauinsel"],
+      "Salzburg":   ["Festung Hohensalzburg","Mozarts Geburtshaus","Schloss Mirabell","Getreidegasse","Untersberg"],
+      "Innsbruck":  ["Goldenes Dachl","Bergisel","Nordkette","Schloss Ambras"],
+      "Graz":       ["Schlossberg","Kunsthaus","Uhrturm","Murinsel"],
+      "Linz":       ["Ars Electronica Center","Pöstlingberg","Donauschlinge"],
+      "Klagenfurt": ["Wörthersee","Minimundus","Lindwurmbrunnen"]
+    },
+    einkauf:    ["BILLA","Hofer","Spar","Lidl","Merkur","Interspar","Penny"],
+    lebensmittel:["Semmel","Weckerl","Leberkäse","Mozartkugel","Sachertorte","Apfelstrudel","Kaiserschmarrn","Würstel","Breze","Kipferl","Manner-Schnitten","Milch","Butter","Topfen"],
+    produkte:   ["Hauptschulheft","Lineatur-3-Heft","Bleistift","Füllfeder","Geodreieck","Zirkel","Taschenrechner","Turnbeutel","Turnpatscherl"],
+    aktivitaeten:["Wandern","Schifahren","Rodeln","Schwimmen","Radfahren","Klettern","Eislaufen","Spielen am Spielplatz"],
+    saisonales:{
+      winter:["Punsch","Glühwein","Christkindlmarkt","Schneemann","Skikurs","Rodeln","Adventkranz"],
+      fruehling:["Osterhase","Palmbuschen","Maibaum","Spargel","Krokus","Schulanfang"],
+      sommer:["Grillen im Park","Donauinselfest","Badesee","Eis am Stiel","Wandertag","Sommerferien","Beeren pflücken"],
+      herbst:["Erntedank","Kastanien","Wandern","Heurigen","Kürbis","Wiener Wiesn"]
+    },
+    schule:    ["Volksschule","Mittelschule","Gymnasium","AHS-Unterstufe","Polytechnische Schule","Berufsschule"],
+    faecher:   ["Mathematik","Deutsch","Englisch","Sachunterricht","Biologie","Musikerziehung","Bewegung und Sport","Geographie"],
+    noten:     ["Sehr gut","Gut","Befriedigend","Genügend","Nicht genügend"],
+    schulbegriffe:{
+      test:        "Schularbeit",
+      hausaufgabe: "Hausübung",
+      pause:       "Pause",
+      jause:       "Jause",
+      mappe:       "Sackerl",
+      matheMappe:  "Mathe-Sackerl",
+      kopfRechnen: "Kopfrechnen",
+      tafel:       "Tafel",
+      kreide:      "Kreide"
+    }
+  };
+
+  /* ============ Phase 4: Österreichische Alltags-Sachaufgaben ============
+   * Bewusst österreichische Kontexte (Wien, Wandern, Einkauf, Christkindlmarkt, Schule).
+   * Notation: Komma als Dezimaltrennzeichen, " €" als Währung.
+   */
+
+  // Wien: Grundfläche eines bekannten österreichischen Bauwerks
+  function genTextaufgabeWien(){
+    var stadt = choice(Object.keys(AUSTRIA.sehenswuerdigkeiten));
+    var bauwerk = choice(AUSTRIA.sehenswuerdigkeiten[stadt]);
+    var l = rand(20, 80);
+    var b = rand(10, 40);
+    var flaeche = l * b;
+    var maxDim=Math.max(l,b), scale=170/maxDim;
+    var w=l*scale, h=b*scale, x0=(300-w)/2, y0=(220-h)/2;
+    var pts=[{x:x0,y:y0},{x:x0+w,y:y0},{x:x0+w,y:y0+h},{x:x0,y:y0+h}];
+    var svg = polygonSVG(pts,{color:COLORS.textaufgabe.main, soft:COLORS.textaufgabe.soft, sideLabels:[l+" m", b+" m", l+" m", b+" m"], labelOffset:16});
+    var ex = baseEx("textaufgabe","textaufgabe");
+    ex.question = "Der Vorplatz des/der "+bauwerk+" in "+stadt+" ist rechteckig: "+l+" m lang und "+b+" m breit. Berechne die Fläche des Vorplatzes.";
+    ex.hint = "Rechteck: A = Länge · Breite.";
+    ex.svg=svg; ex.badge="Alltag · "+stadt; ex.badgeColor=COLORS.textaufgabe.main;
+    ex.inputType="number"; ex.unit="m²";
+    ex.answer = flaeche;
+    ex.explanation = "A = "+l+" m · "+b+" m = "+fmtAT(flaeche)+" m².";
+    return ex;
+  }
+
+  // Wandern: Höhenmeter (sehr österreichisch!)
+  function genTextaufgabeWandern(){
+    var start = rand(400, 1800);
+    var diff = rand(150, 900);
+    var ziel = start + diff;
+    var strecke = rand(2, 12);
+    var ex = baseEx("textaufgabe","textaufgabe");
+    var name1 = choice(AUSTRIA.vornamen);
+    var name2 = choice(AUSTRIA.vornamen);
+    var berg = choice(["Hochkönig","Großglockner","Dachstein","Rax","Schneeberg","Wilder Kaiser","Großer Priel"]);
+    ex.question = name1+" und "+name2+" wandern in den "+berg+". Sie starten auf "+start+" m Seehöhe und erreichen das Gipfelkreuz auf "+ziel+" m Seehöhe. Sie wandern dafür "+strecke+" km. Wie viele Höhenmeter haben sie überwunden?";
+    ex.hint = "Höhenmeter = Gipfelhöhe − Startshöhe. (Die Wanderstrecke in km ist hier nicht gefragt.)";
+    ex.badge="Alltag · Wandern"; ex.badgeColor=COLORS.textaufgabe.main;
+    ex.inputType="number"; ex.unit="m";
+    ex.answer = diff;
+    ex.explanation = "Höhenmeter = "+ziel+" m − "+start+" m = "+fmtAT(diff)+" m.";
+    return ex;
+  }
+
+  // Einkauf: Preisberechnung mit Euro
+  function genTextaufgabeEinkauf(){
+    var laden = choice(AUSTRIA.einkauf);
+    var produkt = choice(AUSTRIA.lebensmittel);
+    var einzel = (rand(5, 45) * 10) / 10;
+    var menge = rand(2, 6);
+    var summe = Math.round(einzel * menge * 100) / 100;
+    var ex = baseEx("textaufgabe","textaufgabe");
+    var name = choice(AUSTRIA.vornamen);
+    ex.question = name+" kauft bei "+laden+" "+menge+" Stück "+produkt+" um je "+fmtEUR(einzel)+". Wie viel muss "+name+" insgesamt bezahlen?";
+    ex.hint = "Gesamtpreis = Einzelpreis · Menge. Rechne sorgfältig mit dem Komma.";
+    ex.badge="Alltag · Einkauf"; ex.badgeColor=COLORS.textaufgabe.main;
+    ex.inputType="number"; ex.unit="€"; ex.tolerance=0.01;
+    ex.answer = summe;
+    ex.explanation = fmtAT(einzel)+" € · "+menge+" = "+fmtEUR(summe)+".";
+    return ex;
+  }
+
+  // Christkindlmarkt: Mehrere Posten addieren + Wechselgeld
+  function genTextaufgabeWeihnacht(){
+    var name = choice(AUSTRIA.vornamen);
+    var p1 = (rand(20, 55) * 10) / 10;
+    var p2 = (rand(10, 35) * 10) / 10;
+    var p3 = (rand(8, 25) * 10) / 10;
+    var n1 = rand(1, 3);
+    var n2 = rand(1, 2);
+    var n3 = rand(1, 2);
+    var sum = Math.round((p1*n1 + p2*n2 + p3*n3) * 100) / 100;
+    var gegeben = Math.ceil(sum);
+    var rueckgeld = Math.round((gegeben - sum) * 100) / 100;
+    var ex = baseEx("textaufgabe","textaufgabe");
+    ex.question = name+" ist mit der Familie am Christkindlmarkt. "+name+" kauft "+n1+" Punsch zu je "+fmtEUR(p1)+", "+n2+" Lebkuchen zu je "+fmtEUR(p2)+" und "+n3+" Breze zu je "+fmtEUR(p3)+". "+name+" bezahlt mit einem "+fmtEUR(gegeben)+"-Schein. Wie viel Wechselgeld bekommt "+name+" zurück?";
+    ex.hint = "1) Gesamtkosten berechnen (alle Posten addieren). 2) Wechselgeld = Gegeben − Gesamtkosten.";
+    ex.badge="Alltag · Christkindlmarkt"; ex.badgeColor=COLORS.textaufgabe.main;
+    ex.inputType="number"; ex.unit="€"; ex.tolerance=0.01;
+    ex.answer = rueckgeld;
+    ex.explanation = "Gesamt: "+fmtEUR(p1*n1)+" + "+fmtEUR(p2*n2)+" + "+fmtEUR(p3*n3)+" = "+fmtEUR(sum)+". Wechselgeld: "+fmtEUR(gegeben)+" − "+fmtEUR(sum)+" = "+fmtEUR(rueckgeld)+".";
+    return ex;
+  }
+
+  // Schule: Bruch-/Anteilsaufgabe aus dem Schulalltag
+  function genTextaufgabeSchule(){
+    var schulTyp = choice(["Mittelschule","AHS-Unterstufe","Volksschule"]);
+    var klassenGroesse = choice([20, 22, 24, 25, 26, 28]);
+    var nenner = choice([2, 4, 5, 8, 10]);
+    var zaehler = rand(1, nenner-1);
+    var anzahl = (klassenGroesse * zaehler) / nenner;
+    if(anzahl !== Math.round(anzahl)) return genTextaufgabeSchule();
+    var name = choice(AUSTRIA.vornamen);
+    var ex = baseEx("textaufgabe","textaufgabe");
+    ex.question = "In einer "+klassenGroesse+"-köpfigen Klasse einer "+schulTyp+" haben "+zaehler+"/"+nenner+" aller Kinder die Mathematik-Schularbeit mit 'Sehr gut' oder 'Gut' bestanden. Wie viele Kinder sind das?";
+    ex.hint = "Anzahl = Klassengröße · Bruch. Zuerst den Bruch als Dezimalzahl denken, dann mit der Klassengröße multiplizieren.";
+    ex.badge="Alltag · Schule"; ex.badgeColor=COLORS.textaufgabe.main;
+    ex.inputType="number"; ex.unit="";
+    ex.answer = anzahl;
+    ex.explanation = zaehler+"/"+nenner+" von "+klassenGroesse+" = "+klassenGroesse+" · "+zaehler+"/"+nenner+" = "+anzahl+".";
+    return ex;
+  }
+
   /* ============ Pools & Modes ============ */
   // Hilfsfunktion: setzt _currentCurriculumKey und ruft den Generator auf
   function withCurriculum(key, fn){
@@ -1314,7 +1478,12 @@
     prozentVonZahl:       withCurriculum("prozentVonZahl",        genProzentVonZahl),
     prozentAnteil:        withCurriculum("prozentAnteil",         genProzentAnteil),
     textaufgabeGarten:    withCurriculum("textaufgabeGarten",     genTextaufgabeGarten),
-    textaufgabePizza:     withCurriculum("textaufgabePizza",      genTextaufgabePizza)
+    textaufgabePizza:     withCurriculum("textaufgabePizza",      genTextaufgabePizza),
+    textaufgabeWien:      withCurriculum("textaufgabeWien",       genTextaufgabeWien),
+    textaufgabeWandern:   withCurriculum("textaufgabeWandern",    genTextaufgabeWandern),
+    textaufgabeEinkauf:   withCurriculum("textaufgabeEinkauf",    genTextaufgabeEinkauf),
+    textaufgabeWeihnacht: withCurriculum("textaufgabeWeihnacht",  genTextaufgabeWeihnacht),
+    textaufgabeSchule:    withCurriculum("textaufgabeSchule",     genTextaufgabeSchule)
   };
 
   var MODES = [
@@ -1326,7 +1495,8 @@
     {id:"kreis", label:"⭕ Kreis", pool:["kreisUmfang","kreisFlaeche"]},
     {id:"koerper", label:"📦 Körper", pool:["quaderVolumen","wuerfelVolumen","zylinderVolumen"]},
     {id:"bruch-prozent", label:"➗ Brüche & Prozent", pool:["bruchKuerzen","bruchAddition","bruchVergleich","prozentVonZahl","prozentAnteil"]},
-    {id:"textaufgaben", label:"📖 Textaufgaben", pool:["textaufgabeGarten","textaufgabePizza"]}
+    {id:"textaufgaben", label:"📖 Textaufgaben", pool:["textaufgabeGarten","textaufgabePizza"]},
+    {id:"alltag", label:"🇦🇹 Alltag in Österreich", pool:["textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule"]}
   ];
 
   /* Schulstufen-Zuordnung je Übungstyp (1.–4. Klasse Mittelschule) */
@@ -1338,7 +1508,9 @@
     quaderVolumen:[2,3], wuerfelVolumen:[2,3], zylinderVolumen:[4],
     bruchKuerzen:[1,2], bruchAddition:[1,2], bruchVergleich:[1,2],
     prozentVonZahl:[3,4], prozentAnteil:[3,4],
-    textaufgabeGarten:[2,3], textaufgabePizza:[2,3]
+    textaufgabeGarten:[2,3], textaufgabePizza:[2,3],
+    textaufgabeWien:[2,3], textaufgabeWandern:[2,3], textaufgabeEinkauf:[2,3],
+    textaufgabeWeihnacht:[2,3], textaufgabeSchule:[2,3]
   };
   var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
   var GRADES = [
@@ -1392,26 +1564,13 @@
     prozentVonZahl:       {codes:["H1.I2","I1.M1"], kompetenz:"Prozentwert berechnen (Alltagskontext)"},
     prozentAnteil:        {codes:["H1.I2","I1.M1"], kompetenz:"Prozentanteile in Sachsituationen bestimmen"},
     textaufgabeGarten:    {codes:["I1.M1","I3.M1","H1.I3"], kompetenz:"Sachaufgabe mit Längen/Flächen modellieren und lösen"},
-    textaufgabePizza:     {codes:["I1.M1","H1.I1","H1.I2"], kompetenz:"Bruch- und Prozentaufgabe aus dem Alltag lösen"}
+    textaufgabePizza:     {codes:["I1.M1","H1.I1","H1.I2"], kompetenz:"Bruch- und Prozentaufgabe aus dem Alltag lösen"},
+    textaufgabeWien:      {codes:["I1.M1","H1.I3","I3.M1"], kompetenz:"Sachaufgabe mit österreichischem Alltagsbezug modellieren und lösen"},
+    textaufgabeWandern:   {codes:["I1.M1","H1.I3","I3.M1"], kompetenz:"Sachaufgabe mit Längen und Höhenmetern aus dem Alltag lösen"},
+    textaufgabeEinkauf:   {codes:["I1.M1","H1.I2","I3.M1"], kompetenz:"Preisberechnung und Prozentrechnung im Alltag"},
+    textaufgabeWeihnacht: {codes:["I1.M1","H1.I2","I3.M1"], kompetenz:"Sachaufgabe mit Preisen und Mengen aus dem Alltag lösen"},
+    textaufgabeSchule:    {codes:["I1.M1","H1.I1","I3.M1"], kompetenz:"Bruch- und Anteilsaufgabe aus dem Schulalltag"}
   };
-
-  /* ============ Schreibweise nach österreichischem Lehrplan ============
-   * – Komma als Dezimaltrennzeichen (z. B. 3,14)
-   * – Tausender-Punkt (z. B. 1.250)
-   * – SI-konforme Einheiten in der im österreichischen Unterricht üblichen Kurzform
-   */
-  function fmtAT(x){
-    // Zahl in österreichische Notation umwandeln (Komma als Dezimaltrennzeichen)
-    if(Math.abs(x) >= 1000){
-      return x.toFixed(2).replace(".",",").replace(/\B(?=(\d{3})+(?!\d))/g,".");
-    }
-    return x.toFixed(2).replace(".",",");
-  }
-  var GRADES = [
-    {id:"all", label:"Alle Schulstufen"},
-    {id:"12", label:"1./2. Klasse"},
-    {id:"34", label:"3./4. Klasse"}
-  ];
 
   /* ============ Game state ============ */
   var state = {

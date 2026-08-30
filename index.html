@@ -1146,6 +1146,50 @@
     return ex;
   }
 
+  /* ============ Phase 3b: Oberflächenberechnung von Körpern ============ */
+
+  function genQuaderOberflaeche(){
+    var l=rand(3,10), b=rand(2,8), h=rand(2,8);
+    var svg = boxFigureSVG(l,b,h,COLORS.koerper.main,COLORS.koerper.soft,false);
+    var oberflaeche = 2*(l*b + b*h + l*h);
+    var ex = baseEx("koerper","oberflaeche");
+    ex.question = "Berechne die Oberfläche dieses Quaders (a = "+l+" cm, b = "+b+" cm, h = "+h+" cm).";
+    ex.hint = "Formel: O = 2·(a·b + b·h + a·h). Ein Quader hat 6 Seitenflächen (je 2 gleich große).";
+    ex.svg=svg; ex.badge="Quader · Oberfläche"; ex.badgeColor=COLORS.koerper.main;
+    ex.inputType="number"; ex.unit="cm²";
+    ex.answer = oberflaeche;
+    ex.explanation = "O = 2·("+l+"·"+b+" + "+b+"·"+h+" + "+l+"·"+h+") = 2·("+(l*b)+" + "+(b*h)+" + "+(l*h)+") = 2·"+(l*b+b*h+l*h)+" = "+fmtAT(oberflaeche)+" cm².";
+    return ex;
+  }
+
+  function genWuerfelOberflaeche(){
+    var a = rand(3,10);
+    var svg = boxFigureSVG(a,a,a,COLORS.koerper.main,COLORS.koerper.soft,true);
+    var oberflaeche = 6*a*a;
+    var ex = baseEx("koerper","oberflaeche");
+    ex.question = "Berechne die Oberfläche dieses Würfels (Kantenlänge a = "+a+" cm).";
+    ex.hint = "Formel: O = 6·a². Ein Würfel hat 6 gleich große Quadratflächen.";
+    ex.svg=svg; ex.badge="Würfel · Oberfläche"; ex.badgeColor=COLORS.koerper.main;
+    ex.inputType="number"; ex.unit="cm²";
+    ex.answer = oberflaeche;
+    ex.explanation = "O = 6·"+a+"² = 6·"+(a*a)+" = "+fmtAT(oberflaeche)+" cm².";
+    return ex;
+  }
+
+  function genZylinderOberflaeche(){
+    var r = rand(2,6), h = rand(3,10);
+    var svg = cylinderFigureSVG(r,h,COLORS.koerper.main,COLORS.koerper.soft);
+    var oberflaeche = 2*Math.PI*r*(r+h);
+    var ex = baseEx("koerper","oberflaeche");
+    ex.question = "Berechne die Oberfläche dieses Zylinders (r = "+r+" cm, h = "+h+" cm).";
+    ex.hint = "Formel: O = 2·π·r·(r + h). Die Oberfläche besteht aus 2 Kreisflächen (je π·r²) und dem Mantel (2·π·r·h).";
+    ex.svg=svg; ex.badge="Zylinder · Oberfläche"; ex.badgeColor=COLORS.koerper.main;
+    ex.inputType="number"; ex.unit="cm²"; ex.tolerance=Math.max(1, r*(r+h)*0.05);
+    ex.answer = oberflaeche;
+    ex.explanation = "O = 2·π·"+r+"·("+r+" + "+h+") ≈ 2·3,14·"+r+"·"+(r+h)+" = "+fmtAT(2*3.14*r*(r+h))+" cm².";
+    return ex;
+  }
+
   /* ============ Phase 3: Brüche ============ */
 
   function gcd(a,b){ return b===0 ? a : gcd(b, a%b); }
@@ -1210,6 +1254,127 @@
     ex.svg=svg; ex.badge="Bruch · Vergleichen"; ex.badgeColor=COLORS.bruch.main;
     ex.inputType="mc"; ex.choices=options; ex.correctIndex=options.indexOf(bigger);
     ex.explanation = bigger+" ist der größere Bruch.";
+    return ex;
+  }
+
+  /* ============ Phase 3c: Brüche mit unterschiedlichen Nennern, Mal, Geteilt ============ */
+
+  // kgV (kleinstes gemeinsames Vielfaches)
+  function lcm(a,b){ return (a*b) / gcd(a,b); }
+
+  // Addition/Subtraktion mit unterschiedlichen Nennern
+  function genBruchAdditionVerschNenner(){
+    var op = choice(["plus","minus"]);
+    var pool = [2,3,4,5,6,8,10,12];
+    var d1, d2, n1, n2;
+    // Sicherstellen, dass die Nenner unterschiedlich sind
+    do{ d1 = choice(pool); d2 = choice(pool); } while(d1 === d2);
+    // Zähler so wählen, dass Ergebnis im Bereich (-1, 2) liegt
+    n1 = rand(1, d1-1);
+    n2 = rand(1, d2-1);
+    if(op === "plus"){
+      // Ergebnis darf nicht >= 2 sein
+      if(n1/d1 + n2/d2 >= 1.9){ return genBruchAdditionVerschNenner(); }
+    } else {
+      // Bei Subtraktion muss n1/d1 > n2/d2 sein
+      if(n1/d1 <= n2/d2){ return genBruchAdditionVerschNenner(); }
+    }
+    var kgV = lcm(d1, d2);
+    var n1e = n1 * (kgV/d1);
+    var n2e = n2 * (kgV/d2);
+    var resZaehler = (op === "plus") ? (n1e + n2e) : (n1e - n2e);
+    var resNenner = kgV;
+    // Kürzen
+    var g = gcd(resZaehler, resNenner);
+    var resZk = resZaehler/g;
+    var resNk = resNenner/g;
+    var svg = fractionPairFigureSVG(n1,d1,n2,d2,COLORS.bruch.main,COLORS.bruch.soft);
+    var ex = baseEx("bruch","bruch");
+    var opSymbol = (op === "plus") ? " + " : " − ";
+    var exOp = (op === "plus") ? "addieren" : "subtrahieren";
+    ex.question = n1+"/"+d1+" "+opSymbol+" "+n2+"/"+d2+" = ? (Unterschiedliche Nenner!)";
+    ex.hint = "1) Kleinstes gemeinsames Vielfaches (kgV) der beiden Nenner suchen: kgV("+d1+","+d2+") = "+kgV+". 2) Auf "+kgV+" erweitern: "+(n1e)+"/"+kgV+" "+opSymbol+" "+(n2e)+"/"+kgV+". 3) Zähler "+exOp+" und ggf. kürzen.";
+    ex.svg=svg; ex.badge="Bruch · "+((op==="plus")?"Addition":"Subtraktion")+" (ungleiche Nenner)"; ex.badgeColor=COLORS.bruch.main;
+    ex.inputType="mc";
+    var correctAnswer = resZk+"/"+resNk;
+    var pool2 = [
+      (n1e+n2e+1)+"/"+kgV,
+      (n1e+n2e-1)+"/"+kgV,
+      correctAnswer
+    ];
+    if(op === "minus"){
+      pool2 = [(n1e-n2e+1)+"/"+kgV, (n1e-n2e-1)+"/"+kgV, correctAnswer];
+    }
+    var options = shuffle(pool2.filter(function(v,i,a){return a.indexOf(v)===i;}));
+    // Falls zu wenig unterschiedliche Optionen, neu generieren
+    if(options.length < 2){ return genBruchAdditionVerschNenner(); }
+    ex.choices=options; ex.correctIndex=options.indexOf(correctAnswer);
+    ex.explanation = n1+"/"+d1+" "+opSymbol+" "+n2+"/"+d2+" = "+n1e+"/"+kgV+" "+opSymbol+" "+n2e+"/"+kgV+" = "+resZaehler+"/"+kgV+(g>1?" = "+resZk+"/"+resNk+"":"")+".";
+    return ex;
+  }
+
+  // Multiplikation
+  function genBruchMultiplikation(){
+    var pool = [2,3,4,5,6,7,8,9,10];
+    var n1 = rand(1,9), d1 = choice(pool);
+    var n2 = rand(1,9), d2 = choice(pool);
+    if(n1 >= d1) n1 = rand(1, d1-1);
+    if(n2 >= d2) n2 = rand(1, d2-1);
+    var resZaehler = n1 * n2;
+    var resNenner = d1 * d2;
+    var g = gcd(resZaehler, resNenner);
+    var resZk = resZaehler/g;
+    var resNk = resNenner/g;
+    var svg = fractionPairFigureSVG(n1,d1,n2,d2,COLORS.bruch.main,COLORS.bruch.soft);
+    var ex = baseEx("bruch","bruch");
+    ex.question = n1+"/"+d1+" · "+n2+"/"+d2+" = ?";
+    ex.hint = "Multiplikation: Zähler·Zähler und Nenner·Nenner. ("+n1+"·"+n2+") / ("+d1+"·"+d2+"). Danach ggf. kürzen.";
+    ex.svg=svg; ex.badge="Bruch · Multiplikation"; ex.badgeColor=COLORS.bruch.main;
+    ex.inputType="mc";
+    var correctAnswer = resZk+"/"+resNk;
+    var pool2 = [
+      correctAnswer,
+      (n1*n2+1)+"/"+(d1*d2),
+      (n1*n2)+"/"+(d1*d2+1),
+      n1+"/"+d1
+    ];
+    var options = shuffle(pool2.filter(function(v,i,a){return a.indexOf(v)===i;}));
+    if(options.length < 2){ return genBruchMultiplikation(); }
+    ex.choices=options; ex.correctIndex=options.indexOf(correctAnswer);
+    ex.explanation = n1+"/"+d1+" · "+n2+"/"+d2+" = "+resZaehler+"/"+resNenner+(g>1?" = "+resZk+"/"+resNk+"":"")+".";
+    return ex;
+  }
+
+  // Division
+  function genBruchDivision(){
+    var pool = [2,3,4,5,6,7,8,9,10];
+    var n1 = rand(1,9), d1 = choice(pool);
+    var n2 = rand(1,9), d2 = choice(pool);
+    if(n1 >= d1) n1 = rand(1, d1-1);
+    if(n2 >= d2) n2 = rand(1, d2-1);
+    // Division: a/b : c/d = a·d / b·c
+    var resZaehler = n1 * d2;
+    var resNenner = d1 * n2;
+    var g = gcd(resZaehler, resNenner);
+    var resZk = resZaehler/g;
+    var resNk = resNenner/g;
+    var svg = fractionPairFigureSVG(n1,d1,n2,d2,COLORS.bruch.main,COLORS.bruch.soft);
+    var ex = baseEx("bruch","bruch");
+    ex.question = n1+"/"+d1+" : "+n2+"/"+d2+" = ?";
+    ex.hint = "Division: a/b : c/d = a·d / b·c. Zuerst Kehrwert von "+n2+"/"+d2+" bilden ("+d2+"/"+n2+"), dann multiplizieren.";
+    ex.svg=svg; ex.badge="Bruch · Division"; ex.badgeColor=COLORS.bruch.main;
+    ex.inputType="mc";
+    var correctAnswer = resZk+"/"+resNk;
+    var pool2 = [
+      correctAnswer,
+      (n1*d2+1)+"/"+(d1*n2),
+      (n1*d2)+"/"+(d1*n2+1),
+      n1+"/"+d1
+    ];
+    var options = shuffle(pool2.filter(function(v,i,a){return a.indexOf(v)===i;}));
+    if(options.length < 2){ return genBruchDivision(); }
+    ex.choices=options; ex.correctIndex=options.indexOf(correctAnswer);
+    ex.explanation = n1+"/"+d1+" : "+n2+"/"+d2+" = "+n1+"/"+d1+" · "+d2+"/"+n2+" = "+resZaehler+"/"+resNenner+(g>1?" = "+resZk+"/"+resNk+"":"")+".";
     return ex;
   }
 
@@ -1289,9 +1454,15 @@
    */
   function fmtAT(x){
     // Zahl in österreichische Notation umwandeln (Komma als Dezimaltrennzeichen)
-    var s = (Math.round(x*100)/100).toString();
+    // Entfernt trailing zeros: 1.200,00 → 1.200,  12,50 → 12,5
+    var rounded = Math.round(x*100)/100;
+    var s = rounded.toString();
     var parts = s.split(".");
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    if(parts.length === 2){
+      parts[1] = parts[1].replace(/0+$/, "");
+      if(parts[1].length === 0) parts.pop();
+    }
     return parts.join(",");
   }
   // Euro-Beträge: "12,50 €" (österreichische Schreibweise)
@@ -1445,6 +1616,92 @@
     return ex;
   }
 
+  /* ============ Phase 4b: Kombinierte österreichische Textaufgaben ============
+   * Mehrere Kompetenzbereiche in einer Aufgabe: Prozent + Addition, Bruch + Preis, etc.
+   */
+
+  // Skikurs mit Frühbucher-Rabatt
+  function genTextaufgabeSkikurs(){
+    var name = choice(AUSTRIA.vornamen);
+    var ort = choice(["Schladming","Kitzbühel","Sölden","Mayrhofen","Zell am See","Ischgl","Saalbach"]);
+    var basis = choice([120, 150, 180, 200, 240, 280]);
+    var rabatt = choice([10, 15, 20, 25]);
+    var rabattBetrag = basis * rabatt / 100;
+    var endpreis = basis - rabattBetrag;
+    var ex = baseEx("textaufgabe","textaufgabe");
+    ex.question = name+" bucht einen Skikurs in "+ort+". Der Kurs kostet regulär "+fmtEUR(basis)+". Bei einer Frühbucher-Aktion gibt es "+rabatt+" % Ermäßigung. Wie viel muss "+name+" bezahlen?";
+    ex.hint = "1) Rabattbetrag = Grundpreis · Prozentsatz : 100. 2) Endpreis = Grundpreis − Rabattbetrag.";
+    ex.badge="Alltag · Skikurs"; ex.badgeColor=COLORS.textaufgabe.main;
+    ex.inputType="number"; ex.unit="€"; ex.tolerance=0.01;
+    ex.answer = Math.round(endpreis*100)/100;
+    ex.explanation = "Rabatt: "+fmtAT(basis)+" · "+rabatt+" : 100 = "+fmtEUR(rabattBetrag)+". Endpreis: "+fmtEUR(basis)+" − "+fmtEUR(rabattBetrag)+" = "+fmtEUR(endpreis)+".";
+    return ex;
+  }
+
+  // Wandertag: Höhenmeter + Distanz + Zeit (gemischte Aufgabe)
+  function genTextaufgabeWandertag(){
+    var name = choice(AUSTRIA.vornamen);
+    var name2 = choice(AUSTRIA.vornamen);
+    var berg = choice(["Rax","Schneeberg","Hochkönig","Dachstein","Großer Pyhrgas"]);
+    var startHoehe = rand(700, 1400);
+    var zielHoehe = startHoehe + rand(300, 800);
+    var hoehenmeter = zielHoehe - startHoehe;
+    var distanz = rand(4, 12); // km
+    var zeitStunden = rand(2, 5); // h
+    var speed = Math.round((distanz / zeitStunden) * 10) / 10; // km/h
+    var ex = baseEx("textaufgabe","textaufgabe");
+    ex.question = name+" und "+name2+" wandern am Wandertag auf den "+berg+". Sie starten auf "+startHoehe+" m Seehöhe und erreichen den Gipfel auf "+zielHoehe+" m Seehöhe. Die Wanderstrecke ist "+distanz+" km und sie benötigen "+zeitStunden+" Stunden. a) Wie viele Höhenmeter überwinden sie? b) Welche Durchschnittsgeschwindigkeit (km/h) legen sie zurück?";
+    ex.hint = "a) Höhenmeter = Gipfelhöhe − Startshöhe. b) Geschwindigkeit = Strecke : Zeit.";
+    ex.badge="Alltag · Wandertag"; ex.badgeColor=COLORS.textaufgabe.main;
+    ex.inputType="number"; ex.unit="m"; ex.tolerance=10;
+    ex.answer = hoehenmeter;
+    ex.explanation = "a) Höhenmeter = "+zielHoehe+" m − "+startHoehe+" m = "+fmtAT(hoehenmeter)+" m. b) v = "+distanz+" km : "+zeitStunden+" h = "+fmtAT(speed)+" km/h.";
+    return ex;
+  }
+
+  // Schulheft: Bruchteil + Preis (kombiniert)
+  function genTextaufgabeSchulheft(){
+    var name = choice(AUSTRIA.vornamen);
+    var produkt = choice(AUSTRIA.produkte);
+    var preis = (rand(20, 80) * 10) / 10; // 2,00 - 8,00 €
+    var nenner = choice([2, 4, 5, 10]);
+    var zaehler = rand(1, nenner-1);
+    var anzahlBenoetigt = nenner; // z.B. 5 Hefte
+    var anzahlGekauft = (anzahlBenoetigt * zaehler) / nenner;
+    if(anzahlGekauft !== Math.round(anzahlGekauft)) return genTextaufgabeSchulheft();
+    var anzahlBezahlt = anzahlBenoetigt - anzahlGekauft; // geschenkt bekommen
+    var gesamtKosten = Math.round(anzahlGekauft * preis * 100) / 100;
+    var ex = baseEx("textaufgabe","textaufgabe");
+    ex.question = name+" braucht "+anzahlBenoetigt+" "+produkt+" für die Schule. Im Angebot gilt: Kaufe "+zaehler+"/"+nenner+" und erhalte "+anzahlBezahlt+" Stück gratis dazu. Ein "+produkt+" kostet "+fmtEUR(preis)+". Wie viel muss "+name+" bezahlen?";
+    ex.hint = "1) "+zaehler+"/"+nenner+" von "+anzahlBenoetigt+" = "+anzahlGekauft+" Stück (bezahlt). 2) Gesamtpreis = "+anzahlGekauft+" · Einzelpreis.";
+    ex.badge="Alltag · Schulstart"; ex.badgeColor=COLORS.textaufgabe.main;
+    ex.inputType="number"; ex.unit="€"; ex.tolerance=0.01;
+    ex.answer = gesamtKosten;
+    ex.explanation = zaehler+"/"+nenner+" von "+anzahlBenoetigt+" = "+anzahlGekauft+" Stück. Gesamtpreis: "+anzahlGekauft+" · "+fmtAT(preis)+" € = "+fmtEUR(gesamtKosten)+". (Gratis dazu: "+anzahlBezahlt+" Stück.)";
+    return ex;
+  }
+
+  // Eisdiele: Bruch, Prozent, Addition
+  function genTextaufgabeEiscafe(){
+    var name = choice(AUSTRIA.vornamen);
+    var kugelPreis = (rand(15, 30) * 10) / 10; // 1,50 - 3,00 €
+    var anzahlKugeln = rand(2, 4);
+    var preisEis = Math.round(anzahlKugeln * kugelPreis * 100) / 100;
+    var portionen = [3, 4, 5];
+    var nenner = choice(portionen);
+    var zaehler = rand(1, nenner-1);
+    var rabatt = Math.round((preisEis * zaehler / nenner) * 100) / 100; // zaehler/nenner gratis
+    var endpreis = Math.round((preisEis - rabatt) * 100) / 100;
+    var ex = baseEx("textaufgabe","textaufgabe");
+    ex.question = name+" geht in die Eisdiele und bestellt "+anzahlKugeln+" Kugeln Eis um je "+fmtEUR(kugelPreis)+". Die Eisdiele hat eine Aktion: "+zaehler+"/"+nenner+" des Preises werden als Rabatt abgezogen. Wie viel bezahlt "+name+"?";
+    ex.hint = "1) Gesamtpreis = Anzahl · Kugelpreis. 2) Rabatt = Gesamtpreis · "+zaehler+"/"+nenner+". 3) Endpreis = Gesamtpreis − Rabatt.";
+    ex.badge="Alltag · Eisdiele"; ex.badgeColor=COLORS.textaufgabe.main;
+    ex.inputType="number"; ex.unit="€"; ex.tolerance=0.01;
+    ex.answer = endpreis;
+    ex.explanation = "Gesamtpreis: "+anzahlKugeln+" · "+fmtAT(kugelPreis)+" € = "+fmtEUR(preisEis)+". Rabatt: "+fmtEUR(preisEis)+" · "+zaehler+"/"+nenner+" = "+fmtEUR(rabatt)+". Endpreis: "+fmtEUR(preisEis)+" − "+fmtEUR(rabatt)+" = "+fmtEUR(endpreis)+".";
+    return ex;
+  }
+
   /* ============ Pools & Modes ============ */
   // Hilfsfunktion: setzt _currentCurriculumKey und ruft den Generator auf
   function withCurriculum(key, fn){
@@ -1472,9 +1729,15 @@
     quaderVolumen:        withCurriculum("quaderVolumen",         genQuaderVolumen),
     wuerfelVolumen:       withCurriculum("wuerfelVolumen",        genWuerfelVolumen),
     zylinderVolumen:      withCurriculum("zylinderVolumen",       genZylinderVolumen),
-    bruchKuerzen:         withCurriculum("bruchKuerzen",          genBruchKuerzen),
-    bruchAddition:        withCurriculum("bruchAddition",         genBruchAddition),
-    bruchVergleich:       withCurriculum("bruchVergleich",        genBruchVergleich),
+    quaderOberflaeche:    withCurriculum("quaderOberflaeche",     genQuaderOberflaeche),
+    wuerfelOberflaeche:   withCurriculum("wuerfelOberflaeche",    genWuerfelOberflaeche),
+    zylinderOberflaeche:  withCurriculum("zylinderOberflaeche",   genZylinderOberflaeche),
+    bruchKuerzen:             withCurriculum("bruchKuerzen",              genBruchKuerzen),
+    bruchAddition:            withCurriculum("bruchAddition",             genBruchAddition),
+    bruchAdditionVerschNenner:withCurriculum("bruchAdditionVerschNenner", genBruchAdditionVerschNenner),
+    bruchVergleich:           withCurriculum("bruchVergleich",            genBruchVergleich),
+    bruchMultiplikation:      withCurriculum("bruchMultiplikation",      genBruchMultiplikation),
+    bruchDivision:            withCurriculum("bruchDivision",            genBruchDivision),
     prozentVonZahl:       withCurriculum("prozentVonZahl",        genProzentVonZahl),
     prozentAnteil:        withCurriculum("prozentAnteil",         genProzentAnteil),
     textaufgabeGarten:    withCurriculum("textaufgabeGarten",     genTextaufgabeGarten),
@@ -1483,7 +1746,11 @@
     textaufgabeWandern:   withCurriculum("textaufgabeWandern",    genTextaufgabeWandern),
     textaufgabeEinkauf:   withCurriculum("textaufgabeEinkauf",    genTextaufgabeEinkauf),
     textaufgabeWeihnacht: withCurriculum("textaufgabeWeihnacht",  genTextaufgabeWeihnacht),
-    textaufgabeSchule:    withCurriculum("textaufgabeSchule",     genTextaufgabeSchule)
+    textaufgabeSchule:    withCurriculum("textaufgabeSchule",     genTextaufgabeSchule),
+    textaufgabeSkikurs:   withCurriculum("textaufgabeSkikurs",    genTextaufgabeSkikurs),
+    textaufgabeWandertag: withCurriculum("textaufgabeWandertag",  genTextaufgabeWandertag),
+    textaufgabeSchulheft: withCurriculum("textaufgabeSchulheft",  genTextaufgabeSchulheft),
+    textaufgabeEiscafe:   withCurriculum("textaufgabeEiscafe",    genTextaufgabeEiscafe)
   };
 
   var MODES = [
@@ -1493,10 +1760,12 @@
     {id:"winkel", label:"📐 Winkel", pool:["dreieckWinkel","viereckWinkel"]},
     {id:"umfang-flaeche", label:"📏 Umfang & Fläche", pool:["dreieckUmfang","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche"]},
     {id:"kreis", label:"⭕ Kreis", pool:["kreisUmfang","kreisFlaeche"]},
-    {id:"koerper", label:"📦 Körper", pool:["quaderVolumen","wuerfelVolumen","zylinderVolumen"]},
-    {id:"bruch-prozent", label:"➗ Brüche & Prozent", pool:["bruchKuerzen","bruchAddition","bruchVergleich","prozentVonZahl","prozentAnteil"]},
-    {id:"textaufgaben", label:"📖 Textaufgaben", pool:["textaufgabeGarten","textaufgabePizza"]},
-    {id:"alltag", label:"🇦🇹 Alltag in Österreich", pool:["textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule"]}
+    {id:"koerper", label:"📦 Körper (Volumen)", pool:["quaderVolumen","wuerfelVolumen","zylinderVolumen"]},
+    {id:"oberflaeche", label:"📊 Oberfläche von Körpern", pool:["quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"]},
+    {id:"bruche", label:"➗ Brüche (alle Operationen)", pool:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision"]},
+    {id:"bruch-prozent", label:"➗ Brüche & Prozent", pool:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","prozentVonZahl","prozentAnteil"]},
+    {id:"textaufgaben", label:"📖 Textaufgaben", pool:["textaufgabeGarten","textaufgabePizza","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag"]},
+    {id:"alltag", label:"🇦🇹 Alltag in Österreich", pool:["textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag"]}
   ];
 
   /* Schulstufen-Zuordnung je Übungstyp (1.–4. Klasse Mittelschule) */
@@ -1506,11 +1775,14 @@
     dreieckErkennen:[2,3], viereckErkennen:[2,3], eigenschaftenDreieck:[2,3], eigenschaftenViereck:[2,3],
     kreisUmfang:[3,4], kreisFlaeche:[3,4],
     quaderVolumen:[2,3], wuerfelVolumen:[2,3], zylinderVolumen:[4],
+    quaderOberflaeche:[3,4], wuerfelOberflaeche:[2,3], zylinderOberflaeche:[4],
     bruchKuerzen:[1,2], bruchAddition:[1,2], bruchVergleich:[1,2],
+    bruchAdditionVerschNenner:[2,3], bruchMultiplikation:[3,4], bruchDivision:[4],
     prozentVonZahl:[3,4], prozentAnteil:[3,4],
     textaufgabeGarten:[2,3], textaufgabePizza:[2,3],
     textaufgabeWien:[2,3], textaufgabeWandern:[2,3], textaufgabeEinkauf:[2,3],
-    textaufgabeWeihnacht:[2,3], textaufgabeSchule:[2,3]
+    textaufgabeWeihnacht:[2,3], textaufgabeSchule:[2,3],
+    textaufgabeSkikurs:[3,4], textaufgabeWandertag:[2,3], textaufgabeSchulheft:[2,3], textaufgabeEiscafe:[2,3]
   };
   var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
   var GRADES = [
@@ -1558,9 +1830,15 @@
     quaderVolumen:        {codes:["H3.I4","I2.M1"], kompetenz:"Volumen eines Quaders berechnen"},
     wuerfelVolumen:       {codes:["H3.I4","I2.M1"], kompetenz:"Volumen eines Würfels berechnen"},
     zylinderVolumen:      {codes:["H3.I4","I2.M1"], kompetenz:"Volumen eines Zylinders berechnen"},
+    quaderOberflaeche:    {codes:["H3.I4","I2.M1"], kompetenz:"Oberfläche eines Quaders berechnen (O = 2·(a·b + b·c + a·c))"},
+    wuerfelOberflaeche:   {codes:["H3.I4","I2.M1"], kompetenz:"Oberfläche eines Würfels berechnen (O = 6·a²)"},
+    zylinderOberflaeche:  {codes:["H3.I4","I2.M1"], kompetenz:"Oberfläche eines Zylinders berechnen (O = 2·π·r·(r+h))"},
     bruchKuerzen:         {codes:["H1.I1","I2.M1"], kompetenz:"Brüche kürzen und erweitern"},
     bruchAddition:        {codes:["H1.I1","I2.M1"], kompetenz:"Brüche addieren und subtrahieren"},
     bruchVergleich:       {codes:["H1.I1","I3.M1"], kompetenz:"Brüche vergleichen und ordnen"},
+    bruchAdditionVerschNenner:{codes:["H1.I1","I2.M1"], kompetenz:"Brüche mit unterschiedlichen Nennern addieren und subtrahieren (Hauptnenner)"},
+    bruchMultiplikation:  {codes:["H1.I1","I2.M1"], kompetenz:"Brüche multiplizieren (Zähler·Zähler, Nenner·Nenner)"},
+    bruchDivision:        {codes:["H1.I1","I2.M1"], kompetenz:"Brüche dividieren (mit dem Kehrwert des Divisors multiplizieren)"},
     prozentVonZahl:       {codes:["H1.I2","I1.M1"], kompetenz:"Prozentwert berechnen (Alltagskontext)"},
     prozentAnteil:        {codes:["H1.I2","I1.M1"], kompetenz:"Prozentanteile in Sachsituationen bestimmen"},
     textaufgabeGarten:    {codes:["I1.M1","I3.M1","H1.I3"], kompetenz:"Sachaufgabe mit Längen/Flächen modellieren und lösen"},
@@ -1569,7 +1847,11 @@
     textaufgabeWandern:   {codes:["I1.M1","H1.I3","I3.M1"], kompetenz:"Sachaufgabe mit Längen und Höhenmetern aus dem Alltag lösen"},
     textaufgabeEinkauf:   {codes:["I1.M1","H1.I2","I3.M1"], kompetenz:"Preisberechnung und Prozentrechnung im Alltag"},
     textaufgabeWeihnacht: {codes:["I1.M1","H1.I2","I3.M1"], kompetenz:"Sachaufgabe mit Preisen und Mengen aus dem Alltag lösen"},
-    textaufgabeSchule:    {codes:["I1.M1","H1.I1","I3.M1"], kompetenz:"Bruch- und Anteilsaufgabe aus dem Schulalltag"}
+    textaufgabeSchule:    {codes:["I1.M1","H1.I1","I3.M1"], kompetenz:"Bruch- und Anteilsaufgabe aus dem Schulalltag"},
+    textaufgabeSkikurs:   {codes:["I1.M1","H1.I2","I2.M1"], kompetenz:"Prozentrechnung (Rabatt) und Preisberechnung kombinieren"},
+    textaufgabeWandertag: {codes:["I1.M1","H1.I3","I3.M1"], kompetenz:"Längen, Höhenmeter und Zeiträume aus dem Wandern modellieren"},
+    textaufgabeSchulheft: {codes:["I1.M1","H1.I1","H1.I2","I2.M1"], kompetenz:"Bruch- und Preisberechnung im Schulalltag kombinieren"},
+    textaufgabeEiscafe:   {codes:["I1.M1","H1.I1","H1.I2","I3.M1"], kompetenz:"Brüche, Prozente und Beträge im Alltag kombinieren"}
   };
 
   /* ============ Game state ============ */

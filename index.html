@@ -1561,7 +1561,7 @@
   function genTextaufgabeEinkauf(){
     var laden = choice(AUSTRIA.einkauf);
     var produkt = choice(AUSTRIA.lebensmittel);
-    var einzel = (rand(5, 45) * 10) / 10;
+    var einzel = rand(5, 45) / 10;
     var menge = rand(2, 6);
     var summe = Math.round(einzel * menge * 100) / 100;
     var ex = baseEx("textaufgabe","textaufgabe");
@@ -1578,9 +1578,9 @@
   // Christkindlmarkt: Mehrere Posten addieren + Wechselgeld
   function genTextaufgabeWeihnacht(){
     var name = choice(AUSTRIA.vornamen);
-    var p1 = (rand(20, 55) * 10) / 10;
-    var p2 = (rand(10, 35) * 10) / 10;
-    var p3 = (rand(8, 25) * 10) / 10;
+    var p1 = rand(20, 55) / 10;
+    var p2 = rand(10, 35) / 10;
+    var p3 = rand(8, 25) / 10;
     var n1 = rand(1, 3);
     var n2 = rand(1, 2);
     var n3 = rand(1, 2);
@@ -1663,7 +1663,7 @@
   function genTextaufgabeSchulheft(){
     var name = choice(AUSTRIA.vornamen);
     var produkt = choice(AUSTRIA.produkte);
-    var preis = (rand(20, 80) * 10) / 10; // 2,00 - 8,00 €
+    var preis = rand(20, 80) / 10; // 2,00 - 8,00 €
     var nenner = choice([2, 4, 5, 10]);
     var zaehler = rand(1, nenner-1);
     var anzahlBenoetigt = nenner; // z.B. 5 Hefte
@@ -1684,7 +1684,7 @@
   // Eisdiele: Bruch, Prozent, Addition
   function genTextaufgabeEiscafe(){
     var name = choice(AUSTRIA.vornamen);
-    var kugelPreis = (rand(15, 30) * 10) / 10; // 1,50 - 3,00 €
+    var kugelPreis = rand(15, 30) / 10; // 1,50 - 3,00 €
     var anzahlKugeln = rand(2, 4);
     var preisEis = Math.round(anzahlKugeln * kugelPreis * 100) / 100;
     var portionen = [3, 4, 5];

@@ -1658,12 +1658,27 @@
     var zeitStunden = rand(2, 5); // h
     var speed = Math.round((distanz / zeitStunden) * 10) / 10; // km/h
     var ex = baseEx("textaufgabe","textaufgabe");
-    ex.question = name+" und "+name2+" wandern am Wandertag auf den "+berg+". Sie starten auf "+startHoehe+" m Seehöhe und erreichen den Gipfel auf "+zielHoehe+" m Seehöhe. Die Wanderstrecke ist "+distanz+" km und sie benötigen "+zeitStunden+" Stunden. a) Wie viele Höhenmeter überwinden sie? b) Welche Durchschnittsgeschwindigkeit (km/h) legen sie zurück?";
-    ex.hint = "a) Höhenmeter = Gipfelhöhe − Startshöhe. b) Geschwindigkeit = Strecke : Zeit.";
+    var fragen = [
+      {
+        text: name+" und "+name2+" wandern am Wandertag auf den "+berg+". Sie starten auf "+startHoehe+" m Seehöhe und erreichen den Gipfel auf "+zielHoehe+" m Seehöhe. Wie viele Höhenmeter überwinden sie?",
+        unit: "m", answer: hoehenmeter, tol: 10,
+        explanation: "Höhenmeter = "+zielHoehe+" m − "+startHoehe+" m = "+fmtAT(hoehenmeter)+" m.",
+        hint: "Höhenmeter = Gipfelhöhe − Startshöhe."
+      },
+      {
+        text: name+" und "+name2+" wandern am Wandertag auf den "+berg+". Die Wanderstrecke ist "+distanz+" km und sie benötigen "+zeitStunden+" Stunden. Welche Durchschnittsgeschwindigkeit (km/h) legen sie zurück?",
+        unit: "km/h", answer: speed, tol: 0.1,
+        explanation: "v = "+distanz+" km : "+zeitStunden+" h = "+fmtAT(speed)+" km/h.",
+        hint: "Geschwindigkeit = Strecke : Zeit."
+      }
+    ];
+    var f = choice(fragen);
+    ex.question = f.text;
+    ex.hint = f.hint;
     ex.badge="Alltag · Wandertag"; ex.badgeColor=COLORS.textaufgabe.main;
-    ex.inputType="number"; ex.unit="m"; ex.tolerance=10;
-    ex.answer = hoehenmeter;
-    ex.explanation = "a) Höhenmeter = "+zielHoehe+" m − "+startHoehe+" m = "+fmtAT(hoehenmeter)+" m. b) v = "+distanz+" km : "+zeitStunden+" h = "+fmtAT(speed)+" km/h.";
+    ex.inputType="number"; ex.unit=f.unit; ex.tolerance=f.tol;
+    ex.answer = f.answer;
+    ex.explanation = f.explanation;
     return ex;
   }
 

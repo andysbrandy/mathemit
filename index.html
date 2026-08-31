@@ -1529,13 +1529,21 @@
     var pts=[{x:x0,y:y0},{x:x0+w,y:y0},{x:x0+w,y:y0+h},{x:x0,y:y0+h}];
     var svg = polygonSVG(pts,{color:COLORS.textaufgabe.main, soft:COLORS.textaufgabe.soft, sideLabels:[l+" m", b+" m", l+" m", b+" m"], labelOffset:16});
     var ex = baseEx("textaufgabe","textaufgabe");
-    ex.question = "Der Vorplatz des/der "+bauwerk+" in "+stadt+" ist rechteckig: "+l+" m lang und "+b+" m breit. Berechne die Fläche des Vorplatzes.";
+    ex.question = "Der Vorplatz "+genitiv(bauwerk)+" "+bauwerk+" in "+stadt+" ist rechteckig: "+l+" m lang und "+b+" m breit. Berechne die Fläche des Vorplatzes.";
     ex.hint = "Rechteck: A = Länge · Breite.";
     ex.svg=svg; ex.badge="Alltag · "+stadt; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="m²";
     ex.answer = flaeche;
     ex.explanation = "A = "+l+" m · "+b+" m = "+fmtAT(flaeche)+" m².";
     return ex;
+  }
+
+  // Hilfsfunktion: korrekter Genitiv-Artikel für österreichische Sehenswürdigkeiten
+  function genitiv(name){
+    // Feminina (Genitiv: der)
+    if(/^(Donau|Festung|Getreide)/.test(name)) return "der";
+    // Maskulin/Neutrum (Genitiv: des)
+    return "des";
   }
 
   // Wandern: Höhenmeter (sehr österreichisch!)

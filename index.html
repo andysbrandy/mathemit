@@ -53,6 +53,94 @@
   }
   .wrap{max-width:920px;margin:0 auto;}
 
+  /* ---------- Auth Overlay ---------- */
+  .auth-overlay{
+    position:fixed; inset:0; z-index:1000;
+    background:rgba(31,46,69,.55);
+    backdrop-filter:blur(6px);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+  }
+  .auth-overlay[hidden]{display:none;}
+  .auth-card{
+    background:var(--panel); border-radius:20px;
+    padding:28px 26px; max-width:380px; width:100%;
+    box-shadow:0 20px 60px rgba(0,0,0,.18);
+    border:1px solid var(--line);
+  }
+  .auth-title{
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:1.4rem;
+    margin:0 0 4px; color:var(--ink);
+  }
+  .auth-subtitle{
+    font-size:.85rem; color:var(--muted); margin:0 0 18px;
+  }
+  .auth-tabs{
+    display:flex; gap:6px; margin-bottom:18px;
+    background:var(--paper); border-radius:12px; padding:4px;
+  }
+  .auth-tab{
+    flex:1; padding:8px 12px; border:0; background:transparent;
+    border-radius:8px; cursor:pointer; font-family:inherit;
+    font-weight:600; font-size:.85rem; color:var(--muted);
+    transition:all .15s ease;
+  }
+  .auth-tab.active{
+    background:var(--panel); color:var(--ink);
+    box-shadow:0 1px 3px rgba(0,0,0,.08);
+  }
+  .auth-field{margin-bottom:12px;}
+  .auth-field label{
+    display:block; font-size:.75rem; font-weight:600; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.4px; margin-bottom:4px;
+  }
+  .auth-field input{
+    width:100%; padding:10px 12px; border:1.5px solid var(--line);
+    border-radius:10px; font-family:inherit; font-size:1rem;
+    color:var(--ink); background:var(--panel);
+    transition:border-color .15s ease;
+  }
+  .auth-field input:focus{
+    outline:none; border-color:var(--viereck);
+  }
+  .auth-field .hint{
+    font-size:.7rem; color:var(--muted); margin-top:3px;
+  }
+  .auth-submit{
+    width:100%; padding:11px; margin-top:8px;
+    background:var(--viereck); color:#fff; border:0;
+    border-radius:10px; font-family:inherit; font-size:.95rem;
+    font-weight:600; cursor:pointer; transition:background .15s ease;
+  }
+  .auth-submit:hover{background:#188a82;}
+  .auth-submit:disabled{
+    background:var(--line); cursor:not-allowed;
+  }
+  .auth-msg{
+    margin-top:12px; padding:10px 12px; border-radius:8px;
+    font-size:.82rem; font-weight:500; display:none;
+  }
+  .auth-msg.error{
+    display:block; background:var(--error-soft); color:var(--error);
+  }
+  .auth-msg.success{
+    display:block; background:var(--success-soft); color:var(--success);
+  }
+  .user-info{
+    display:flex; align-items:center; gap:8px; padding:6px 12px;
+    background:var(--panel); border:1px solid var(--line);
+    border-radius:14px; box-shadow:0 2px 0 var(--line);
+  }
+  .user-info .nickname{
+    font-weight:600; font-size:.85rem;
+  }
+  .user-info .logout{
+    background:transparent; border:0; color:var(--muted);
+    font-size:.7rem; cursor:pointer; padding:2px 6px;
+    text-transform:uppercase; letter-spacing:.3px; font-weight:600;
+  }
+  .user-info .logout:hover{color:var(--error);}
+
   /* ---------- Header ---------- */
   .app-header{
     display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
@@ -256,7 +344,60 @@
 </style>
 </head>
 <body>
-<div class="wrap">
+  <!-- Auth Overlay (Login/Register) -->
+  <div class="auth-overlay" id="authOverlay" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="auth-card">
+      <h2 class="auth-title" id="authTitle">Anmelden</h2>
+      <p class="auth-subtitle">Dein Lernfortschritt wird gespeichert und geräteübergreifend synchronisiert.</p>
+
+      <div class="auth-tabs" role="tablist" aria-label="Anmeldung oder Registrierung">
+        <button class="auth-tab active" role="tab" aria-selected="true" aria-controls="panel-login" id="tab-login">Anmelden</button>
+        <button class="auth-tab" role="tab" aria-selected="false" aria-controls="panel-register" id="tab-register">Registrieren</button>
+      </div>
+
+      <!-- Login Panel -->
+      <div class="auth-panel" id="panel-login" role="tabpanel" aria-labelledby="tab-login">
+        <form id="loginForm" novalidate>
+          <div class="auth-field">
+            <label for="loginNickname">Nickname</label>
+            <input type="text" id="loginNickname" name="nickname" required autocomplete="username" minlength="2" maxlength="50" pattern="[a-zA-Z0-9_\-]+">
+          </div>
+          <div class="auth-field">
+            <label for="loginPin">PIN (4-stellig)</label>
+            <input type="password" id="loginPin" name="pin" required autocomplete="off" minlength="4" maxlength="4" pattern="[0-9]{4}" inputmode="numeric">
+            <span class="hint">Nur Zahlen, exakt 4 Stellen</span>
+          </div>
+          <button type="submit" class="auth-submit">Anmelden</button>
+        </form>
+      </div>
+
+      <!-- Register Panel -->
+      <div class="auth-panel" id="panel-register" role="tabpanel" aria-labelledby="tab-register" hidden>
+        <form id="registerForm" novalidate>
+          <div class="auth-field">
+            <label for="regNickname">Nickname</label>
+            <input type="text" id="regNickname" name="nickname" required autocomplete="username" minlength="2" maxlength="50" pattern="[a-zA-Z0-9_\-]+">
+            <span class="hint">2–50 Zeichen, Buchstaben, Zahlen, _ oder -</span>
+          </div>
+          <div class="auth-field">
+            <label for="regPin">PIN (4-stellig)</label>
+            <input type="password" id="regPin" name="pin" required autocomplete="off" minlength="4" maxlength="4" pattern="[0-9]{4}" inputmode="numeric">
+            <span class="hint">Nur Zahlen, exakt 4 Stellen</span>
+          </div>
+          <div class="auth-field">
+            <label for="regClassCode">Klassen-Code (optional)</label>
+            <input type="text" id="regClassCode" name="klasse_code" autocomplete="off" maxlength="12" pattern="[A-Z0-9]*" placeholder="z. B. ABC123" style="text-transform:uppercase;">
+            <span class="hint">Vom Lehrer erhalten, 3–12 Zeichen</span>
+          </div>
+          <button type="submit" class="auth-submit">Registrieren</button>
+        </form>
+      </div>
+
+      <div class="auth-msg" id="authMsg" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div class="wrap">
 
   <div class="app-header">
     <div class="brand">
@@ -2151,6 +2292,311 @@
   document.addEventListener("keydown", function(e){
     if(e.key === "Escape") closeCurriculumModal();
   });
+
+  // ============================================================
+  // AUTH LAYER – Login, Register, Progress-Sync
+  // ============================================================
+
+  var API = 'https://mapi.andybrandy.at';
+
+  var auth = {
+    token: null,
+    user: null
+  };
+
+  // ---------- Token Management ----------
+  function getToken() {
+    return localStorage.getItem('mathemit_token');
+  }
+  function getUser() {
+    var u = localStorage.getItem('mathemit_user');
+    return u ? JSON.parse(u) : null;
+  }
+  function saveAuth(token, user) {
+    localStorage.setItem('mathemit_token', token);
+    localStorage.setItem('mathemit_user', JSON.stringify(user));
+    auth.token = token;
+    auth.user = user;
+  }
+  function clearAuth() {
+    localStorage.removeItem('mathemit_token');
+    localStorage.removeItem('mathemit_user');
+    auth.token = null;
+    auth.user = null;
+  }
+
+  // ---------- API Helper ----------
+  function apiFetch(endpoint, options) {
+    var headers = {
+      'Content-Type': 'application/json'
+    };
+    var token = getToken();
+    if (token) {
+      headers['Authorization'] = 'Bearer ' + token;
+    }
+    var controller = new AbortController();
+    var timeout = setTimeout(function() { controller.abort(); }, 8000);
+    return fetch(API + endpoint, {
+      method: 'POST',
+      headers: headers,
+      body: options && options.body ? JSON.stringify(options.body) : null,
+      signal: controller.signal
+    }).then(function(res) {
+      clearTimeout(timeout);
+      return res.json().then(function(data) {
+        data._httpStatus = res.status;
+        return data;
+      }).catch(function() {
+        return { _httpStatus: res.status, status: 'error', message: 'Invalid response' };
+      });
+    }).catch(function(err) {
+      clearTimeout(timeout);
+      if (err.name === 'AbortError') {
+        return { _httpStatus: 0, status: 'error', message: 'Zeitüberschreitung – bitte erneut versuchen.' };
+      }
+      return { _httpStatus: 0, status: 'error', message: 'Netzwerkfehler' };
+    });
+  }
+
+  // ---------- Auth UI ----------
+  var overlay     = document.getElementById('authOverlay');
+  var authMsg     = document.getElementById('authMsg');
+  var loginPanel  = document.getElementById('panel-login');
+  var regPanel    = document.getElementById('panel-register');
+  var loginTab    = document.getElementById('tab-login');
+  var regTab      = document.getElementById('tab-register');
+
+  function showMsg(text, type) {
+    authMsg.textContent = text;
+    authMsg.className = 'auth-msg ' + type;
+  }
+  function clearMsg() {
+    authMsg.textContent = '';
+    authMsg.className = 'auth-msg';
+  }
+
+  function switchTab(tab) {
+    clearMsg();
+    if (tab === 'login') {
+      loginTab.classList.add('active');
+      loginTab.setAttribute('aria-selected', 'true');
+      regTab.classList.remove('active');
+      regTab.setAttribute('aria-selected', 'false');
+      loginPanel.hidden = false;
+      regPanel.hidden = true;
+      document.getElementById('authTitle').textContent = 'Anmelden';
+    } else {
+      regTab.classList.add('active');
+      regTab.setAttribute('aria-selected', 'true');
+      loginTab.classList.remove('active');
+      loginTab.setAttribute('aria-selected', 'false');
+      regPanel.hidden = false;
+      loginPanel.hidden = true;
+      document.getElementById('authTitle').textContent = 'Registrieren';
+    }
+  }
+
+  loginTab.addEventListener('click', function() { switchTab('login'); });
+  regTab.addEventListener('click', function() { switchTab('register'); });
+
+  function showAuthOverlay() { overlay.hidden = false; }
+  function hideAuthOverlay() { overlay.hidden = true; }
+
+  function setSubmitLoading(form, loading) {
+    var btn = form.querySelector('.auth-submit');
+    if (loading) {
+      btn.disabled = true;
+      btn.textContent = '…';
+    } else {
+      btn.disabled = false;
+      btn.textContent = form.id === 'loginForm' ? 'Anmelden' : 'Registrieren';
+    }
+  }
+
+  // ---------- Login ----------
+  document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    clearMsg();
+
+    var nickname = document.getElementById('loginNickname').value.trim();
+    var pin      = document.getElementById('loginPin').value.trim();
+
+    if (!nickname || !pin) {
+      showMsg('Bitte Nickname und PIN ausfüllen.', 'error');
+      return;
+    }
+    if (!/^[0-9]{4}$/.test(pin)) {
+      showMsg('PIN muss genau 4 Ziffern haben.', 'error');
+      return;
+    }
+
+    var form = e.target;
+    setSubmitLoading(form, true);
+
+    apiFetch('/login.php', { body: { nickname: nickname, pin: pin } })
+      .then(function(data) {
+        setSubmitLoading(form, false);
+        if (data.status === 'ok') {
+          showMsg('Willkommen, ' + data.user.nickname + '!', 'success');
+          saveAuth(data.token, data.user);
+          setTimeout(function() {
+            hideAuthOverlay();
+            loadProgressFromAPI();
+          }, 600);
+        } else {
+          showMsg(data.message || 'Anmeldung fehlgeschlagen.', 'error');
+        }
+      });
+  });
+
+  // ---------- Register ----------
+  document.getElementById('registerForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    clearMsg();
+
+    var nickname    = document.getElementById('regNickname').value.trim();
+    var pin         = document.getElementById('regPin').value.trim();
+    var klasse_code = document.getElementById('regClassCode').value.trim().toUpperCase();
+
+    if (!nickname || !pin) {
+      showMsg('Bitte Nickname und PIN ausfüllen.', 'error');
+      return;
+    }
+    if (!/^[a-zA-Z0-9_\-]{2,50}$/.test(nickname)) {
+      showMsg('Nickname: 2–50 Zeichen, Buchstaben/Zahlen/_/-', 'error');
+      return;
+    }
+    if (!/^[0-9]{4}$/.test(pin)) {
+      showMsg('PIN muss genau 4 Ziffern haben.', 'error');
+      return;
+    }
+    if (klasse_code && !/^[A-Z0-9]{3,12}$/.test(klasse_code)) {
+      showMsg('Klassen-Code: 3–12 Zeichen, nur Buchstaben/Zahlen', 'error');
+      return;
+    }
+
+    var form = e.target;
+    setSubmitLoading(form, true);
+
+    apiFetch('/register.php', {
+      body: {
+        nickname: nickname,
+        pin: pin,
+        klasse_code: klasse_code || undefined
+      }
+    }).then(function(data) {
+      setSubmitLoading(form, false);
+      if (data.status === 'ok') {
+        showMsg('Registriert! Du kannst dich jetzt anmelden.', 'success');
+        setTimeout(function() { switchTab('login'); }, 1200);
+      } else {
+        showMsg(data.message || 'Registrierung fehlgeschlagen.', 'error');
+      }
+    });
+  });
+
+  // ---------- Progress Sync ----------
+  function loadProgressFromAPI() {
+    var token = getToken();
+    if (!token) return;
+
+    apiFetch('/progress.php').then(function(data) {
+      if (data.status === 'ok' && data.data) {
+        var d = data.data;
+        state.points      = d.points      || 0;
+        state.streak      = d.streak      || 0;
+        state.best_streak = d.best_streak || 0;
+        state.solved      = d.solved      || 0;
+        state.correct     = d.correct     || 0;
+        state.mode        = d.mode        || state.mode;
+        state.grade       = d.grade       || state.grade;
+        if (d.badges) state.badges = d.badges;
+        updateStatsUI();
+      } else if (data._httpStatus === 401) {
+        // Token abgelaufen oder ungültig
+        clearAuth();
+        showAuthOverlay();
+      }
+    });
+  }
+
+  function syncProgressToAPI() {
+    var token = getToken();
+    if (!token) return;
+
+    apiFetch('/progress.php', {
+      body: {
+        points:      state.points,
+        streak:      state.streak,
+        best_streak: state.best_streak,
+        solved:      state.solved,
+        correct:     state.correct,
+        badges:      state.badges,
+        mode:        state.mode,
+        grade:       state.grade
+      }
+    }).then(function(data) {
+      if (data._httpStatus === 401) {
+        clearAuth();
+        showAuthOverlay();
+      }
+    });
+  }
+
+  // Nach jeder gelösten Aufgabe synchronisieren
+  var _origHandleCheck = handleCheck;
+  handleCheck = function() {
+    _origHandleCheck.apply(this, arguments);
+    syncProgressToAPI();
+  };
+
+  // ---------- Logout Button ----------
+  function buildUserInfo() {
+    var u = getUser();
+    if (!u) return '';
+    return '<div class="user-info">' +
+      '<span class="nickname">' + escHtml(u.nickname) + '</span>' +
+      '<button class="logout" id="logoutBtn">Abmelden</button>' +
+      '</div>';
+  }
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+  function renderUserInfo() {
+    var existing = document.getElementById('userInfoSlot');
+    if (existing) existing.remove();
+    var slot = document.createElement('span');
+    slot.id = 'userInfoSlot';
+    slot.innerHTML = buildUserInfo();
+    var stats = document.querySelector('.stats');
+    if (stats) {
+      var logoutBtn = slot.querySelector('#logoutBtn');
+      if (logoutBtn) logoutBtn.addEventListener('click', function() {
+        clearAuth();
+        showAuthOverlay();
+        document.getElementById('loginNickname').value = '';
+        document.getElementById('loginPin').value = '';
+        document.getElementById('regNickname').value = '';
+        document.getElementById('regPin').value = '';
+        document.getElementById('regClassCode').value = '';
+      });
+      stats.appendChild(slot);
+    }
+  }
+
+  // ---------- Init: Prüfe Token ----------
+  var token = getToken();
+  if (token) {
+    hideAuthOverlay();
+    renderUserInfo();
+    loadProgressFromAPI();
+  } else {
+    showAuthOverlay();
+  }
 
   updateStatsUI();
   nextExercise();

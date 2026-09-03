@@ -1479,12 +1479,12 @@
     familien:  ["Huber","Bauer","Müller","Wagner","Gruber","Steiner","Hofer","Berger","Weber","Fuchs","Maier","Winkler","Schmid","Keller","Schwarz"],
     staedte:   ["Wien","Graz","Linz","Salzburg","Innsbruck","Klagenfurt","Villach","Wels","Sankt Pölten","Dornbirn","Steyr","Wiener Neustadt","Feldkirch","Bregenz","Leonding","Klosterneuburg"],
     sehenswuerdigkeiten:{
-      "Wien":       ["Stephansdom","Schloss Schönbrunn","Prater","Belvedere","Riesenrad","Hundertwasserhaus","Donauinsel"],
-      "Salzburg":   ["Festung Hohensalzburg","Mozarts Geburtshaus","Schloss Mirabell","Getreidegasse","Untersberg"],
-      "Innsbruck":  ["Goldenes Dachl","Bergisel","Nordkette","Schloss Ambras"],
+      "Wien":       ["Stephansdom","Schloss Schönbrunn","Belvedere","Riesenrad","Hundertwasserhaus"],
+      "Salzburg":   ["Festung Hohensalzburg","Mozarts Geburtshaus","Schloss Mirabell"],
+      "Innsbruck":  ["Goldenes Dachl","Schloss Ambras"],
       "Graz":       ["Schlossberg","Kunsthaus","Uhrturm","Murinsel"],
-      "Linz":       ["Ars Electronica Center","Pöstlingberg","Donauschlinge"],
-      "Klagenfurt": ["Wörthersee","Minimundus","Lindwurmbrunnen"]
+      "Linz":       ["Ars Electronica Center","Mariendom","Lentos Kunstmuseum"],
+      "Klagenfurt": ["Minimundus","Lindwurmbrunnen"]
     },
     einkauf:    ["BILLA","Hofer","Spar","Lidl","Merkur","Interspar","Penny"],
     lebensmittel:["Semmel","Weckerl","Leberkäse","Mozartkugel","Sachertorte","Apfelstrudel","Kaiserschmarrn","Würstel","Breze","Kipferl","Manner-Schnitten","Milch","Butter","Topfen"],
@@ -1529,22 +1529,14 @@
     var pts=[{x:x0,y:y0},{x:x0+w,y:y0},{x:x0+w,y:y0+h},{x:x0,y:y0+h}];
     var svg = polygonSVG(pts,{color:COLORS.textaufgabe.main, soft:COLORS.textaufgabe.soft, sideLabels:[l+" m", b+" m", l+" m", b+" m"], labelOffset:16});
     var ex = baseEx("textaufgabe","textaufgabe");
-    ex.question = "Der Vorplatz "+genitiv(bauwerk)+" "+bauwerk+" in "+stadt+" ist rechteckig: "+l+" m lang und "+b+" m breit. Berechne die Fläche des Vorplatzes.";
+    ex.question = "Die Sehenswürdigkeit \""+bauwerk+"\" in "+stadt+" hat einen rechteckigen Vorplatz: "+l+" m lang und "+b+" m breit. Berechne die Fläche des Vorplatzes.";
     ex.hint = "Rechteck: A = Länge · Breite.";
     ex.svg=svg; ex.badge="Alltag · "+stadt; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="m²";
     ex.answer = flaeche;
     ex.explanation = "A = "+l+" m · "+b+" m = "+fmtAT(flaeche)+" m².";
     return ex;
-  }
-
-  // Hilfsfunktion: korrekter Genitiv-Artikel für österreichische Sehenswürdigkeiten
-  function genitiv(name){
-    // Feminina (Genitiv: der)
-    if(/^(Donau|Festung|Getreide)/.test(name)) return "der";
-    // Maskulin/Neutrum (Genitiv: des)
-    return "des";
-  }
+}
 
   // Wandern: Höhenmeter (sehr österreichisch!)
   function genTextaufgabeWandern(){
@@ -1658,27 +1650,12 @@
     var zeitStunden = rand(2, 5); // h
     var speed = Math.round((distanz / zeitStunden) * 10) / 10; // km/h
     var ex = baseEx("textaufgabe","textaufgabe");
-    var fragen = [
-      {
-        text: name+" und "+name2+" wandern am Wandertag auf den "+berg+". Sie starten auf "+startHoehe+" m Seehöhe und erreichen den Gipfel auf "+zielHoehe+" m Seehöhe. Wie viele Höhenmeter überwinden sie?",
-        unit: "m", answer: hoehenmeter, tol: 10,
-        explanation: "Höhenmeter = "+zielHoehe+" m − "+startHoehe+" m = "+fmtAT(hoehenmeter)+" m.",
-        hint: "Höhenmeter = Gipfelhöhe − Startshöhe."
-      },
-      {
-        text: name+" und "+name2+" wandern am Wandertag auf den "+berg+". Die Wanderstrecke ist "+distanz+" km und sie benötigen "+zeitStunden+" Stunden. Welche Durchschnittsgeschwindigkeit (km/h) legen sie zurück?",
-        unit: "km/h", answer: speed, tol: 0.1,
-        explanation: "v = "+distanz+" km : "+zeitStunden+" h = "+fmtAT(speed)+" km/h.",
-        hint: "Geschwindigkeit = Strecke : Zeit."
-      }
-    ];
-    var f = choice(fragen);
-    ex.question = f.text;
-    ex.hint = f.hint;
+    ex.question = name+" und "+name2+" wandern am Wandertag auf den "+berg+". Sie starten auf "+startHoehe+" m Seehöhe und erreichen den Gipfel auf "+zielHoehe+" m Seehöhe. Die Wanderstrecke ist "+distanz+" km und sie benötigen "+zeitStunden+" Stunden. a) Wie viele Höhenmeter überwinden sie? b) Welche Durchschnittsgeschwindigkeit (km/h) legen sie zurück?";
+    ex.hint = "a) Höhenmeter = Gipfelhöhe − Startshöhe. b) Geschwindigkeit = Strecke : Zeit.";
     ex.badge="Alltag · Wandertag"; ex.badgeColor=COLORS.textaufgabe.main;
-    ex.inputType="number"; ex.unit=f.unit; ex.tolerance=f.tol;
-    ex.answer = f.answer;
-    ex.explanation = f.explanation;
+    ex.inputType="number"; ex.unit="m"; ex.tolerance=10;
+    ex.answer = hoehenmeter;
+    ex.explanation = "a) Höhenmeter = "+zielHoehe+" m − "+startHoehe+" m = "+fmtAT(hoehenmeter)+" m. b) v = "+distanz+" km : "+zeitStunden+" h = "+fmtAT(speed)+" km/h.";
     return ex;
   }
 

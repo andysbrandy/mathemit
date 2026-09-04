@@ -349,6 +349,7 @@
     <div class="auth-card">
       <h2 class="auth-title" id="authTitle">Anmelden</h2>
       <p class="auth-subtitle">Dein Lernfortschritt wird gespeichert und geräteübergreifend synchronisiert.</p>
+      <button id="closeAuthBtn" title="Schliessen" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:28px;cursor:pointer;color:#888;">×</button>
 
       <div class="auth-tabs" role="tablist" aria-label="Anmeldung oder Registrierung">
         <button class="auth-tab active" role="tab" aria-selected="true" aria-controls="panel-login" id="tab-login">Anmelden</button>
@@ -2404,6 +2405,10 @@
   function showAuthOverlay() { overlay.hidden = false; }
   function hideAuthOverlay() { overlay.hidden = true; }
 
+  document.getElementById('closeAuthBtn').addEventListener('click', function() {
+    hideAuthOverlay();
+  });
+
   function setSubmitLoading(form, loading) {
     var btn = form.querySelector('.auth-submit');
     if (loading) {
@@ -2517,7 +2522,7 @@
       } else if (data._httpStatus === 401) {
         // Token abgelaufen oder ungültig
         clearAuth();
-        showAuthOverlay();
+        // showAuthOverlay(); // DEAKTIVIERT - overlay offen lassen
       }
     });
   }
@@ -2540,7 +2545,7 @@
     }).then(function(data) {
       if (data._httpStatus === 401) {
         clearAuth();
-        showAuthOverlay();
+        // showAuthOverlay(); // DEAKTIVIERT - overlay offen lassen
       }
     });
   }

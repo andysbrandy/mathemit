@@ -414,7 +414,7 @@
         <rect x="6" y="4" width="16" height="16" fill="none" stroke="#1FA294" stroke-width="3" transform="rotate(18 14 12)"/>
       </svg>
       <div>
-        <h1>Die Formen-Werkstatt</h1>
+        <h1>Mathe mit AndyBrandy - Die Mathe-Werkstatt</h1>
         <p>Dreiecke, Vierecke, Kreise, Körper, Brüche &amp; Prozent üben – so oft du willst</p>
       </div>
     </div>
@@ -2518,24 +2518,20 @@
   function loadProgressFromAPI() {
     var token = getToken();
     if (!token) return;
-
     apiFetch('/progress.php').then(function(data) {
       if (data.status === 'ok' && data.data) {
         var d = data.data;
-        state.points      = d.points      || 0;
-        state.streak      = d.streak      || 0;
-        state.best_streak = d.best_streak || 0;
-        state.solved      = d.solved      || 0;
-        state.correct     = d.correct     || 0;
-        state.mode        = d.mode        || state.mode;
-        state.grade       = d.grade       || state.grade;
-        if (d.badges) state.badges = d.badges;
+        state.points  = Math.max(state.points, d.points || 0);
+        state.streak  = Math.max(state.streak, d.streak || 0);
+        state.best_streak = Math.max(state.best_streak, d.best_streak || 0);
+        state.solved  = Math.max(state.solved, d.solved || 0);
+        state.correct = Math.max(state.correct, d.correct || 0);
+        state.badges  = Array.from(new Set((state.badges||[]).concat(d.badges||[])));
         updateStatsUI();
+        syncProgressToAPI(); // gemergten Stand gleich zurückschreiben
       } else if (data._httpStatus === 401) {
-          clearAuth();
-          renderUserInfo();
-          showAuthOverlay();
-          showMsg('Anmeldung abgelaufen – bitte erneut einloggen.', 'error');
+        clearAuth(); renderUserInfo(); showAuthOverlay();
+        showMsg('Anmeldung abgelaufen – bitte erneut einloggen.', 'error');
       }
     });
   }

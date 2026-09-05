@@ -2458,6 +2458,7 @@
         if (data.status === 'ok') {
           showMsg('Willkommen, ' + data.user.nickname + '!', 'success');
           saveAuth(data.token, data.user);
+          renderUserInfo();
           setTimeout(function() {
             hideAuthOverlay();
             loadProgressFromAPI(data.token);

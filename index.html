@@ -2460,7 +2460,7 @@
           saveAuth(data.token, data.user);
           setTimeout(function() {
             hideAuthOverlay();
-            loadProgressFromAPI();
+            loadProgressFromAPI(data.token);
           }, 600);
         } else {
           showMsg(data.message || 'Anmeldung fehlgeschlagen.', 'error');
@@ -2515,8 +2515,8 @@
   });
 
   // ---------- Progress Sync ----------
-  function loadProgressFromAPI() {
-    var token = getToken();
+  function loadProgressFromAPI(customToken) {
+    var token = customToken || getToken();
     if (!token) return;
     apiFetch('/progress.php').then(function(data) {
       if (data.status === 'ok' && data.data) {

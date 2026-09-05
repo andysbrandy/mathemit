@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v1">
+<meta name="app-version" content="v2">
 <title>Die Formen-Werkstatt – Mathe für die Mittelschule</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1589,6 +1589,76 @@
 
   /* ============ Phase 3: Textaufgaben ============ */
 
+  // Stilisierte Österreich-Karte – cartoonhaft mit Berggipfeln
+  function austriaMapSVG(){
+    var col = COLORS.textaufgabe.main;
+    var soft = COLORS.textaufgabe.soft;
+    return '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">'
+      + '<rect width="300" height="220" fill="' + soft + '" rx="12"/>'
+
+      // --- Vereinfachter Umriss Österreichs ---
+      + '<path d="'
+        // Tirol (Westen, oben)
+        + 'M 52 55 L 62 30 L 85 20 L 115 28 L 128 42 L 140 55 L 148 70 L 145 88'
+        // Salzburg / Oberösterreich (Norden)
+        + ' L 158 92 L 175 85 L 190 88 L 202 95 L 210 108 L 215 122'
+        // Niederösterreich (Osten, Nordosten)
+        + ' L 222 130 L 235 135 L 248 132 L 260 128 L 268 135 L 270 148 L 265 162'
+        + ' L 258 172 L 245 180 L 228 185 L 212 190 L 195 195 L 180 202 L 162 208'
+        // Süden / Kärnten, Steiermark
+        + ' L 148 212 L 132 208 L 115 205 L 100 198 L 85 190 L 72 180 L 60 168'
+        + ' L 50 155 L 42 142 L 38 128 L 35 115 L 32 100 L 38 85 L 48 70 Z'
+        + '" fill="' + col + '" opacity="0.22" stroke="' + col + '" stroke-width="2" stroke-linejoin="round"/>'
+
+      // --- Bundesländer-Labels (kleine Punkte) ---
+      + '<circle cx="88"  cy="58"  r="4" fill="' + col + '" opacity="0.7"/>'  // Tirol
+      + '<circle cx="170" cy="70"  r="4" fill="' + col + '" opacity="0.7"/>'  // Salzburg
+      + '<circle cx="225" cy="148" r="4" fill="' + col + '" opacity="0.7"/>'  // Wien
+      + '<circle cx="145" cy="190" r="4" fill="' + col + '" opacity="0.7"/>'  // Kärnten
+      + '<circle cx="130" cy="145" r="4" fill="' + col + '" opacity="0.7"/>'  // Steiermark
+      + '<circle cx="205" cy="108" r="4" fill="' + col + '" opacity="0.7"/>'  // NÖ
+
+      // --- Berggipfel-Symbole (Tiroler Flavour) ---
+      // Berg 1 – links oben
+      + '<polygon points="42,145 52,118 62,145" fill="' + col + '" opacity="0.5"/>'
+      + '<line x1="42" y1="145" x2="62" y2="145" stroke="' + col + '" stroke-width="1.5" opacity="0.5"/>'
+      // Berg 2 – mitte links
+      + '<polygon points="75,130 85,105 95,130" fill="' + col + '" opacity="0.65"/>'
+      + '<line x1="75" y1="130" x2="95" y2="130" stroke="' + col + '" stroke-width="1.5" opacity="0.65"/>'
+      // Berg 3 – mitte
+      + '<polygon points="108,115 122,85 136,115" fill="' + col + '" opacity="0.5"/>'
+      + '<line x1="108" y1="115" x2="136" y2="115" stroke="' + col + '" stroke-width="1.5" opacity="0.5"/>'
+      // Berg 4 – mitte rechts (Großglockner style)
+      + '<polygon points="145,105 160,70 175,105" fill="' + col + '" opacity="0.7"/>'
+      + '<line x1="145" y1="105" x2="175" y2="105" stroke="' + col + '" stroke-width="1.5" opacity="0.7"/>'
+      // Berg 5 – rechts
+      + '<polygon points="192,95 205,68 218,95" fill="' + col + '" opacity="0.55"/>'
+      + '<line x1="192" y1="95" x2="218" y2="95" stroke="' + col + '" stroke-width="1.5" opacity="0.55"/>'
+
+      // --- Schneehauben auf den Bergen ---
+      + '<polygon points="157,74 160,70 163,74 158,73" fill="white" opacity="0.7"/>'
+      + '<polygon points="119,89 122,85 125,89 120,88" fill="white" opacity="0.6"/>'
+      + '<polygon points="203,72 205,68 207,72 204,71" fill="white" opacity="0.5"/>'
+
+      // --- Flagge Österreich (links unten) ---
+      + '<rect x="38" y="162" width="3" height="32" fill="' + col + '" opacity="0.6"/>'
+      + '<rect x="41" y="162" width="20" height="6.6" fill="' + col + '" opacity="0.6"/>'
+      + '<rect x="41" y="168.6" width="20" height="6.6" fill="white" opacity="0.6"/>'
+      + '<rect x="41" y="175.2" width="20" height="6.6" fill="red" opacity="0.6"/>'
+      + '<rect x="41" y="181.8" width="20" height="6.6" fill="white" opacity="0.6"/>'
+      + '<rect x="41" y="188.4" width="20" height="5.6" fill="red" opacity="0.6"/>'
+
+      // --- Beschriftung ---
+      + '<text x="150" y="152" text-anchor="middle" font-family="Fredoka,sans-serif"'
+      + ' font-size="13" font-weight="600" fill="' + col + '" opacity="0.85">🇦🇹 Österreich</text>'
+
+      // --- Kleine Sterne ---
+      + '<text x="25" y="28" font-size="10" opacity="0.4">✦</text>'
+      + '<text x="255" y="32" font-size="8" opacity="0.35">✦</text>'
+      + '<text x="270" y="50" font-size="6" opacity="0.3">✦</text>'
+      + '</svg>';
+  }
+
   function genTextaufgabeGarten(){
     var l = rand(5,18), b = rand(3,14);
     var maxDim=Math.max(l,b), scale=170/maxDim;
@@ -1724,6 +1794,7 @@
     var berg = choice(["Hochkönig","Großglockner","Dachstein","Rax","Schneeberg","Wilder Kaiser","Großer Priel"]);
     ex.question = name1+" und "+name2+" wandern in den "+berg+". Sie starten auf "+start+" m Seehöhe und erreichen das Gipfelkreuz auf "+ziel+" m Seehöhe. Sie wandern dafür "+strecke+" km. Wie viele Höhenmeter haben sie überwunden?";
     ex.hint = "Höhenmeter = Gipfelhöhe − Startshöhe. (Die Wanderstrecke in km ist hier nicht gefragt.)";
+    ex.svg=austriaMapSVG();
     ex.badge="Alltag · Wandern"; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="m";
     ex.answer = diff;
@@ -1742,6 +1813,7 @@
     var name = choice(AUSTRIA.vornamen);
     ex.question = name+" kauft bei "+laden+" "+menge+" Stück "+produkt+" um je "+fmtEUR(einzel)+". Wie viel muss "+name+" insgesamt bezahlen?";
     ex.hint = "Gesamtpreis = Einzelpreis · Menge. Rechne sorgfältig mit dem Komma.";
+    ex.svg=austriaMapSVG();
     ex.badge="Alltag · Einkauf"; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="€"; ex.tolerance=0.01;
     ex.answer = summe;
@@ -1764,6 +1836,7 @@
     var ex = baseEx("textaufgabe","textaufgabe");
     ex.question = name+" ist mit der Familie am Christkindlmarkt. "+name+" kauft "+n1+" Punsch zu je "+fmtEUR(p1)+", "+n2+" Lebkuchen zu je "+fmtEUR(p2)+" und "+n3+" Breze zu je "+fmtEUR(p3)+". "+name+" bezahlt mit einem "+fmtEUR(gegeben)+"-Schein. Wie viel Wechselgeld bekommt "+name+" zurück?";
     ex.hint = "1) Gesamtkosten berechnen (alle Posten addieren). 2) Wechselgeld = Gegeben − Gesamtkosten.";
+    ex.svg=austriaMapSVG();
     ex.badge="Alltag · Christkindlmarkt"; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="€"; ex.tolerance=0.01;
     ex.answer = rueckgeld;
@@ -1783,6 +1856,7 @@
     var ex = baseEx("textaufgabe","textaufgabe");
     ex.question = "In einer "+klassenGroesse+"-köpfigen Klasse einer "+schulTyp+" haben "+zaehler+"/"+nenner+" aller Kinder die Mathematik-Schularbeit mit 'Sehr gut' oder 'Gut' bestanden. Wie viele Kinder sind das?";
     ex.hint = "Anzahl = Klassengröße · Bruch. Zuerst den Bruch als Dezimalzahl denken, dann mit der Klassengröße multiplizieren.";
+    ex.svg=austriaMapSVG();
     ex.badge="Alltag · Schule"; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="";
     ex.answer = anzahl;
@@ -1805,6 +1879,7 @@
     var ex = baseEx("textaufgabe","textaufgabe");
     ex.question = name+" bucht einen Skikurs in "+ort+". Der Kurs kostet regulär "+fmtEUR(basis)+". Bei einer Frühbucher-Aktion gibt es "+rabatt+" % Ermäßigung. Wie viel muss "+name+" bezahlen?";
     ex.hint = "1) Rabattbetrag = Grundpreis · Prozentsatz : 100. 2) Endpreis = Grundpreis − Rabattbetrag.";
+    ex.svg=austriaMapSVG();
     ex.badge="Alltag · Skikurs"; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="€"; ex.tolerance=0.01;
     ex.answer = Math.round(endpreis*100)/100;
@@ -1826,6 +1901,7 @@
     var ex = baseEx("textaufgabe","textaufgabe");
     ex.question = name+" und "+name2+" wandern am Wandertag auf den "+berg+". Sie starten auf "+startHoehe+" m Seehöhe und erreichen den Gipfel auf "+zielHoehe+" m Seehöhe. Die Wanderstrecke ist "+distanz+" km und sie benötigen "+zeitStunden+" Stunden. a) Wie viele Höhenmeter überwinden sie? b) Welche Durchschnittsgeschwindigkeit (km/h) legen sie zurück?";
     ex.hint = "a) Höhenmeter = Gipfelhöhe − Startshöhe. b) Geschwindigkeit = Strecke : Zeit.";
+    ex.svg=austriaMapSVG();
     ex.badge="Alltag · Wandertag"; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="m"; ex.tolerance=10;
     ex.answer = hoehenmeter;
@@ -1848,6 +1924,7 @@
     var ex = baseEx("textaufgabe","textaufgabe");
     ex.question = name+" braucht "+anzahlBenoetigt+" "+produkt+" für die Schule. Im Angebot gilt: Kaufe "+zaehler+"/"+nenner+" und erhalte "+anzahlBezahlt+" Stück gratis dazu. Ein "+produkt+" kostet "+fmtEUR(preis)+". Wie viel muss "+name+" bezahlen?";
     ex.hint = "1) "+zaehler+"/"+nenner+" von "+anzahlBenoetigt+" = "+anzahlGekauft+" Stück (bezahlt). 2) Gesamtpreis = "+anzahlGekauft+" · Einzelpreis.";
+    ex.svg=austriaMapSVG();
     ex.badge="Alltag · Schulstart"; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="€"; ex.tolerance=0.01;
     ex.answer = gesamtKosten;
@@ -1869,6 +1946,7 @@
     var ex = baseEx("textaufgabe","textaufgabe");
     ex.question = name+" geht in die Eisdiele und bestellt "+anzahlKugeln+" Kugeln Eis um je "+fmtEUR(kugelPreis)+". Die Eisdiele hat eine Aktion: "+zaehler+"/"+nenner+" des Preises werden als Rabatt abgezogen. Wie viel bezahlt "+name+"?";
     ex.hint = "1) Gesamtpreis = Anzahl · Kugelpreis. 2) Rabatt = Gesamtpreis · "+zaehler+"/"+nenner+". 3) Endpreis = Gesamtpreis − Rabatt.";
+    ex.svg=austriaMapSVG();
     ex.badge="Alltag · Eisdiele"; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="€"; ex.tolerance=0.01;
     ex.answer = endpreis;
@@ -2652,7 +2730,7 @@ if (token) {
 })();
 </script>
 <footer class="app-version">
-  <span class="ver" id="appVersion">v1</span>
+  <span class="ver" id="appVersion">v2</span>
 </footer>
 </body>
 </html>

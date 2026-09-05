@@ -2607,28 +2607,7 @@
       .replace(/>/g,'&gt;')
       .replace(/"/g,'&quot;');
   }
-  function renderUserInfo() {
-    var existing = document.getElementById('userInfoSlot');
-    if (existing) existing.remove();
-    var slot = document.createElement('span');
-    slot.id = 'userInfoSlot';
-    slot.innerHTML = buildUserInfo();
-    var stats = document.querySelector('.stats');
-    if (stats) {
-      var logoutBtn = slot.querySelector('#logoutBtn');
-      if (logoutBtn) logoutBtn.addEventListener('click', function() {
-        clearAuth();
-        showAuthOverlay();
-        document.getElementById('loginNickname').value = '';
-        document.getElementById('loginPin').value = '';
-        document.getElementById('regNickname').value = '';
-        document.getElementById('regPin').value = '';
-        document.getElementById('regClassCode').value = '';
-      });
-      stats.appendChild(slot);
-    }
-  }
-
+  
 // Overlay startet immer geschlossen – Login ist ein Angebot, kein Zwang.
 renderUserInfo();
 var token = getToken();

@@ -6,6 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
+<meta name="app-version" content="v1">
 <title>Die Formen-Werkstatt – Mathe für die Mittelschule</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -189,6 +190,27 @@
     width:0%; transition:width .5s cubic-bezier(.4,1.4,.6,1);
   }
   .level-next{font-size:.72rem; color:var(--muted); white-space:nowrap; font-weight:600;}
+
+  /* ---------- App Version Footer ---------- */
+  .app-version{
+    text-align:center;
+    margin-top:32px;
+    padding:12px 0 0;
+    color:var(--muted);
+    font-family:'JetBrains Mono',monospace;
+    font-size:.7rem;
+    letter-spacing:.5px;
+    opacity:.7;
+  }
+  .app-version .ver{
+    display:inline-block;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:3px 10px;
+    font-weight:700;
+    color:var(--ink);
+  }
 
   /* ---------- Chips ---------- */
   .chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px;}
@@ -2629,5 +2651,8 @@ if (token) {
   nextExercise();
 })();
 </script>
+<footer class="app-version">
+  <span class="ver" id="appVersion">v1</span>
+</footer>
 </body>
 </html>

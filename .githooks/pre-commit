@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# Pre-Commit Hook: erhöht die Versionsnummer in VERSION
+# und injiziert sie in index.html (Footer + meta-Tag).
+set -e
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+VERSION_FILE="$REPO_ROOT/VERSION"
+INDEX_FILE="$REPO_ROOT/index.html"
+
+# Aktuelle Version lesen
+if [ ! -f "$VERSION_FILE" ]; then
+  echo "0" > "$VERSION_FILE"
+fi
+CURRENT=$(tr -d '[:space:]' < "$VERSION_FILE")
+if ! [[ "$CURRENT" =~ ^[0-9]+$ ]]; then
+  CURRENT=0
+fi
+NEW=$((CURRENT + 1))
+
+# VERSION-Datei aktualisieren
+printf "%s\n" "$NEW" > "$VERSION_FILE"
+
+# index.html: Version in Footer + meta-Tag setzen (idempotent)
+# 1) <meta name="app-version" content="vX">
+# 2) <span class="ver" id="appVersion">vX</span>
+TMP=$(mktemp)
+python3 - "$NEW" "$INDEX_FILE" "$TMP" <<'PY'
+import re, sys
+new_v, src, dst = sys.argv[1], sys.argv[2], sys.argv[3]
+tag = f"v{new_v}"
+with open(src, "r", encoding="utf-8") as f:
+    html = f.read()
+
+# meta-Tag ersetzen (oder einfügen, falls fehlt)
+if re.search(r'<meta\s+name=["\']app-version["\']', html):
+    html = re.sub(
+        r'(<meta\s+name=["\']app-version["\']\s+content=)"v?\d+"',
+        rf'\1"{tag}"',
+        html,
+        count=1,
+    )
+else:
+    html = html.replace(
+        "<title>",
+        f'<meta name="app-version" content="{tag}">\n<title>',
+        1,
+    )
+
+# Footer-Span ersetzen
+if re.search(r'id=["\']appVersion["\']', html):
+    html = re.sub(
+        r'(<span\s+class=["\']ver["\']\s+id=["\']appVersion["\']\s*>)v?\d+',
+        rf'\1{tag}',
+        html,
+        count=1,
+    )
+else:
+    html = html.replace(
+        "</body>",
+        f'<footer class="app-version"><span class="ver" id="appVersion">{tag}</span></footer>\n</body>',
+        1,
+    )
+
+with open(dst, "w", encoding="utf-8") as f:
+    f.write(html)
+PY
+mv "$TMP" "$INDEX_FILE"
+
+# VERSION + index.html stagen
+git add "$VERSION_FILE" "$INDEX_FILE"
+
+echo "🔢 Version auf v${NEW} hochgezählt (war v${CURRENT})"

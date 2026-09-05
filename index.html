@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Die Formen-Werkstatt – Mathe für die Mittelschule</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2456,8 +2459,10 @@
       .then(function(data) {
         setSubmitLoading(form, false);
         if (data.status === 'ok') {
+          console.log('[mathemit] Login OK, user:', data.user.nickname);
           showMsg('Willkommen, ' + data.user.nickname + '!', 'success');
           saveAuth(data.token, data.user);
+          console.log('[mathemit] nach saveAuth, getUser():', getUser());
           renderUserInfo();
           setTimeout(function() {
             hideAuthOverlay();
@@ -2577,25 +2582,33 @@
     return '<button class="btn" id="loginOpenBtn" style="padding:8px 16px; font-size:.82rem;">Anmelden</button>';
 }
   function renderUserInfo() {
-    var existing = document.getElementById('userInfoSlot');
-    if (existing) existing.remove();
+    var stats = document.querySelector('.stats');
+    if (!stats) {
+      console.warn('[mathemit] .stats nicht gefunden – renderUserInfo übersprungen');
+      return;
+    }
+    // Vorhandene Slot-Instanzen entfernen (sicherheitshalber alle, nicht nur die erste)
+    var existing = stats.querySelectorAll('#userInfoSlot');
+    for (var i = 0; i < existing.length; i++) existing[i].remove();
+    // Zusätzlich: alte Login-Buttons (ohne userInfoSlot) aus früheren Renderings entfernen
+    var stray = stats.querySelectorAll('#loginOpenBtn');
+    for (var j = 0; j < stray.length; j++) stray[j].remove();
+
     var slot = document.createElement('span');
     slot.id = 'userInfoSlot';
     slot.innerHTML = buildUserInfo();
-    var stats = document.querySelector('.stats');
-    if (stats) {
-      var logoutBtn = slot.querySelector('#logoutBtn');
-      if (logoutBtn) logoutBtn.addEventListener('click', function() {
-        clearAuth();
-        renderUserInfo();
-      });
-      var loginBtn = slot.querySelector('#loginOpenBtn');
-      if (loginBtn) loginBtn.addEventListener('click', function() {
-        clearMsg();
-        showAuthOverlay();
-      });
-      stats.appendChild(slot);
-    }
+    var logoutBtn = slot.querySelector('#logoutBtn');
+    if (logoutBtn) logoutBtn.addEventListener('click', function() {
+      clearAuth();
+      renderUserInfo();
+    });
+    var loginBtn = slot.querySelector('#loginOpenBtn');
+    if (loginBtn) loginBtn.addEventListener('click', function() {
+      clearMsg();
+      showAuthOverlay();
+    });
+    stats.appendChild(slot);
+    console.log('[mathemit] renderUserInfo done, user =', getUser());
   }
   function escHtml(str) {
     return String(str)

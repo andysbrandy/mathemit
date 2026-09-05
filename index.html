@@ -2529,10 +2529,9 @@
         state.badges  = Array.from(new Set((state.badges||[]).concat(d.badges||[])));
         updateStatsUI();
         syncProgressToAPI(); // gemergten Stand gleich zurückschreiben
-      } else if (data._httpStatus === 401) {
-        clearAuth(); renderUserInfo(); showAuthOverlay();
-        showMsg('Anmeldung abgelaufen – bitte erneut einloggen.', 'error');
       }
+    }, function(err) {
+      // Netzwerkfehler ignorieren - Fortschritt bleibt lokal
     });
   }
 
@@ -2552,12 +2551,9 @@
         grade:       state.grade
       }
     }).then(function(data) {
-      if (data._httpStatus === 401) {
-        clearAuth();
-        renderUserInfo();
-        showAuthOverlay();
-        showMsg('Anmeldung abgelaufen – bitte erneut einloggen.', 'error');
-    }
+      // Sync-Fehler ignorieren - Fortschritt bleibt lokal gespeichert
+    }, function(err) {
+      // Netzwerkfehler ignorieren
     });
   }
 

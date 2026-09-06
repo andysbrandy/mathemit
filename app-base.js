@@ -1149,72 +1149,85 @@
     return '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">'+s+'</svg>';
   }
 
-  // Hintergrund + gefüllte Österreich-Silhouette + Alpen + Bodensee
+  // Erzeugt einen weich gerundeten geschlossenen Pfad (Quadratic-Beziers an den Ecken)
+  function roundedPolyPath(pts, r){
+    var n = pts.length, d = "";
+    for(var i=0;i<n;i++){
+      var p0=pts[(i-1+n)%n], p1=pts[i], p2=pts[(i+1)%n];
+      var v1={x:p1[0]-p0[0], y:p1[1]-p0[1]}, v2={x:p2[0]-p1[0], y:p2[1]-p1[1]};
+      var l1=Math.hypot(v1.x,v1.y)||1, l2=Math.hypot(v2.x,v2.y)||1;
+      var rr=Math.min(r, l1/2.4, l2/2.4);
+      var ax=p1[0]-v1.x/l1*rr, ay=p1[1]-v1.y/l1*rr;
+      var bx=p1[0]+v2.x/l2*rr, by=p1[1]+v2.y/l2*rr;
+      d += (i===0? "M "+ax.toFixed(1)+","+ay.toFixed(1) : " L "+ax.toFixed(1)+","+ay.toFixed(1));
+      d += " Q "+p1[0].toFixed(1)+","+p1[1].toFixed(1)+" "+bx.toFixed(1)+","+by.toFixed(1);
+    }
+    return d+" Z";
+  }
+
+  // Hintergrund + gefüllte Österreich-Silhouette (gerundet) + Alpen + Bodensee
   function _atLand(main, soft){
-    var BORDER = "282,89.7 279.3,111.1 259.5,111.2 266.3,122.5 254.6,156.2 247.9,165.1 "
-      + "217.1,166.4 199.4,178.2 170.3,174.2 120,160.7 112.1,142.5 77.3,151.6 "
-      + "73.2,161.5 51.9,154.1 33.9,152.6 18,143.1 23.4,130.3 22,121 32.6,118.1 "
-      + "50.5,132.7 55.5,118.8 86.5,121.1 111.7,111.7 128.6,113.3 139.5,124 "
-      + "142.8,115.1 137.8,81 150.5,74.4 162.9,50.2 189,67.1 208.8,45.7 221.2,41.8 "
-      + "248.6,57.7 265.1,55 281.3,64.9 278.5,71.6";
+    var BORDER_PTS = [[282,89.7],[279.3,111.1],[259.5,111.2],[266.3,122.5],[254.6,156.2],[247.9,165.1],
+      [217.1,166.4],[199.4,178.2],[170.3,174.2],[120,160.7],[112.1,142.5],[77.3,151.6],
+      [73.2,161.5],[51.9,154.1],[33.9,152.6],[18,143.1],[23.4,130.3],[22,121],[32.6,118.1],
+      [50.5,132.7],[55.5,118.8],[86.5,121.1],[111.7,111.7],[128.6,113.3],[139.5,124],
+      [142.8,115.1],[137.8,81],[150.5,74.4],[162.9,50.2],[189,67.1],[208.8,45.7],[221.2,41.8],
+      [248.6,57.7],[265.1,55],[281.3,64.9],[278.5,71.6]];
+    var BORDER_D = roundedPolyPath(BORDER_PTS, 5);
     var s = '<rect width="300" height="220" fill="'+soft+'" rx="12"/>';
-    // Landfläche: exakte Außengrenze, dezente Füllung + dicker Comic-Umriss
-    s += '<polygon points="'+BORDER+'" fill="'+main+'" fill-opacity="0.13" stroke="'+main+'" stroke-width="3.2" stroke-linejoin="round"/>';
-    // Alpen (dezente Zacken in West-/Südtirol, Kärnten)
+    // Landfläche: exakte (gerundete) Außengrenze, dezente Füllung + dicker Comic-Umriss
+    s += '<path d="'+BORDER_D+'" fill="'+main+'" fill-opacity="0.13" stroke="'+main+'" stroke-width="3.2" stroke-linejoin="round"/>';
+    // Alpen (dezente Zacken in Tirol/Kärnten, leicht innerhalb der Grenze)
     s += '<g fill="#8FA3B8" fill-opacity="0.30" stroke="#7E93AA" stroke-width="1.2" stroke-linejoin="round">'
-      + '<polygon points="40,150 52,138 60,132 55,118.8 66,124 74,121.5 86.5,121.1 96,128 88,136 72,140 60,149"/>'
-      + '<polygon points="96,128 108,118 120,126 131,116 139.5,124 131,140 131.1,144.6 118,148 112.1,142.5"/>'
-      + '<polygon points="131.1,144.6 146,150 158,142 170.3,174.2 160,162 150,158 138,152"/>'
+      + '<polygon points="40,150 52,138 60,132 56,121 66,124 74,121.5 86.5,122.5 96,128 88,136 72,140 60,149"/>'
+      + '<polygon points="96,128 108,118 120,126 131,116 139.5,121 131,140 131.1,144.6 118,146 112.5,141"/>'
+      + '<polygon points="131.1,144.6 146,150 158,142 169.5,172.5 160,162 150,158 138,152"/>'
       + '</g>';
-    s += '<polygon points="55,120 58,116.5 61,120 56,119" fill="#fff" opacity="0.8"/>';
-    s += '<polygon points="128,117.5 131,114.5 134,117.5 129,116.5" fill="#fff" opacity="0.8"/>';
+    s += '<polygon points="53,124 56,120.5 59,124 54,123" fill="#fff" opacity="0.85"/>';
+    s += '<polygon points="128,118.5 131,115.5 134,118.5 129,117.5" fill="#fff" opacity="0.85"/>';
     // Bodensee (Bregenz)
-    s += '<ellipse cx="24" cy="121.8" rx="4.5" ry="2.6" fill="#4FA4D0" fill-opacity="0.75"/>';
+    s += '<ellipse cx="26" cy="124.5" rx="2.8" ry="1.6" fill="#4FA4D0" fill-opacity="0.75"/>';
     return s;
   }
 
-  // Landeshauptstädte (echte Positionen) mit Namen
+  // Landeshauptstädte (echte Positionen) mit kleinen Namen (keine Überschneidungen)
   function _atCitiesAndLabels(main){
     var CITIES = [
-      {x:27.1,y:122.2,n:"Bregenz",   lx:27.1, ly:114.5, r:3.5, a:"middle"},
-      {x:85.4,y:134.5,n:"Innsbruck", lx:97.5, ly:134.5, r:3.5, a:"start"},
-      {x:143.5,y:106.1,n:"Salzburg", lx:151.5,ly:106.1, r:3.5, a:"start"},
-      {x:187.2,y:80.1,n:"Linz",      lx:175,  ly:80.1,  r:3.5, a:"end"},
-      {x:234.4,y:85.3,n:"St. Pölten",lx:221,  ly:85.3,  r:3.5, a:"end"},
-      {x:260.7,y:85.3,n:"Wien",      lx:271,  ly:85.3,  r:5,   a:"start"},
-      {x:227.8,y:144.8,n:"Graz",     lx:230,  ly:156.5, r:3.5, a:"start"},
-      {x:187.9,y:168.1,n:"Klagenfurt",lx:187.9,ly:179,  r:3.5, a:"middle"},
-      {x:265.9,y:104.2,n:"Eisenstadt",lx:259,  ly:104.2, r:3.5, a:"end"}
+      {x:27.1,y:122.2,n:"Bregenz",   lx:24,   ly:131,   r:3,   a:"start"},
+      {x:85.4,y:134.5,n:"Innsbruck", lx:97.5, ly:134.5, r:3,   a:"start"},
+      {x:143.5,y:106.1,n:"Salzburg", lx:151.5,ly:106.1, r:3,   a:"start"},
+      {x:187.2,y:80.1,n:"Linz",      lx:175,  ly:80.1,  r:3,   a:"end"},
+      {x:234.4,y:85.3,n:"St. Pölten",lx:221,  ly:85.3,  r:3,   a:"end"},
+      {x:260.7,y:85.3,n:"Wien",      lx:270,  ly:85.3,  r:4.5, a:"start"},
+      {x:227.8,y:144.8,n:"Graz",     lx:231,  ly:156.5, r:3,   a:"start"},
+      {x:187.9,y:168.1,n:"Klagenfurt",lx:187.9,ly:161,  r:3,   a:"middle"},
+      {x:265.9,y:104.2,n:"Eisenstadt",lx:259,  ly:104.2, r:3,   a:"end"}
     ];
     var s = '<g>';
     for(var c=0;c<CITIES.length;c++){
       var ct = CITIES[c];
-      s += '<circle cx="'+ct.x+'" cy="'+ct.y+'" r="'+(ct.r||3.5)+'" fill="#ffffff" stroke="'+main+'" stroke-width="2"/>';
-      if(ct.n==="Wien") s += '<text x="'+(ct.x+5)+'" y="'+(ct.y-6)+'" font-size="8" fill="#E9B949" text-anchor="middle">★</text>';
-      s += '<text class="dim-label" x="'+ct.lx+'" y="'+(ct.ly+3)+'" font-size="7" text-anchor="'+ct.a+'" fill="'+main+'">'+ct.n+'</text>';
+      s += '<circle cx="'+ct.x+'" cy="'+ct.y+'" r="'+(ct.r||3)+'" fill="#ffffff" stroke="'+main+'" stroke-width="2"/>';
+      if(ct.n==="Wien") s += '<text x="'+(ct.x+4)+'" y="'+(ct.y-6)+'" font-size="7" fill="#E9B949" text-anchor="middle">★</text>';
+      s += '<text x="'+ct.lx+'" y="'+(ct.ly+3)+'" font-family="Inter,sans-serif" font-weight="600" font-size="6" text-anchor="'+ct.a+'" fill="'+main+'">'+ct.n+'</text>';
     }
     s += '</g>';
     return s;
   }
 
-  // Themen-Pin (Ort + Emoji + Beschriftung) oder Neutral-Label
+  // Aufgaben-Icon groß in der Mitte Österreichs + Themen-Badge darunter
   function _atThemes(opts, main){
     var s = "";
-    if(opts.city){
-      var CITY_POS = {
-        Wien:{x:260.7,y:85.3}, Innsbruck:{x:85.4,y:134.5}, Graz:{x:227.8,y:144.8},
-        Salzburg:{x:143.5,y:106.1}, Linz:{x:187.2,y:80.1}, Klagenfurt:{x:187.9,y:168.1},
-        Bregenz:{x:27.1,y:122.2}, Eisenstadt:{x:265.9,y:104.2}, "St. Pölten":{x:234.4,y:85.3}
-      };
-      var p = CITY_POS[opts.city] || {x:150,y:110};
-      var pinColor = opts.color || "#D8495A";
-      var lw = (opts.label? opts.label.length*5.2 : 10) + 4;
-      s += '<g>';
-      s += '<rect x="'+(p.x-lw/2)+'" y="'+(p.y+12)+'" width="'+lw+'" height="15" rx="7.5" fill="'+pinColor+'" stroke="#ffffff" stroke-width="1.2"/>';
-      s += '<text x="'+(p.x+4)+'" y="'+(p.y-7)+'" font-size="14" text-anchor="middle">'+opts.icon+'</text>';
-      s += '<circle cx="'+(p.x-7)+'" cy="'+(p.y-7)+'" r="3.2" fill="#ffffff" stroke="'+pinColor+'" stroke-width="1.6"/>';
-      s += '<text x="'+p.x+'" y="'+(p.y+23)+'" font-size="9" font-weight="700" text-anchor="middle" fill="#ffffff">'+(opts.label||"")+'</text>';
-      s += '</g>';
+    if(opts.icon || opts.label){
+      var cx = 152, cy = 112; // Landesmitte (geografisch zentral)
+      if(opts.icon){
+        s += '<text x="'+cx+'" y="'+(cy+10)+'" font-size="36" text-anchor="middle">'+opts.icon+'</text>';
+      }
+      if(opts.label){
+        var lw = opts.label.length*5.6 + 14;
+        var pinColor = opts.color || "#D8495A";
+        s += '<rect x="'+(cx-lw/2)+'" y="'+(cy+17)+'" width="'+lw+'" height="15" rx="7.5" fill="'+pinColor+'" stroke="#ffffff" stroke-width="1.5"/>';
+        s += '<text x="'+cx+'" y="'+(cy+27.5)+'" font-size="9" font-weight="700" text-anchor="middle" fill="#ffffff" font-family="Fredoka,sans-serif">'+opts.label+'</text>';
+      }
     } else {
       s += '<text x="150" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="'+main+'" opacity="0.55" font-family="Fredoka,sans-serif">Österreich</text>';
     }

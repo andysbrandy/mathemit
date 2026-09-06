@@ -1197,8 +1197,12 @@
     for(var c=0;c<CITIES.length;c++){
       var ct = CITIES[c];
       s += '<circle cx="'+ct.x+'" cy="'+ct.y+'" r="'+(ct.r||3)+'" fill="#ffffff" stroke="'+main+'" stroke-width="2"/>';
-      if(ct.n==="Wien") s += '<text x="'+(ct.x+4)+'" y="'+(ct.y-6)+'" font-size="7" fill="#E9B949" text-anchor="middle">★</text>';
-      s += '<text x="'+ct.lx+'" y="'+(ct.ly+3)+'" font-family="Inter,sans-serif" font-weight="600" font-size="6" text-anchor="'+ct.a+'" fill="'+main+'">'+ct.n+'</text>';
+      if(ct.n==="Wien") s += '<text x="'+(ct.x+14)+'" y="'+(ct.y-9)+'" font-size="7" fill="#E9B949" text-anchor="middle">★</text>';
+      var isBg = (ct.n==="Bregenz"), isIbk = (ct.n==="Innsbruck");
+      var tx = isBg ? ct.x+7 : ct.x;
+      var ty = isBg ? ct.y+2 : (isIbk ? ct.y-5 : ct.y-7);
+      var ta = isBg ? "start" : "middle";
+      s += '<text x="'+tx+'" y="'+ty+'" font-family="Inter,sans-serif" font-weight="600" font-size="6.6" text-anchor="'+ta+'" fill="#444444">'+ct.n+'</text>';
     }
     s += '</g>';
     return s;
@@ -1210,13 +1214,13 @@
     if(opts.icon || opts.label){
       var cx = 152, cy = 112; // Landesmitte (geografisch zentral)
       if(opts.icon){
-        s += '<text x="'+cx+'" y="'+(cy+10)+'" font-size="36" text-anchor="middle">'+opts.icon+'</text>';
+        s += '<text x="'+cx+'" y="'+(cy+8)+'" font-size="45" text-anchor="middle">'+opts.icon+'</text>';
       }
       if(opts.label){
-        var lw = opts.label.length*5.6 + 14;
+        var lw = opts.label.length*7 + 17;
         var pinColor = opts.color || "#D8495A";
-        s += '<rect x="'+(cx-lw/2)+'" y="'+(cy+17)+'" width="'+lw+'" height="15" rx="7.5" fill="'+pinColor+'" stroke="#ffffff" stroke-width="1.5"/>';
-        s += '<text x="'+cx+'" y="'+(cy+27.5)+'" font-size="9" font-weight="700" text-anchor="middle" fill="#ffffff" font-family="Fredoka,sans-serif">'+opts.label+'</text>';
+        s += '<rect x="'+(cx-lw/2)+'" y="'+(cy+16)+'" width="'+lw+'" height="19" rx="9.5" fill="'+pinColor+'" stroke="#ffffff" stroke-width="1.5"/>';
+        s += '<text x="'+cx+'" y="'+(cy+30)+'" font-size="11.5" font-weight="700" text-anchor="middle" fill="#ffffff" font-family="Fredoka,sans-serif">'+opts.label+'</text>';
       }
     } else {
       s += '<text x="150" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="'+main+'" opacity="0.55" font-family="Fredoka,sans-serif">Österreich</text>';

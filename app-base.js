@@ -319,13 +319,39 @@
     return [A,B,C,D];
   }
 
+  /* Viereck exakt aus 4 Innenwinkeln konstruieren (Winkel alpha..delta an den Ecken A..D).
+     Basis AB = 1; die Diagonale AC teilt den Winkel alpha bei A in zwei Teil-Dreiecke.
+     Liefert null, wenn die Winkel keinen brauchbaren Konstruktionsraum ergeben. */
+  function quadFromAngles(alpha, beta, gamma, delta){
+    var lo = Math.max(0, alpha + delta - 180);
+    var hi = Math.min(alpha, 180 - beta);
+    if(hi - lo < 15) return null;
+    var theta = lo + (hi - lo) * randf(0.35, 0.65);
+    var rad = function(d){ return d*Math.PI/180; };
+    // Dreieck ABC: AC = sin(beta) / sin(180-beta-theta) = sin(beta)/sin(beta+theta), mit AB = 1
+    var AC = Math.sin(rad(beta)) / Math.sin(rad(beta + theta));
+    // Dreieck ACD: Winkel bei C = 180 - alpha + theta - delta => AD = AC * sin(c2) / sin(delta)
+    var c2 = 180 - alpha + theta - delta;
+    var AD = AC * Math.sin(rad(c2)) / Math.sin(rad(delta));
+    var A = {x:0, y:0}, B = {x:1, y:0};
+    var C = {x:AC*Math.cos(rad(theta)), y:-AC*Math.sin(rad(theta))};
+    var D = {x:AD*Math.cos(rad(alpha)), y:-AD*Math.sin(rad(alpha))};
+    // Zu extreme Seitenverhältnisse ablehnen (Form sähe sonst entartet aus)
+    var sides = [dist(A,B), dist(B,C), dist(C,D), dist(D,A)];
+    var minS = Math.min.apply(null, sides), maxS = Math.max.apply(null, sides);
+    if(minS/maxS < 0.18) return null;
+    return [A,B,C,D];
+  }
+
   /* Fixed illustrative templates (viewBox 300x220), used for recognition/property/angle demos */
   var TRI_TEMPLATES = {
-    gleichseitig: [{x:150,y:24},{x:52,y:192},{x:248,y:192}],
+    // Exakt aus den Ziel-Winkeln konstruiert (Sinussatz), damit die Zeichnung stimmt
+    gleichseitig: (function(){ var t=triangleFromSides(1,1,1); return t.map(function(p){ return {x:p.x*140, y:p.y*140}; }); })(),
     gleichschenklig: [{x:150,y:26},{x:76,y:196},{x:224,y:196}],
     ungleichseitig: [{x:64,y:34},{x:40,y:196},{x:258,y:150}],
     rechtwinklig: [{x:64,y:34},{x:64,y:196},{x:252,y:196}],
-    stumpfwinklig: [{x:30,y:150},{x:100,y:190},{x:270,y:60}],
+    // 25° / 120° / 35° => Winkel bei B (Index 1) ist klar stumpf (~120° statt bisher ~113°)
+    stumpfwinklig: (function(){ var s=function(d){ return Math.sin(d*Math.PI/180); }; var t=triangleFromSides(s(25)/s(35), s(120)/s(35), 1); return t.map(function(p){ return {x:p.x*140, y:p.y*150}; }); })(),
     spitzwinklig: [{x:150,y:56},{x:56,y:190},{x:244,y:190}]
   };
   var QUAD_TEMPLATES = {
@@ -408,13 +434,19 @@
     document.getElementById("curriculumModal").style.display = "none";
   }
 
-  // 1) Winkelsumme im Dreieck
+  // 1) Winkelsumme im Dreieck (Dreieck exakt aus den echten Winkeln konstruiert)
   function genDreieckWinkel(){
     var a,b,c;
     do{
       a = rand(25,120); b = rand(25,120); c = 180-a-b;
     } while(c<20 || c>130);
-    var pts = normalizeAndScale(choice([TRI_TEMPLATES.ungleichseitig, TRI_TEMPLATES.stumpfwinklig, TRI_TEMPLATES.spitzwinklig]),300,220,34);
+    // Aus den 3 Winkeln exakt konstruieren (Basis AB = c-Anteil, Sinussatz):
+    // Winkel a liegt bei A, b bei B, c bei C -> Labels stimmen mit der Zeichnung überein
+    var base = 100;
+    var aS = base * Math.sin(a*Math.PI/180) / Math.sin(c*Math.PI/180); // Seite BC (gegenüber α)
+    var bS = base * Math.sin(b*Math.PI/180) / Math.sin(c*Math.PI/180); // Seite CA (gegenüber β)
+    var raw = triangleFromSides(aS, bS, base);
+    var pts = normalizeAndScale(raw,300,220,36);
     var missingIdx = rand(0,2);
     var vals = [a,b,c];
     var labels = vals.map(function(v,i){ return i===missingIdx ? "?" : v+"°"; });
@@ -424,27 +456,34 @@
     });
     var ex = baseEx("dreieck","winkel");
     ex.question = "In diesem Dreieck kennst du zwei Winkel. Wie groß ist der fehlende Winkel?";
-    ex.hint = "Merke dir: Die Winkelsumme im Dreieck beträgt immer 180°. (Skizze nicht maßstabsgetreu)";
+    ex.hint = "Merke dir: Die Winkelsumme im Dreieck beträgt immer 180°. Die Skizze entspricht den echten Winkeln.";
     ex.svg = svg; ex.badge="Dreieck · Winkel"; ex.badgeColor=COLORS.dreieck.main;
     ex.inputType="number"; ex.unit="°"; ex.answer = vals[missingIdx];
     ex.explanation = "Rechnung: 180° − "+vals[(missingIdx+1)%3]+"° − "+vals[(missingIdx+2)%3]+"° = "+vals[missingIdx]+"°.";
     return ex;
   }
 
-  // 2) Winkelsumme im Viereck
+  // 2) Winkelsumme im Viereck (Viereck exakt aus den echten Winkeln konstruiert)
   function genViereckWinkel(){
-    var a,b,c,d;
-    do{
-      a=rand(50,140); b=rand(50,140); c=rand(50,140); d=360-a-b-c;
-    } while(d<40 || d>150);
-    var pts = normalizeAndScale(choice([QUAD_TEMPLATES.parallelogramm, QUAD_TEMPLATES.trapez, QUAD_TEMPLATES.drachen]),300,220,34);
+    var vals = null, pts = null;
+    for(var tries=0; tries<500 && !pts; tries++){
+      var a=rand(50,140), b=rand(50,140), c=rand(50,140), d=360-a-b-c;
+      if(d<40 || d>150) continue;
+      var cand=[a,b,c,d];
+      pts = quadFromAngles(a,b,c,d);
+      if(pts) vals = cand;
+    }
+    if(!vals){ // Fallback: immer konstruierbare Winkel, damit nie eine leere Skizze entsteht
+      vals = [80,100,90,90];
+      pts = quadFromAngles(vals[0], vals[1], vals[2], vals[3]);
+    }
+    pts = normalizeAndScale(pts,300,220,38);
     var missingIdx = rand(0,3);
-    var vals=[a,b,c,d];
     var labels = vals.map(function(v,i){ return i===missingIdx?"?":v+"°"; });
     var svg = polygonSVG(pts, {color:COLORS.viereck.main, soft:COLORS.viereck.soft, angleLabels:labels, angleDist:28});
     var ex = baseEx("viereck","winkel");
     ex.question = "In diesem Viereck kennst du drei Winkel. Wie groß ist der vierte Winkel?";
-    ex.hint = "Merke dir: Die Winkelsumme im Viereck beträgt immer 360°. (Skizze nicht maßstabsgetreu)";
+    ex.hint = "Merke dir: Die Winkelsumme im Viereck beträgt immer 360°. Die Skizze entspricht den echten Winkeln.";
     ex.svg=svg; ex.badge="Viereck · Winkel"; ex.badgeColor=COLORS.viereck.main;
     ex.inputType="number"; ex.unit="°"; ex.answer=vals[missingIdx];
     var others = vals.filter(function(_,i){return i!==missingIdx;});
@@ -462,7 +501,7 @@
     var pts = normalizeAndScale(raw,300,220,36);
     var svg = polygonSVG(pts, {
       color:COLORS.dreieck.main, soft:COLORS.dreieck.soft,
-      sideLabels:[a+" cm", b+" cm", c+" cm"], labelOffset:16
+      sideLabels:[c+" cm", a+" cm", b+" cm"], labelOffset:16
     });
     var ex = baseEx("dreieck","umfang");
     ex.question = "Berechne den Umfang dieses Dreiecks.";
@@ -601,12 +640,20 @@
     return ex;
   }
 
-  // 8) Fläche Trapez
+  // 8) Fläche Trapez (maßstabsgetreu aus a, c, h konstruiert)
   function genTrapezFlaeche(){
-    var a = rand(8,16); // lange parallele Seite
-    var c = rand(3,a-2); // kurze parallele Seite
+    var a = rand(8,16); // lange parallele Seite (unten)
+    var c = rand(3,a-2); // kurze parallele Seite (oben)
     var h = rand(3,10);
-    var pts = normalizeAndScale(QUAD_TEMPLATES.trapez, 300, 220, 34);
+    var scale = 170/Math.max(a,c,h,10);
+    var aW = a*scale, cW = c*scale, hH = h*scale;
+    var baseY = 190;
+    var Bx = (300-aW)/2, By = baseY;        // unten links
+    var Cx = Bx+aW,      Cy = baseY;        // unten rechts
+    var Ax = (300-cW)/2, Ay = baseY-hH;     // oben links
+    var Dx = Ax+cW,      Dy = Ay;           // oben rechts
+    // Seiten-Reihenfolge wie beim alten Template: oben (c), rechts unten, unten (a), links unten
+    var pts = [{x:Ax,y:Ay},{x:Dx,y:Dy},{x:Cx,y:Cy},{x:Bx,y:By}];
     var centroid = centroidOf(pts);
     var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
     var pathD = "M "+pts.map(function(p){return p.x+" "+p.y;}).join(" L ")+" Z";
@@ -615,13 +662,17 @@
     var botLbl = edgeLabelPos(pts[2],pts[3],centroid,16);
     svg += '<text class="dim-label" x="'+topLbl.x+'" y="'+topLbl.y+'" text-anchor="middle">c = '+c+' cm</text>';
     svg += '<text class="dim-label" x="'+botLbl.x+'" y="'+botLbl.y+'" text-anchor="middle">a = '+a+' cm</text>';
+    // Höhen-Linie am linken Rand: senkrecht vom oberen Eck bis zur Grundlinie
+    svg += '<line class="measure-line" x1="'+Ax+'" y1="'+Ay+'" x2="'+Ax+'" y2="'+By+'"/>';
+    if(Ax > Bx+3 && Ax < Cx-3){
+      svg += rightAngleMarker({x:Ax,y:By}, {x:Ax,y:Ay}, {x:Cx,y:Cy}, 11);
+    }
     var midLeft = mid(pts[0],pts[3]);
-    svg += '<text class="dim-label" x="'+(midLeft.x-6)+'" y="'+(midLeft.y)+'" text-anchor="end">h = '+h+' cm</text>';
-    svg += '<line class="measure-line" x1="'+pts[0].x+'" y1="'+pts[0].y+'" x2="'+pts[0].x+'" y2="'+pts[3].y+'"/>';
+    svg += '<text class="dim-label" x="'+(midLeft.x-8)+'" y="'+(midLeft.y)+'" text-anchor="end">h = '+h+' cm</text>';
     svg += '</svg>';
 
     var ex = baseEx("viereck","flaeche");
-    ex.question = "Berechne die Fläche dieses Trapezes (Skizze schematisch).";
+    ex.question = "Berechne die Fläche dieses Trapezes.";
     ex.hint = "Formel: A = ((a + c) : 2) · h, wobei a und c die parallelen Seiten sind.";
     ex.svg=svg; ex.badge="Trapez · Fläche"; ex.badgeColor=COLORS.viereck.main;
     ex.inputType="number"; ex.unit="cm²";

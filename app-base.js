@@ -1165,7 +1165,7 @@
     return d+" Z";
   }
 
-  // Hintergrund + gefüllte Österreich-Silhouette (gerundet) + Alpen + Bodensee
+  // Hintergrund + gefüllte Österreich-Silhouette (gerundet)
   function _atLand(main, soft){
     var BORDER_PTS = [[282,89.7],[279.3,111.1],[259.5,111.2],[266.3,122.5],[254.6,156.2],[247.9,165.1],
       [217.1,166.4],[199.4,178.2],[170.3,174.2],[120,160.7],[112.1,142.5],[77.3,151.6],
@@ -1177,16 +1177,6 @@
     var s = '<rect width="300" height="220" fill="'+soft+'" rx="12"/>';
     // Landfläche: exakte (gerundete) Außengrenze, dezente Füllung + dicker Comic-Umriss
     s += '<path d="'+BORDER_D+'" fill="'+main+'" fill-opacity="0.13" stroke="'+main+'" stroke-width="3.2" stroke-linejoin="round"/>';
-    // Alpen (dezente Zacken in Tirol/Kärnten, leicht innerhalb der Grenze)
-    s += '<g fill="#8FA3B8" fill-opacity="0.30" stroke="#7E93AA" stroke-width="1.2" stroke-linejoin="round">'
-      + '<polygon points="40,150 52,138 60,132 56,121 66,124 74,121.5 86.5,122.5 96,128 88,136 72,140 60,149"/>'
-      + '<polygon points="96,128 108,118 120,126 131,116 139.5,121 131,140 131.1,144.6 118,146 112.5,141"/>'
-      + '<polygon points="131.1,144.6 146,150 158,142 169.5,172.5 160,162 150,158 138,152"/>'
-      + '</g>';
-    s += '<polygon points="53,124 56,120.5 59,124 54,123" fill="#fff" opacity="0.85"/>';
-    s += '<polygon points="128,118.5 131,115.5 134,118.5 129,117.5" fill="#fff" opacity="0.85"/>';
-    // Bodensee (Bregenz)
-    s += '<ellipse cx="26" cy="124.5" rx="2.8" ry="1.6" fill="#4FA4D0" fill-opacity="0.75"/>';
     return s;
   }
 

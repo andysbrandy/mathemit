@@ -1,0 +1,161 @@
+  /* ---------- Chips ---------- */
+  .chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px;}
+  .chip{
+    border:2px solid var(--line); background:var(--panel); color:var(--ink);
+    border-radius:999px; padding:8px 15px; font-family:'Fredoka',sans-serif; font-weight:600;
+    font-size:.85rem; cursor:pointer; transition:all .15s ease; user-select:none;
+  }
+  .chip:hover{border-color:var(--violet); transform:translateY(-1px);}
+  .chip.active{background:var(--ink); border-color:var(--ink); color:#fff;}
+
+  /* ---------- Main card ---------- */
+  .board{
+    background:var(--panel); border:1px solid var(--line); border-radius:22px;
+    padding:22px; box-shadow:0 10px 0 var(--line), 0 12px 24px rgba(31,46,69,.08);
+    display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start;
+  }
+  @media (max-width:680px){ .board{grid-template-columns:1fr; padding:16px;} }
+
+  .figure-panel{
+    background:var(--paper); border:1px dashed var(--line); border-radius:16px;
+    padding:10px; display:flex; align-items:center; justify-content:center; min-height:220px;
+    position:relative;
+  }
+  .figure-panel svg{width:100%; height:auto; max-height:260px; display:block;}
+  .topic-badge{
+    position:absolute; top:10px; left:10px; font-family:'Fredoka',sans-serif; font-weight:600;
+    font-size:.68rem; text-transform:uppercase; letter-spacing:.5px;
+    padding:4px 10px; border-radius:999px; color:#fff;
+  }
+
+  /* Curriculum Badge – kleines Notiz-Icon, hand-written-Style */
+  .curriculum-badge{
+    position:absolute; top:10px; right:10px;
+    display:flex; align-items:center; gap:5px;
+    background:#fff; border:1px solid var(--line);
+    border-radius:8px; padding:4px 8px;
+    font-family:'Fredoka',sans-serif; font-weight:600;
+    font-size:.65rem; color:var(--muted);
+    cursor:pointer; transition:all 0.15s ease;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08);
+  }
+  .curriculum-badge:hover{
+    background:var(--paper); border-color:var(--muted);
+    transform:translateY(-1px);
+    box-shadow:0 2px 6px rgba(0,0,0,0.12);
+  }
+  .curriculum-icon{ font-size:.75rem; }
+  .curriculum-text{ white-space:nowrap; }
+
+  /* Curriculum Modal */
+  .curriculum-modal{
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.5); z-index:1000;
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+  }
+  .curriculum-modal-content{
+    background:#fff; border:1px solid var(--line);
+    border-radius:16px; max-width:520px; width:100%;
+    max-height:80vh; overflow-y:auto;
+    padding:24px; position:relative;
+    box-shadow:0 8px 32px rgba(0,0,0,0.15);
+  }
+  .curriculum-modal-close{
+    position:absolute; top:12px; right:12px;
+    background:none; border:none; font-size:1.5rem;
+    cursor:pointer; color:var(--muted); line-height:1;
+    width:32px; height:32px; border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .curriculum-modal-close:hover{ background:var(--paper); color:var(--ink); }
+  .curriculum-modal-title{
+    font-family:'Fredoka',sans-serif; font-weight:600;
+    font-size:1.2rem; margin:0 0 16px 0; color:var(--ink);
+  }
+  .curriculum-modal-body{ line-height:1.6; font-size:.9rem; }
+  .curriculum-modal-body .curriculum-block{
+    border:1px dashed var(--line); border-radius:8px;
+    padding:12px; margin-bottom:12px; background:var(--paper);
+  }
+  .curriculum-modal-block .code{
+    font-family:'JetBrains Mono',monospace; font-weight:700;
+    font-size:.8rem; color:var(--viereck); margin-bottom:4px;
+  }
+  .curriculum-modal-block .desc{ color:var(--ink); }
+  .curriculum-modal-block .kompetenz{
+    font-size:.82rem; color:var(--muted); margin-top:4px;
+    font-style:italic;
+  }
+  .curriculum-modal-block .grades{
+    display:inline-block; margin-top:6px;
+    font-family:'JetBrains Mono',monospace; font-weight:600;
+    font-size:.75rem; color:var(--gold);
+  }
+
+  .question-panel{display:flex; flex-direction:column; gap:14px;}
+  .question-eyebrow{
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:.75rem; text-transform:uppercase;
+    letter-spacing:.6px; color:var(--muted);
+  }
+  .question-text{font-size:1.08rem; font-weight:600; line-height:1.45; margin:0;}
+  .hint-text{font-size:.82rem; color:var(--muted); margin:0;}
+
+  .answer-row{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  .answer-input{
+    font-family:'JetBrains Mono',monospace; font-weight:700; font-size:1.2rem;
+    border:2px solid var(--line); border-radius:12px; padding:10px 14px; width:120px;
+    background:#fff; color:var(--ink);
+  }
+  .answer-input:focus{outline:none; border-color:var(--violet);}
+  .unit-label{font-weight:700; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+
+  .choice-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  @media (max-width:420px){ .choice-grid{grid-template-columns:1fr;} }
+  .choice-btn{
+    border:2px solid var(--line); background:#fff; border-radius:12px; padding:11px 12px;
+    font-family:'Inter',sans-serif; font-weight:600; font-size:.92rem; text-align:left; cursor:pointer;
+    transition:all .12s ease;
+  }
+  .choice-btn:hover{border-color:var(--violet); background:var(--violet-soft);}
+  .choice-btn.correct{background:var(--success-soft); border-color:var(--success); color:var(--success);}
+  .choice-btn.wrong{background:var(--error-soft); border-color:var(--error); color:var(--error);}
+  .choice-btn:disabled{cursor:default;}
+
+  .btn{
+    font-family:'Fredoka',sans-serif; font-weight:600; font-size:.95rem; border:none; border-radius:12px;
+    padding:11px 20px; cursor:pointer; color:#fff; background:var(--ink);
+    box-shadow:0 3px 0 rgba(0,0,0,.25); transition:transform .1s ease;
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn:active{transform:translateY(1px); box-shadow:0 1px 0 rgba(0,0,0,.25);}
+  .btn.primary{background:var(--violet);}
+  .btn.next{background:var(--viereck); display:none;}
+  .btn:disabled{opacity:.45; cursor:default; transform:none;}
+
+  .feedback{
+    border-radius:14px; padding:12px 14px; font-size:.9rem; font-weight:600; display:none;
+    align-items:flex-start; gap:8px; line-height:1.4;
+  }
+  .feedback.show{display:flex;}
+  .feedback.ok{background:var(--success-soft); color:var(--success);}
+  .feedback.bad{background:var(--error-soft); color:var(--error);}
+  .feedback .explain{display:block; font-weight:500; color:var(--ink); margin-top:4px;}
+
+  /* ---------- Footer progress ---------- */
+  .session-row{
+    display:flex; justify-content:space-between; align-items:center; margin-top:16px;
+    font-size:.78rem; color:var(--muted); font-weight:600; flex-wrap:wrap; gap:6px;
+  }
+  .badges{display:flex; gap:6px; flex-wrap:wrap;}
+  .badge{
+    font-family:'Fredoka',sans-serif; font-size:.7rem; font-weight:600; padding:4px 9px;
+    border-radius:999px; background:var(--gold-soft); color:#8a5c0e; border:1px solid var(--gold);
+  }
+
+  .shape-outline{ fill-opacity:.9; }
+  .measure-line{stroke:var(--muted); stroke-width:1.2; stroke-dasharray:3 3;}
+  .dim-label{font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700; fill:var(--ink);}
+  .angle-label{font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700;}
+  .tick{stroke:var(--ink); stroke-width:2;}
+  .right-angle{fill:none; stroke:var(--ink); stroke-width:1.6;}

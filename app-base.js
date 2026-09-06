@@ -1134,74 +1134,125 @@
 
   /* ============ Phase 3: Textaufgaben ============ */
 
-  // Stilisierte Österreich-Karte – cartoonhaft mit Berggipfeln
-  function austriaMapSVG(){
-    var col = COLORS.textaufgabe.main;
+  // ============ Österreich-Comic-Karte (pädagogisch) ============
+  // Exakte Außengrenze aus Natural-Earth-GeoJSON (36 Punkte), Bundesland-Mosaik,
+  // Landeshauptstädte, Donau, Bodensee, dezente Alpen und optionales Themen-Icon.
+  // opts: {city:"Innsbruck", icon:"🏔️", label:"Wandern", color:"#D8495A"}
+  function austriaMapSVG(opts){
+    opts = opts || {};
+    var main = COLORS.textaufgabe.main;
     var soft = COLORS.textaufgabe.soft;
-    return '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">'
-      + '<rect width="300" height="220" fill="' + soft + '" rx="12"/>'
+    var s = "";
+    s += _atBorderAndStates(main, soft);
+    s += _atCitiesAndLabels(main);
+    s += _atThemes(opts, main);
+    return '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">'+s+'</svg>';
+  }
 
-      // --- Vereinfachter Umriss Österreichs ---
-      + '<path d="'
-        // Tirol (Westen, oben)
-        + 'M 52 55 L 62 30 L 85 20 L 115 28 L 128 42 L 140 55 L 148 70 L 145 88'
-        // Salzburg / Oberösterreich (Norden)
-        + ' L 158 92 L 175 85 L 190 88 L 202 95 L 210 108 L 215 122'
-        // Niederösterreich (Osten, Nordosten)
-        + ' L 222 130 L 235 135 L 248 132 L 260 128 L 268 135 L 270 148 L 265 162'
-        + ' L 258 172 L 245 180 L 228 185 L 212 190 L 195 195 L 180 202 L 162 208'
-        // Süden / Kärnten, Steiermark
-        + ' L 148 212 L 132 208 L 115 205 L 100 198 L 85 190 L 72 180 L 60 168'
-        + ' L 50 155 L 42 142 L 38 128 L 35 115 L 32 100 L 38 85 L 48 70 Z'
-        + '" fill="' + col + '" opacity="0.22" stroke="' + col + '" stroke-width="2" stroke-linejoin="round"/>'
+  // Hintergrund + exakt gesetzte Bundesländer + Alpen + Donau + Bodensee
+  function _atBorderAndStates(main, soft){
+    var BORDER = "282,89.7 279.3,111.1 259.5,111.2 266.3,122.5 254.6,156.2 247.9,165.1 "
+      + "217.1,166.4 199.4,178.2 170.3,174.2 120,160.7 112.1,142.5 77.3,151.6 "
+      + "73.2,161.5 51.9,154.1 33.9,152.6 18,143.1 23.4,130.3 22,121 32.6,118.1 "
+      + "50.5,132.7 55.5,118.8 86.5,121.1 111.7,111.7 128.6,113.3 139.5,124 "
+      + "142.8,115.1 137.8,81 150.5,74.4 162.9,50.2 189,67.1 208.8,45.7 221.2,41.8 "
+      + "248.6,57.7 265.1,55 281.3,64.9 278.5,71.6";
+    var ST = [
+      // Reihenfolge = Überdeckung (unten zuerst). Flächen aus Mosaik-Chart.
+      "112,112 139.5,124 142.8,115.1 137.8,81 150.5,74.4 162.9,50.2 189,67.1 196,90 177,120 155,120 144,140 138,152 124,152",
+      "120,160.7 112.1,142.5 124,152 125,160 138,152 170.3,174.2 199.4,178.2 217.1,166.4 186,160 177,150 160,152 124,158",
+      "162.9,50.2 189,67.1 208.8,45.7 221.2,41.8 248.6,57.7 265.1,55 274,62 266,122 240,120 200,130 170,143",
+      "170.3,174.2 199.4,178.2 217.1,166.4 247.9,165.1 254.6,156.2 266.3,122.5 255,130 242,138 221,140 196,140 165,140 155,120 152,132",
+      "33.9,152.6 51.9,154.1 77.3,151.6 86.5,121.1 55.5,118.8 32.6,118.1 50.5,132.7 112.1,142.5 120,140 90,145 60,148 40,150",
+      "112.1,142.5 124,158 125,160 124,152 116,150",
+      "18,143.1 23.4,130.3 22,121 28,119 30,135 27,149 33.9,152.6",
+      "221.2,41.8 248.6,57.7 265.1,55 281.3,64.9 278.5,71.6 282,89.7 279.3,111.1 259.5,111.2 266.3,122.5 250,138 217,142 196,132 170,143",
+      "259.5,111.2 266.3,122.5 254.6,156.2 247.9,165.1 255,145 252,120 264,105 270,100 279.3,111.1",
+      "259,83 258,87 263,87 263,83"
+    ];
+    var COL = ["#F7E6A8","#9FD3D0","#C7B8E8","#BFE3AE","#A8D8A2","#A8D8A2","#A5CEF2","#F5C9A0","#F9DF90","#EBB4C4"];
+    var s = '<rect width="300" height="220" fill="'+soft+'" rx="12"/>';
+    s += '<g>';
+    for(var i=0;i<ST.length;i++){
+      s += '<polygon points="'+ST[i]+'" fill="'+COL[i]+'" stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round"/>';
+    }
+    s += '</g>';
+    // Alpen (dezente Bänder in Tirol/Osttirol/Kärnten)
+    s += '<g fill="#8FA3B8" fill-opacity="0.30" stroke="#7E93AA" stroke-width="1.2" stroke-linejoin="round">'
+      + '<polygon points="40,150 52,138 60,132 55,118.8 66,124 74,118 86.5,121.1 96,128 88,136 72,140 60,149"/>'
+      + '<polygon points="96,128 108,118 120,126 131,116 139.5,124 131,140 131.1,144.6 118,148 112.1,142.5"/>'
+      + '<polygon points="131.1,144.6 146,150 158,142 170.3,174.2 160,162 150,158 138,152"/>'
+      + '</g>';
+    s += '<polygon points="55,120 58,116.5 61,120 56,119" fill="#fff" opacity="0.8"/>';
+    s += '<polygon points="128,117.5 131,114.5 134,117.5 129,116.5" fill="#fff" opacity="0.8"/>';
+    // Bodensee
+    s += '<ellipse cx="24" cy="121.8" rx="4.5" ry="2.6" fill="#4FA4D0" fill-opacity="0.75"/>';
+    // Donau (zwei Lagen: breite helle + schmale dunkle Mittellinie)
+    var DONAU = "M 158,65.5 C 168,69 178,72 187,79.9 C 195,83 203,86 212,87.5 C 222,89 230,89 238,88 C 246,87 253,86 260.5,85.2 C 268,87 274,88 279,85";
+    s += '<path d="'+DONAU+'" fill="none" stroke="#4FA4D0" stroke-width="4.2" stroke-linecap="round" opacity="0.92"/>';
+    s += '<path d="'+DONAU+'" fill="none" stroke="#3A7FA8" stroke-width="1.6" stroke-linecap="round" opacity="0.55"/>';
+    // Außengrenze (dicker Comic-Umriss)
+    s += '<polygon points="'+BORDER+'" fill="none" stroke="'+main+'" stroke-width="3.2" stroke-linejoin="round"/>';
+    return s;
+  }
 
-      // --- Bundesländer-Labels (kleine Punkte) ---
-      + '<circle cx="88"  cy="58"  r="4" fill="' + col + '" opacity="0.7"/>'  // Tirol
-      + '<circle cx="170" cy="70"  r="4" fill="' + col + '" opacity="0.7"/>'  // Salzburg
-      + '<circle cx="225" cy="148" r="4" fill="' + col + '" opacity="0.7"/>'  // Wien
-      + '<circle cx="145" cy="190" r="4" fill="' + col + '" opacity="0.7"/>'  // Kärnten
-      + '<circle cx="130" cy="145" r="4" fill="' + col + '" opacity="0.7"/>'  // Steiermark
-      + '<circle cx="205" cy="108" r="4" fill="' + col + '" opacity="0.7"/>'  // NÖ
+  // Landeshauptstädte (echte Positionen) + Bundesland-Kürzel-Badges
+  function _atCitiesAndLabels(main){
+    var CITIES = [
+      {x:27.1,y:122.2,n:"Bregenz",   lx:27.1, ly:114.5, r:3.5, a:"middle"},
+      {x:85.4,y:134.5,n:"Innsbruck", lx:97.5, ly:134.5, r:3.5, a:"start"},
+      {x:143.5,y:106.1,n:"Salzburg", lx:151.5,ly:106.1, r:3.5, a:"start"},
+      {x:187.2,y:80.1,n:"Linz",      lx:175,  ly:80.1,  r:3.5, a:"end"},
+      {x:234.4,y:85.3,n:"St. Pölten",lx:221,  ly:85.3,  r:3.5, a:"end"},
+      {x:260.7,y:85.3,n:"Wien",      lx:271,  ly:85.3,  r:5,   a:"start"},
+      {x:227.8,y:144.8,n:"Graz",     lx:230,  ly:156.5, r:3.5, a:"start"},
+      {x:187.9,y:168.1,n:"Klagenfurt",lx:187.9,ly:179,  r:3.5, a:"middle"},
+      {x:265.9,y:104.2,n:"Eisenstadt",lx:259,  ly:104.2, r:3.5, a:"end"}
+    ];
+    var BADGES = [
+      {x:24, y:131, t:"V"}, {x:78, y:130, t:"T"}, {x:118, y:152, t:"Ot"},
+      {x:150,y:98,  t:"S"}, {x:202, y:70, t:"OÖ"},{x:250, y:118, t:"NÖ"},
+      {x:222,y:160, t:"St"},{x:172, y:164, t:"K"},{x:272, y:112, t:"B"}
+    ];
+    var s = '<g>';
+    for(var c=0;c<CITIES.length;c++){
+      var ct = CITIES[c];
+      s += '<circle cx="'+ct.x+'" cy="'+ct.y+'" r="'+(ct.r||3.5)+'" fill="#ffffff" stroke="'+main+'" stroke-width="2"/>';
+      if(ct.n==="Wien") s += '<text x="'+(ct.x+5)+'" y="'+(ct.y-6)+'" font-size="8" fill="#E9B949" text-anchor="middle">★</text>';
+      s += '<text class="dim-label" x="'+ct.lx+'" y="'+(ct.ly+3)+'" font-size="7" text-anchor="'+ct.a+'" fill="'+main+'">'+ct.n+'</text>';
+    }
+    for(var b=0;b<BADGES.length;b++){
+      var bg = BADGES[b];
+      var w = Math.max(bg.t.length*7, 16);
+      s += '<rect x="'+(bg.x-w/2)+'" y="'+(bg.y-6.5)+'" width="'+w+'" height="13" rx="6.5" fill="#fff" fill-opacity="0.92" stroke="'+main+'" stroke-width="1"/>';
+      s += '<text x="'+bg.x+'" y="'+(bg.y+3.5)+'" font-size="8.5" font-weight="700" text-anchor="middle" fill="'+main+'">'+bg.t+'</text>';
+    }
+    s += '</g>';
+    return s;
+  }
 
-      // --- Berggipfel-Symbole (Tiroler Flavour) ---
-      // Berg 1 – links oben
-      + '<polygon points="42,145 52,118 62,145" fill="' + col + '" opacity="0.5"/>'
-      + '<line x1="42" y1="145" x2="62" y2="145" stroke="' + col + '" stroke-width="1.5" opacity="0.5"/>'
-      // Berg 2 – mitte links
-      + '<polygon points="75,130 85,105 95,130" fill="' + col + '" opacity="0.65"/>'
-      + '<line x1="75" y1="130" x2="95" y2="130" stroke="' + col + '" stroke-width="1.5" opacity="0.65"/>'
-      // Berg 3 – mitte
-      + '<polygon points="108,115 122,85 136,115" fill="' + col + '" opacity="0.5"/>'
-      + '<line x1="108" y1="115" x2="136" y2="115" stroke="' + col + '" stroke-width="1.5" opacity="0.5"/>'
-      // Berg 4 – mitte rechts (Großglockner style)
-      + '<polygon points="145,105 160,70 175,105" fill="' + col + '" opacity="0.7"/>'
-      + '<line x1="145" y1="105" x2="175" y2="105" stroke="' + col + '" stroke-width="1.5" opacity="0.7"/>'
-      // Berg 5 – rechts
-      + '<polygon points="192,95 205,68 218,95" fill="' + col + '" opacity="0.55"/>'
-      + '<line x1="192" y1="95" x2="218" y2="95" stroke="' + col + '" stroke-width="1.5" opacity="0.55"/>'
-
-      // --- Schneehauben auf den Bergen ---
-      + '<polygon points="157,74 160,70 163,74 158,73" fill="white" opacity="0.7"/>'
-      + '<polygon points="119,89 122,85 125,89 120,88" fill="white" opacity="0.6"/>'
-      + '<polygon points="203,72 205,68 207,72 204,71" fill="white" opacity="0.5"/>'
-
-      // --- Flagge Österreich (links unten) ---
-      + '<rect x="38" y="162" width="3" height="32" fill="' + col + '" opacity="0.6"/>'
-      + '<rect x="41" y="162" width="20" height="6.6" fill="' + col + '" opacity="0.6"/>'
-      + '<rect x="41" y="168.6" width="20" height="6.6" fill="white" opacity="0.6"/>'
-      + '<rect x="41" y="175.2" width="20" height="6.6" fill="red" opacity="0.6"/>'
-      + '<rect x="41" y="181.8" width="20" height="6.6" fill="white" opacity="0.6"/>'
-      + '<rect x="41" y="188.4" width="20" height="5.6" fill="red" opacity="0.6"/>'
-
-      // --- Beschriftung ---
-      + '<text x="150" y="152" text-anchor="middle" font-family="Fredoka,sans-serif"'
-      + ' font-size="13" font-weight="600" fill="' + col + '" opacity="0.85">🇦🇹 Österreich</text>'
-
-      // --- Kleine Sterne ---
-      + '<text x="25" y="28" font-size="10" opacity="0.4">✦</text>'
-      + '<text x="255" y="32" font-size="8" opacity="0.35">✦</text>'
-      + '<text x="270" y="50" font-size="6" opacity="0.3">✦</text>'
-      + '</svg>';
+  // Themen-Pin (Ort + Emoji + Beschriftung) oder Neutral-Label
+  function _atThemes(opts, main){
+    var s = "";
+    if(opts.city){
+      var CITY_POS = {
+        Wien:{x:260.7,y:85.3}, Innsbruck:{x:85.4,y:134.5}, Graz:{x:227.8,y:144.8},
+        Salzburg:{x:143.5,y:106.1}, Linz:{x:187.2,y:80.1}, Klagenfurt:{x:187.9,y:168.1},
+        Bregenz:{x:27.1,y:122.2}, Eisenstadt:{x:265.9,y:104.2}, "St. Pölten":{x:234.4,y:85.3}
+      };
+      var p = CITY_POS[opts.city] || {x:150,y:110};
+      var pinColor = opts.color || "#D8495A";
+      var lw = (opts.label? opts.label.length*5.2 : 10) + 4;
+      s += '<g>';
+      s += '<rect x="'+(p.x-lw/2)+'" y="'+(p.y+12)+'" width="'+lw+'" height="15" rx="7.5" fill="'+pinColor+'" stroke="#ffffff" stroke-width="1.2"/>';
+      s += '<text x="'+(p.x+4)+'" y="'+(p.y-7)+'" font-size="14" text-anchor="middle">'+opts.icon+'</text>';
+      s += '<circle cx="'+(p.x-7)+'" cy="'+(p.y-7)+'" r="3.2" fill="#ffffff" stroke="'+pinColor+'" stroke-width="1.6"/>';
+      s += '<text x="'+p.x+'" y="'+(p.y+23)+'" font-size="9" font-weight="700" text-anchor="middle" fill="#ffffff">'+(opts.label||"")+'</text>';
+      s += '</g>';
+    } else {
+      s += '<text x="150" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="'+main+'" opacity="0.55" font-family="Fredoka,sans-serif">Österreich</text>';
+    }
+    return s;
   }
 
   function genTextaufgabeGarten(){
@@ -1339,7 +1390,7 @@
     var berg = choice(["Hochkönig","Großglockner","Dachstein","Rax","Schneeberg","Wilder Kaiser","Großer Priel"]);
     ex.question = name1+" und "+name2+" wandern in den "+berg+". Sie starten auf "+start+" m Seehöhe und erreichen das Gipfelkreuz auf "+ziel+" m Seehöhe. Sie wandern dafür "+strecke+" km. Wie viele Höhenmeter haben sie überwunden?";
     ex.hint = "Höhenmeter = Gipfelhöhe − Startshöhe. (Die Wanderstrecke in km ist hier nicht gefragt.)";
-    ex.svg=austriaMapSVG();
+    ex.svg=austriaMapSVG({city:"Innsbruck", icon:"🥾", label:"Wandern", color:"#4A7FD6"});
     ex.badge="Alltag · Wandern"; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="m";
     ex.answer = diff;
@@ -1358,7 +1409,7 @@
     var name = choice(AUSTRIA.vornamen);
     ex.question = name+" kauft bei "+laden+" "+menge+" Stück "+produkt+" um je "+fmtEUR(einzel)+". Wie viel muss "+name+" insgesamt bezahlen?";
     ex.hint = "Gesamtpreis = Einzelpreis · Menge. Rechne sorgfältig mit dem Komma.";
-    ex.svg=austriaMapSVG();
+    ex.svg=austriaMapSVG({city:"Linz", icon:"🛒", label:"Einkauf", color:"#E0598B"});
     ex.badge="Alltag · Einkauf"; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="€"; ex.tolerance=0.01;
     ex.answer = summe;
@@ -1381,7 +1432,7 @@
     var ex = baseEx("textaufgabe","textaufgabe");
     ex.question = name+" ist mit der Familie am Christkindlmarkt. "+name+" kauft "+n1+" Punsch zu je "+fmtEUR(p1)+", "+n2+" Lebkuchen zu je "+fmtEUR(p2)+" und "+n3+" Breze zu je "+fmtEUR(p3)+". "+name+" bezahlt mit einem "+fmtEUR(gegeben)+"-Schein. Wie viel Wechselgeld bekommt "+name+" zurück?";
     ex.hint = "1) Gesamtkosten berechnen (alle Posten addieren). 2) Wechselgeld = Gegeben − Gesamtkosten.";
-    ex.svg=austriaMapSVG();
+    ex.svg=austriaMapSVG({city:"Wien", icon:"🎄", label:"Weihnacht", color:"#D8495A"});
     ex.badge="Alltag · Christkindlmarkt"; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="€"; ex.tolerance=0.01;
     ex.answer = rueckgeld;
@@ -1401,7 +1452,7 @@
     var ex = baseEx("textaufgabe","textaufgabe");
     ex.question = "In einer "+klassenGroesse+"-köpfigen Klasse einer "+schulTyp+" haben "+zaehler+"/"+nenner+" aller Kinder die Mathematik-Schularbeit mit 'Sehr gut' oder 'Gut' bestanden. Wie viele Kinder sind das?";
     ex.hint = "Anzahl = Klassengröße · Bruch. Zuerst den Bruch als Dezimalzahl denken, dann mit der Klassengröße multiplizieren.";
-    ex.svg=austriaMapSVG();
+    ex.svg=austriaMapSVG({city:"St. Pölten", icon:"🎒", label:"Schule", color:"#1FA294"});
     ex.badge="Alltag · Schule"; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="";
     ex.answer = anzahl;
@@ -1424,7 +1475,7 @@
     var ex = baseEx("textaufgabe","textaufgabe");
     ex.question = name+" bucht einen Skikurs in "+ort+". Der Kurs kostet regulär "+fmtEUR(basis)+". Bei einer Frühbucher-Aktion gibt es "+rabatt+" % Ermäßigung. Wie viel muss "+name+" bezahlen?";
     ex.hint = "1) Rabattbetrag = Grundpreis · Prozentsatz : 100. 2) Endpreis = Grundpreis − Rabattbetrag.";
-    ex.svg=austriaMapSVG();
+    ex.svg=austriaMapSVG({city:"Innsbruck", icon:"⛷️", label:"Skikurs", color:"#7C6FE0"});
     ex.badge="Alltag · Skikurs"; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="€"; ex.tolerance=0.01;
     ex.answer = Math.round(endpreis*100)/100;
@@ -1446,7 +1497,7 @@
     var ex = baseEx("textaufgabe","textaufgabe");
     ex.question = name+" und "+name2+" wandern am Wandertag auf den "+berg+". Sie starten auf "+startHoehe+" m Seehöhe und erreichen den Gipfel auf "+zielHoehe+" m Seehöhe. Die Wanderstrecke ist "+distanz+" km und sie benötigen "+zeitStunden+" Stunden. a) Wie viele Höhenmeter überwinden sie? b) Welche Durchschnittsgeschwindigkeit (km/h) legen sie zurück?";
     ex.hint = "a) Höhenmeter = Gipfelhöhe − Startshöhe. b) Geschwindigkeit = Strecke : Zeit.";
-    ex.svg=austriaMapSVG();
+    ex.svg=austriaMapSVG({city:"Graz", icon:"🏔️", label:"Wandertag", color:"#F2A93B"});
     ex.badge="Alltag · Wandertag"; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="m"; ex.tolerance=10;
     ex.answer = hoehenmeter;
@@ -1469,7 +1520,7 @@
     var ex = baseEx("textaufgabe","textaufgabe");
     ex.question = name+" braucht "+anzahlBenoetigt+" "+produkt+" für die Schule. Im Angebot gilt: Kaufe "+zaehler+"/"+nenner+" und erhalte "+anzahlBezahlt+" Stück gratis dazu. Ein "+produkt+" kostet "+fmtEUR(preis)+". Wie viel muss "+name+" bezahlen?";
     ex.hint = "1) "+zaehler+"/"+nenner+" von "+anzahlBenoetigt+" = "+anzahlGekauft+" Stück (bezahlt). 2) Gesamtpreis = "+anzahlGekauft+" · Einzelpreis.";
-    ex.svg=austriaMapSVG();
+    ex.svg=austriaMapSVG({city:"St. Pölten", icon:"📚", label:"Schulstart", color:"#9C4F96"});
     ex.badge="Alltag · Schulstart"; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="€"; ex.tolerance=0.01;
     ex.answer = gesamtKosten;
@@ -1491,7 +1542,7 @@
     var ex = baseEx("textaufgabe","textaufgabe");
     ex.question = name+" geht in die Eisdiele und bestellt "+anzahlKugeln+" Kugeln Eis um je "+fmtEUR(kugelPreis)+". Die Eisdiele hat eine Aktion: "+zaehler+"/"+nenner+" des Preises werden als Rabatt abgezogen. Wie viel bezahlt "+name+"?";
     ex.hint = "1) Gesamtpreis = Anzahl · Kugelpreis. 2) Rabatt = Gesamtpreis · "+zaehler+"/"+nenner+". 3) Endpreis = Gesamtpreis − Rabatt.";
-    ex.svg=austriaMapSVG();
+    ex.svg=austriaMapSVG({city:"Graz", icon:"🍦", label:"Eisdiele", color:"#E0598B"});
     ex.badge="Alltag · Eisdiele"; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="€"; ex.tolerance=0.01;
     ex.answer = endpreis;

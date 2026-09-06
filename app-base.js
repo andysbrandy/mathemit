@@ -315,6 +315,23 @@
     s += '</svg>';
     return s;
   }
+  /* Säulendiagramm (für I3.M1) */
+  function barChartSVG(labels, values, color, yMax){
+    var n = values.length, bw = 40, gap = 15;
+    var gw = n*(bw+gap)-gap, gx = (300-gw)/2, gy = 50, gh = 120;
+    var s = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    s += '<line x1="'+gx+'" y1="'+(gy+gh)+'" x2="'+(gx+gw)+'" y2="'+(gy+gh)+'" stroke="'+color+'" stroke-width="2.5"/>';
+    for(var i=0;i<n;i++){
+      var h = (values[i]/yMax)*gh;
+      s += '<rect x="'+(gx+i*(bw+gap))+'" y="'+(gy+gh-h)+'" width="'+bw+'" height="'+h+'" fill="'+color+'" stroke="#fff" stroke-width="1.5"/>';
+      s += '<text class="dim-label" x="'+(gx+i*(bw+gap)+bw/2)+'" y="'+(gy+gh+16)+'" text-anchor="middle" fill="'+color+'">'+labels[i]+'</text>';
+      s += '<text class="dim-label" x="'+(gx+i*(bw+gap)+bw/2)+'" y="'+(gy+gh-h-5)+'" text-anchor="middle" fill="'+color+'">'+values[i]+'</text>';
+    }
+    s += '</svg>';
+    return s;
+  }
+
+
   function balanceSVG(leftLabel, rightLabel, color, soft){
     var s = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
     s += '<line x1="55" y1="78" x2="245" y2="78" stroke="'+color+'" stroke-width="4" stroke-linecap="round"/>';
@@ -1299,6 +1316,29 @@
     ex.inputType="number"; ex.unit="";
     ex.answer = answer;
     ex.explanation = rows[qRow][0]+" hat "+answer+" "+headers[1]+" (Zeile "+(qRow+1)+", Spalte 2).";
+    return ex;
+  }
+
+  // Säulendiagramm lesen (I3.M1): Balken auswerten
+  function genDiagrammBalken(){
+    var labels = choice([["Apfel","Birne","Kirsche","Pflaume"],["Hund","Katze","Vogel","Fisch"],["Radi","Bus","Auto","Zug"]]);
+    var n = rand(3,4);
+    var values = [], yMax = 0;
+    for(var i=0;i<n;i++){
+      var v = rand(2,10)*5;
+      values.push(v);
+      if(v>yMax) yMax = v;
+    }
+    var qi = rand(0,n-1);
+    var answer = values[qi];
+    var svg = barChartSVG(labels.slice(0,n), values, COLORS.gleichung.main, yMax);
+    var ex = baseEx("gleichung","diagramm");
+    ex.question = "Wie viel steht über "+labels[qi]+"? (Lies den Wert im Säulendiagramm ab.)";
+    ex.hint = "Finde den Balken von "+labels[qi]+" und lese den Wert an der linken Achse / über dem Balken ab.";
+    ex.svg=svg; ex.badge="Diagramm · Lesen"; ex.badgeColor=COLORS.gleichung.main;
+    ex.inputType="number"; ex.unit="";
+    ex.answer = answer;
+    ex.explanation = "Über "+labels[qi]+" steht "+answer+" (Balken "+labels[qi]+").";
     return ex;
   }
 

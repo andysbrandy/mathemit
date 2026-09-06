@@ -142,7 +142,7 @@
         var al = opts.angleLabels[v];
         if(al===undefined || al===null) continue;
         var vp = vertexLabelPos(pts[v], centroid, opts.angleDist || 30);
-        extras += '<text class="angle-label" x="'+vp.x+'" y="'+vp.y+'" text-anchor="middle" dominant-baseline="middle" fill="'+color+'">'+al+'</text>';
+        extras += '<text class="angle-label" x="'+vp.x+'" y="'+vp.y+'" text-anchor="middle" dominant-baseline="middle" fill="#444444">'+al+'</text>';
       }
     }
 

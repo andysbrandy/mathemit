@@ -92,7 +92,8 @@
     koerper: {main:"var(--koerper)", soft:"var(--koerper-soft)"},
     bruch: {main:"var(--bruch)", soft:"var(--bruch-soft)"},
     prozent: {main:"var(--prozent)", soft:"var(--prozent-soft)"},
-    textaufgabe: {main:"var(--textaufgabe)", soft:"var(--textaufgabe-soft)"}
+    textaufgabe: {main:"var(--textaufgabe)", soft:"var(--textaufgabe-soft)"},
+    gleichung: {main:"var(--gleichung)", soft:"var(--gleichung-soft)"}
   };
 
   /* Build full SVG markup for a polygon with optional side/angle labels & marks */
@@ -292,6 +293,20 @@
     svg += '<text class="dim-label" x="150" y="'+(y-14)+'" text-anchor="middle">'+caption+'</text>';
     svg += '</svg>';
     return svg;
+  }
+
+  /* Waage für lineare Gleichungen: linke Schale = ax+b, rechte Schale = c */
+  function balanceSVG(leftLabel, rightLabel, color, soft){
+    var s = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    s += '<line x1="55" y1="78" x2="245" y2="78" stroke="'+color+'" stroke-width="4" stroke-linecap="round"/>';
+    s += '<line x1="150" y1="78" x2="150" y2="150" stroke="'+color+'" stroke-width="4" stroke-linecap="round"/>';
+    s += '<polygon points="135,150 165,150 150,162" fill="'+color+'"/>';
+    s += '<path d="M 55 78 L 48 108 L 98 108 L 91 78 Z" fill="'+soft+'" stroke="'+color+'" stroke-width="2.5"/>';
+    s += '<path d="M 209 78 L 202 108 L 252 108 L 245 78 Z" fill="'+soft+'" stroke="'+color+'" stroke-width="2.5"/>';
+    s += '<text class="dim-label" x="73" y="132" text-anchor="middle" fill="'+color+'">'+leftLabel+'</text>';
+    s += '<text class="dim-label" x="227" y="132" text-anchor="middle" fill="'+color+'">'+rightLabel+'</text>';
+    s += '</svg>';
+    return s;
   }
 
 
@@ -1227,6 +1242,25 @@
     return s;
   }
 
+  /* ============ Phase 4: Lineare Gleichungen ============ */
+
+  // Gleichung ax + b = c, x ∈ ℕ (ganzzahlige positive Lösung)
+  function genGleichungEinfach(){
+    var a = choice([2,3,4,5]);
+    var x = rand(2,8);
+    var b = rand(1,10);
+    var c = a*x + b;
+    var svg = balanceSVG(a+"x + "+b, ""+c, COLORS.gleichung.main, COLORS.gleichung.soft);
+    var ex = baseEx("gleichung","gleichung");
+    ex.question = "Löse die Gleichung: "+a+"x + "+b+" = "+c;
+    ex.hint = "1) Subtrahiere "+b+" auf beiden Seiten. 2) Teile durch "+a+".";
+    ex.svg=svg; ex.badge="Gleichung · Lösen"; ex.badgeColor=COLORS.gleichung.main;
+    ex.inputType="number"; ex.unit="";
+    ex.answer = x;
+    ex.explanation = a+"x + "+b+" = "+c+"  ⇒  "+a+"x = "+(c-b)+"  ⇒  x = "+c+" : "+a+" = "+x+".";
+    return ex;
+  }
+
   function genTextaufgabeGarten(){
     var l = rand(5,18), b = rand(3,14);
     var maxDim=Math.max(l,b), scale=170/maxDim;
@@ -1570,7 +1604,8 @@
     textaufgabeSkikurs:   withCurriculum("textaufgabeSkikurs",    genTextaufgabeSkikurs),
     textaufgabeWandertag: withCurriculum("textaufgabeWandertag",  genTextaufgabeWandertag),
     textaufgabeSchulheft: withCurriculum("textaufgabeSchulheft",  genTextaufgabeSchulheft),
-    textaufgabeEiscafe:   withCurriculum("textaufgabeEiscafe",    genTextaufgabeEiscafe)
+    textaufgabeEiscafe:   withCurriculum("textaufgabeEiscafe",    genTextaufgabeEiscafe),
+    gleichungEinfach:     withCurriculum("gleichungEinfach",      genGleichungEinfach)
   };
 
   var MODES = [
@@ -1585,7 +1620,8 @@
     {id:"bruche", label:"➗ Brüche (alle Operationen)", pool:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision"]},
     {id:"bruch-prozent", label:"➗ Brüche & Prozent", pool:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","prozentVonZahl","prozentAnteil"]},
     {id:"textaufgaben", label:"📖 Textaufgaben", pool:["textaufgabeGarten","textaufgabePizza","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag"]},
-    {id:"alltag", label:"🇦🇹 Alltag in Österreich", pool:["textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag"]}
+    {id:"alltag", label:"🇦🇹 Alltag in Österreich", pool:["textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag"]},
+    {id:"gleichungen", label:"⚖️ Gleichungen", pool:["gleichungEinfach"]}
   ];
 
   /* Schulstufen-Zuordnung je Übungstyp (1.–4. Klasse Mittelschule) */
@@ -1602,7 +1638,8 @@
     textaufgabeGarten:[2,3], textaufgabePizza:[2,3],
     textaufgabeWien:[2,3], textaufgabeWandern:[2,3], textaufgabeEinkauf:[2,3],
     textaufgabeWeihnacht:[2,3], textaufgabeSchule:[2,3],
-    textaufgabeSkikurs:[3,4], textaufgabeWandertag:[2,3], textaufgabeSchulheft:[2,3], textaufgabeEiscafe:[2,3]
+    textaufgabeSkikurs:[3,4], textaufgabeWandertag:[2,3], textaufgabeSchulheft:[2,3], textaufgabeEiscafe:[2,3],
+    gleichungEinfach:[3,4]
   };
   var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
   var GRADES = [
@@ -1671,7 +1708,8 @@
     textaufgabeSkikurs:   {codes:["I1.M1","H1.I2","I2.M1"], kompetenz:"Prozentrechnung (Rabatt) und Preisberechnung kombinieren"},
     textaufgabeWandertag: {codes:["I1.M1","H1.I3","I3.M1"], kompetenz:"Längen, Höhenmeter und Zeiträume aus dem Wandern modellieren"},
     textaufgabeSchulheft: {codes:["I1.M1","H1.I1","H1.I2","I2.M1"], kompetenz:"Bruch- und Preisberechnung im Schulalltag kombinieren"},
-    textaufgabeEiscafe:   {codes:["I1.M1","H1.I1","H1.I2","I3.M1"], kompetenz:"Brüche, Prozente und Beträge im Alltag kombinieren"}
+    textaufgabeEiscafe:   {codes:["I1.M1","H1.I1","H1.I2","I3.M1"], kompetenz:"Brüche, Prozente und Beträge im Alltag kombinieren"},
+    gleichungEinfach:     {codes:["H2.I1"], kompetenz:"Lineare Gleichung der Form ax + b = c lösen"}
   };
 
   window.MB = {

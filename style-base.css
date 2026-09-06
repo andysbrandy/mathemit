@@ -27,6 +27,8 @@
     --prozent-soft:#DBF2F8;
     --textaufgabe:#B9781F;
     --textaufgabe-soft:#F5E7D2;
+    --gleichung:#2E7D8F;
+    --gleichung-soft:#D4EDF1;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}

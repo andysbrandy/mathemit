@@ -295,7 +295,26 @@
     return svg;
   }
 
-  /* Waage für lineare Gleichungen: linke Schale = ax+b, rechte Schale = c */
+  /* Einfache Datentabelle (für I3.M1 Tabellen lesen) */
+  function tableSVG(headers, rows, color, soft){
+    var cols = headers.length, rowsN = rows.length;
+    var ch = 26;
+    var gw = cols*80;
+    var gx = (300-gw)/2, gy = 40;
+    var s = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    for(var c=0;c<cols;c++){
+      s += '<rect x="'+(gx+c*80)+'" y="'+gy+'" width="80" height="'+ch+'" fill="'+color+'" stroke="#fff" stroke-width="1.5"/>';
+      s += '<text class="dim-label" x="'+(gx+c*80+40)+'" y="'+(gy+18)+'" text-anchor="middle" fill="#fff">'+headers[c]+'</text>';
+    }
+    for(var r=0;r<rowsN;r++){
+      for(var c2=0;c2<cols;c2++){
+        s += '<rect x="'+(gx+c2*80)+'" y="'+(gy+(r+1)*ch)+'" width="80" height="'+ch+'" fill="'+soft+'" stroke="#fff" stroke-width="1.5"/>';
+        s += '<text class="dim-label" x="'+(gx+c2*80+40)+'" y="'+(gy+(r+1)*ch+18)+'" text-anchor="middle" fill="'+color+'">'+rows[r][c2]+'</text>';
+      }
+    }
+    s += '</svg>';
+    return s;
+  }
   function balanceSVG(leftLabel, rightLabel, color, soft){
     var s = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
     s += '<line x1="55" y1="78" x2="245" y2="78" stroke="'+color+'" stroke-width="4" stroke-linecap="round"/>';
@@ -1261,6 +1280,28 @@
     return ex;
   }
 
+  // Tabelle lesen (I3.M1): einfache Zuordnungstabelle, Wert ablesen
+  function genTabelleLesen(){
+    var names = choice([["Anna","Ben","Clara","David"],["Lena","Max","Sophie","Tom"],["Emma","Felix","Mia","Paul"]]);
+    var rowCount = rand(3,4);
+    var headers = ["Name", choice(["Punkte","Tore","Bücher","Blumen"])];
+    var rows = [];
+    for(var r=0;r<rowCount;r++){
+      rows.push([names[r], ""+rand(2,20)]);
+    }
+    var qRow = rand(0,rowCount-1);
+    var answer = +rows[qRow][1];
+    var svg = tableSVG(headers, rows, COLORS.gleichung.main, COLORS.gleichung.soft);
+    var ex = baseEx("gleichung","tabelle");
+    ex.question = "Wie viele "+headers[1]+" hat "+rows[qRow][0]+"? (Sieh in der Tabelle nach.)";
+    ex.hint = "Finde die Zeile von "+rows[qRow][0]+" und lese den Wert in der Spalte „"+headers[1]+"\" ab.";
+    ex.svg=svg; ex.badge="Tabelle · Lesen"; ex.badgeColor=COLORS.gleichung.main;
+    ex.inputType="number"; ex.unit="";
+    ex.answer = answer;
+    ex.explanation = rows[qRow][0]+" hat "+answer+" "+headers[1]+" (Zeile "+(qRow+1)+", Spalte 2).";
+    return ex;
+  }
+
   function genTextaufgabeGarten(){
     var l = rand(5,18), b = rand(3,14);
     var maxDim=Math.max(l,b), scale=170/maxDim;
@@ -1605,7 +1646,8 @@
     textaufgabeWandertag: withCurriculum("textaufgabeWandertag",  genTextaufgabeWandertag),
     textaufgabeSchulheft: withCurriculum("textaufgabeSchulheft",  genTextaufgabeSchulheft),
     textaufgabeEiscafe:   withCurriculum("textaufgabeEiscafe",    genTextaufgabeEiscafe),
-    gleichungEinfach:     withCurriculum("gleichungEinfach",      genGleichungEinfach)
+    gleichungEinfach:     withCurriculum("gleichungEinfach",      genGleichungEinfach),
+    tabelleLesen:        withCurriculum("tabelleLesen",         genTabelleLesen)
   };
 
   var MODES = [
@@ -1621,7 +1663,7 @@
     {id:"bruch-prozent", label:"➗ Brüche & Prozent", pool:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","prozentVonZahl","prozentAnteil"]},
     {id:"textaufgaben", label:"📖 Textaufgaben", pool:["textaufgabeGarten","textaufgabePizza","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag"]},
     {id:"alltag", label:"🇦🇹 Alltag in Österreich", pool:["textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag"]},
-    {id:"gleichungen", label:"⚖️ Gleichungen", pool:["gleichungEinfach"]}
+    {id:"gleichungen", label:"⚖️ Gleichungen & Tabellen", pool:["gleichungEinfach","tabelleLesen"]}
   ];
 
   /* Schulstufen-Zuordnung je Übungstyp (1.–4. Klasse Mittelschule) */
@@ -1639,7 +1681,8 @@
     textaufgabeWien:[2,3], textaufgabeWandern:[2,3], textaufgabeEinkauf:[2,3],
     textaufgabeWeihnacht:[2,3], textaufgabeSchule:[2,3],
     textaufgabeSkikurs:[3,4], textaufgabeWandertag:[2,3], textaufgabeSchulheft:[2,3], textaufgabeEiscafe:[2,3],
-    gleichungEinfach:[3,4]
+    gleichungEinfach:[3,4],
+    tabelleLesen:[2,3]
   };
   var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
   var GRADES = [
@@ -1709,7 +1752,8 @@
     textaufgabeWandertag: {codes:["I1.M1","H1.I3","I3.M1"], kompetenz:"Längen, Höhenmeter und Zeiträume aus dem Wandern modellieren"},
     textaufgabeSchulheft: {codes:["I1.M1","H1.I1","H1.I2","I2.M1"], kompetenz:"Bruch- und Preisberechnung im Schulalltag kombinieren"},
     textaufgabeEiscafe:   {codes:["I1.M1","H1.I1","H1.I2","I3.M1"], kompetenz:"Brüche, Prozente und Beträge im Alltag kombinieren"},
-    gleichungEinfach:     {codes:["H2.I1"], kompetenz:"Lineare Gleichung der Form ax + b = c lösen"}
+    gleichungEinfach:     {codes:["H2.I1"], kompetenz:"Lineare Gleichung der Form ax + b = c lösen"},
+    tabelleLesen:        {codes:["I3.M1"], kompetenz:"Datentabelle lesen und Werte ablesen"}
   };
 
   window.MB = {

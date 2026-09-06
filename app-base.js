@@ -1490,13 +1490,13 @@
     var anzahlBezahlt = anzahlBenoetigt - anzahlGekauft; // geschenkt bekommen
     var gesamtKosten = Math.round(anzahlGekauft * preis * 100) / 100;
     var ex = baseEx("textaufgabe","textaufgabe");
-    ex.question = name+" braucht "+anzahlBenoetigt+" "+produkt+" für die Schule. Im Angebot gilt: Kaufe "+zaehler+"/"+nenner+" und erhalte "+anzahlBezahlt+" Stück gratis dazu. Ein "+produkt+" kostet "+fmtEUR(preis)+". Wie viel muss "+name+" bezahlen?";
-    ex.hint = "1) "+zaehler+"/"+nenner+" von "+anzahlBenoetigt+" = "+anzahlGekauft+" Stück (bezahlt). 2) Gesamtpreis = "+anzahlGekauft+" · Einzelpreis.";
+    ex.question = name+" braucht "+anzahlBenoetigt+" "+produkt+" für die Schule. Im Geschäft gilt diese Woche: Wer "+anzahlBenoetigt+" Stück kauft, zahlt nur für "+zaehler+" Stück. Ein "+produkt+" kostet "+fmtEUR(preis)+". Wie viel muss "+name+" bezahlen?";
+    ex.hint = "1) Bezahlte Stück: "+zaehler+" (die restlichen "+anzahlBezahlt+" sind gratis dazu). 2) Gesamtpreis = bezahlte Stück · Einzelpreis.";
     ex.svg=austriaMapSVG({city:"St. Pölten", icon:"📚", label:"Schulstart", color:"#9C4F96"});
     ex.badge="Alltag · Schulstart"; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="€"; ex.tolerance=0.01;
     ex.answer = gesamtKosten;
-    ex.explanation = zaehler+"/"+nenner+" von "+anzahlBenoetigt+" = "+anzahlGekauft+" Stück. Gesamtpreis: "+anzahlGekauft+" · "+fmtAT(preis)+" € = "+fmtEUR(gesamtKosten)+". (Gratis dazu: "+anzahlBezahlt+" Stück.)";
+    ex.explanation = name+" bekommt "+anzahlBenoetigt+" Stück und zahlt nur für "+zaehler+" Stück ("+anzahlBezahlt+" gratis dazu). Gesamtpreis: "+zaehler+" · "+fmtAT(preis)+" € = "+fmtEUR(gesamtKosten)+".";
     return ex;
   }
 

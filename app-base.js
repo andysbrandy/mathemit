@@ -1197,7 +1197,6 @@
     for(var c=0;c<CITIES.length;c++){
       var ct = CITIES[c];
       s += '<circle cx="'+ct.x+'" cy="'+ct.y+'" r="'+(ct.r||3)+'" fill="#ffffff" stroke="'+main+'" stroke-width="2"/>';
-      if(ct.n==="Wien") s += '<text x="'+(ct.x+14)+'" y="'+(ct.y-9)+'" font-size="7" fill="#E9B949" text-anchor="middle">★</text>';
       var isBg = (ct.n==="Bregenz"), isIbk = (ct.n==="Innsbruck");
       var tx = isBg ? ct.x+7 : ct.x;
       var ty = isBg ? ct.y+2 : (isIbk ? ct.y-5 : ct.y-7);

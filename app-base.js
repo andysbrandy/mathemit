@@ -1135,68 +1135,45 @@
   /* ============ Phase 3: Textaufgaben ============ */
 
   // ============ Österreich-Comic-Karte (pädagogisch) ============
-  // Exakte Außengrenze aus Natural-Earth-GeoJSON (36 Punkte), Bundesland-Mosaik,
-  // Landeshauptstädte, Donau, Bodensee, dezente Alpen und optionales Themen-Icon.
+  // Exakte Außengrenze aus Natural-Earth-GeoJSON (36 Punkte), echte
+  // Landeshauptstädte, dezente Alpen, Bodensee und optionales Themen-Icon.
   // opts: {city:"Innsbruck", icon:"🏔️", label:"Wandern", color:"#D8495A"}
   function austriaMapSVG(opts){
     opts = opts || {};
     var main = COLORS.textaufgabe.main;
     var soft = COLORS.textaufgabe.soft;
     var s = "";
-    s += _atBorderAndStates(main, soft);
+    s += _atLand(main, soft);
     s += _atCitiesAndLabels(main);
     s += _atThemes(opts, main);
     return '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">'+s+'</svg>';
   }
 
-  // Hintergrund + exakt gesetzte Bundesländer + Alpen + Donau + Bodensee
-  function _atBorderAndStates(main, soft){
+  // Hintergrund + gefüllte Österreich-Silhouette + Alpen + Bodensee
+  function _atLand(main, soft){
     var BORDER = "282,89.7 279.3,111.1 259.5,111.2 266.3,122.5 254.6,156.2 247.9,165.1 "
       + "217.1,166.4 199.4,178.2 170.3,174.2 120,160.7 112.1,142.5 77.3,151.6 "
       + "73.2,161.5 51.9,154.1 33.9,152.6 18,143.1 23.4,130.3 22,121 32.6,118.1 "
       + "50.5,132.7 55.5,118.8 86.5,121.1 111.7,111.7 128.6,113.3 139.5,124 "
       + "142.8,115.1 137.8,81 150.5,74.4 162.9,50.2 189,67.1 208.8,45.7 221.2,41.8 "
       + "248.6,57.7 265.1,55 281.3,64.9 278.5,71.6";
-    var ST = [
-      // Reihenfolge = Überdeckung (unten zuerst). Flächen aus Mosaik-Chart.
-      "112,112 139.5,124 142.8,115.1 137.8,81 150.5,74.4 162.9,50.2 189,67.1 196,90 177,120 155,120 144,140 138,152 124,152",
-      "120,160.7 112.1,142.5 124,152 125,160 138,152 170.3,174.2 199.4,178.2 217.1,166.4 186,160 177,150 160,152 124,158",
-      "162.9,50.2 189,67.1 208.8,45.7 221.2,41.8 248.6,57.7 265.1,55 274,62 266,122 240,120 200,130 170,143",
-      "170.3,174.2 199.4,178.2 217.1,166.4 247.9,165.1 254.6,156.2 266.3,122.5 255,130 242,138 221,140 196,140 165,140 155,120 152,132",
-      "33.9,152.6 51.9,154.1 77.3,151.6 86.5,121.1 55.5,118.8 32.6,118.1 50.5,132.7 112.1,142.5 120,140 90,145 60,148 40,150",
-      "112.1,142.5 124,158 125,160 124,152 116,150",
-      "18,143.1 23.4,130.3 22,121 28,119 30,135 27,149 33.9,152.6",
-      "221.2,41.8 248.6,57.7 265.1,55 281.3,64.9 278.5,71.6 282,89.7 279.3,111.1 259.5,111.2 266.3,122.5 250,138 217,142 196,132 170,143",
-      "259.5,111.2 266.3,122.5 254.6,156.2 247.9,165.1 255,145 252,120 264,105 270,100 279.3,111.1",
-      "259,83 258,87 263,87 263,83"
-    ];
-    var COL = ["#F7E6A8","#9FD3D0","#C7B8E8","#BFE3AE","#A8D8A2","#A8D8A2","#A5CEF2","#F5C9A0","#F9DF90","#EBB4C4"];
     var s = '<rect width="300" height="220" fill="'+soft+'" rx="12"/>';
-    s += '<g>';
-    for(var i=0;i<ST.length;i++){
-      s += '<polygon points="'+ST[i]+'" fill="'+COL[i]+'" stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round"/>';
-    }
-    s += '</g>';
-    // Alpen (dezente Bänder in Tirol/Osttirol/Kärnten)
+    // Landfläche: exakte Außengrenze, dezente Füllung + dicker Comic-Umriss
+    s += '<polygon points="'+BORDER+'" fill="'+main+'" fill-opacity="0.13" stroke="'+main+'" stroke-width="3.2" stroke-linejoin="round"/>';
+    // Alpen (dezente Zacken in West-/Südtirol, Kärnten)
     s += '<g fill="#8FA3B8" fill-opacity="0.30" stroke="#7E93AA" stroke-width="1.2" stroke-linejoin="round">'
-      + '<polygon points="40,150 52,138 60,132 55,118.8 66,124 74,118 86.5,121.1 96,128 88,136 72,140 60,149"/>'
+      + '<polygon points="40,150 52,138 60,132 55,118.8 66,124 74,121.5 86.5,121.1 96,128 88,136 72,140 60,149"/>'
       + '<polygon points="96,128 108,118 120,126 131,116 139.5,124 131,140 131.1,144.6 118,148 112.1,142.5"/>'
       + '<polygon points="131.1,144.6 146,150 158,142 170.3,174.2 160,162 150,158 138,152"/>'
       + '</g>';
     s += '<polygon points="55,120 58,116.5 61,120 56,119" fill="#fff" opacity="0.8"/>';
     s += '<polygon points="128,117.5 131,114.5 134,117.5 129,116.5" fill="#fff" opacity="0.8"/>';
-    // Bodensee
+    // Bodensee (Bregenz)
     s += '<ellipse cx="24" cy="121.8" rx="4.5" ry="2.6" fill="#4FA4D0" fill-opacity="0.75"/>';
-    // Donau (zwei Lagen: breite helle + schmale dunkle Mittellinie)
-    var DONAU = "M 158,65.5 C 168,69 178,72 187,79.9 C 195,83 203,86 212,87.5 C 222,89 230,89 238,88 C 246,87 253,86 260.5,85.2 C 268,87 274,88 279,85";
-    s += '<path d="'+DONAU+'" fill="none" stroke="#4FA4D0" stroke-width="4.2" stroke-linecap="round" opacity="0.92"/>';
-    s += '<path d="'+DONAU+'" fill="none" stroke="#3A7FA8" stroke-width="1.6" stroke-linecap="round" opacity="0.55"/>';
-    // Außengrenze (dicker Comic-Umriss)
-    s += '<polygon points="'+BORDER+'" fill="none" stroke="'+main+'" stroke-width="3.2" stroke-linejoin="round"/>';
     return s;
   }
 
-  // Landeshauptstädte (echte Positionen) + Bundesland-Kürzel-Badges
+  // Landeshauptstädte (echte Positionen) mit Namen
   function _atCitiesAndLabels(main){
     var CITIES = [
       {x:27.1,y:122.2,n:"Bregenz",   lx:27.1, ly:114.5, r:3.5, a:"middle"},
@@ -1209,23 +1186,12 @@
       {x:187.9,y:168.1,n:"Klagenfurt",lx:187.9,ly:179,  r:3.5, a:"middle"},
       {x:265.9,y:104.2,n:"Eisenstadt",lx:259,  ly:104.2, r:3.5, a:"end"}
     ];
-    var BADGES = [
-      {x:24, y:131, t:"V"}, {x:78, y:130, t:"T"}, {x:118, y:152, t:"Ot"},
-      {x:150,y:98,  t:"S"}, {x:202, y:70, t:"OÖ"},{x:250, y:118, t:"NÖ"},
-      {x:222,y:160, t:"St"},{x:172, y:164, t:"K"},{x:272, y:112, t:"B"}
-    ];
     var s = '<g>';
     for(var c=0;c<CITIES.length;c++){
       var ct = CITIES[c];
       s += '<circle cx="'+ct.x+'" cy="'+ct.y+'" r="'+(ct.r||3.5)+'" fill="#ffffff" stroke="'+main+'" stroke-width="2"/>';
       if(ct.n==="Wien") s += '<text x="'+(ct.x+5)+'" y="'+(ct.y-6)+'" font-size="8" fill="#E9B949" text-anchor="middle">★</text>';
       s += '<text class="dim-label" x="'+ct.lx+'" y="'+(ct.ly+3)+'" font-size="7" text-anchor="'+ct.a+'" fill="'+main+'">'+ct.n+'</text>';
-    }
-    for(var b=0;b<BADGES.length;b++){
-      var bg = BADGES[b];
-      var w = Math.max(bg.t.length*7, 16);
-      s += '<rect x="'+(bg.x-w/2)+'" y="'+(bg.y-6.5)+'" width="'+w+'" height="13" rx="6.5" fill="#fff" fill-opacity="0.92" stroke="'+main+'" stroke-width="1"/>';
-      s += '<text x="'+bg.x+'" y="'+(bg.y+3.5)+'" font-size="8.5" font-weight="700" text-anchor="middle" fill="'+main+'">'+bg.t+'</text>';
     }
     s += '</g>';
     return s;

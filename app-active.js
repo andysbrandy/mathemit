@@ -16,6 +16,7 @@
   var GRADES         = MB.GRADES;
   var GRADE_GROUPS   = MB.GRADE_GROUPS;
   var GRADE_TAGS     = MB.GRADE_TAGS;
+  var DIFFICULTIES  = MB.DIFFICULTIES;
   var TIPP1_BY_TOPIC = MB.TIPP1_BY_TOPIC;
   var deriveTips   = MB.deriveTips;
   // ENCOURAGE_OK / ENCOURAGE_BAD / LEVELS / BADGES sind in dieser Datei lokal definiert.

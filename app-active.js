@@ -16,7 +16,8 @@
   var GRADES         = MB.GRADES;
   var GRADE_GROUPS   = MB.GRADE_GROUPS;
   var GRADE_TAGS     = MB.GRADE_TAGS;
-  var DIFFICULTIES  = MB.DIFFICULTIES;
+  var TIPP1_BY_TOPIC = MB.TIPP1_BY_TOPIC;
+  var deriveTips   = MB.deriveTips;
   // ENCOURAGE_OK / ENCOURAGE_BAD / LEVELS / BADGES sind in dieser Datei lokal definiert.
 
   // ---- Render-Hilfsfunktionen (basieren auf app-base.js) ----
@@ -227,7 +228,11 @@ function nextExercise(){
 
   document.getElementById("eyebrow").textContent = eyebrowMap[ex.topic] || "Aufgabe";
   document.getElementById("questionText").textContent = ex.question;
-  document.getElementById("hintText").textContent = ex.hint || "";
+  document.getElementById("hintText").textContent = "";
+  var tips = deriveTips(ex);
+  state.tipCount = tips.length;
+  state.tipShown = 0;
+  document.getElementById("tipBtn").style.display = tips.length ? "inline-block":"none";
   renderFigure(ex.svg, ex.badge, ex.badgeColor);
   updateCurriculumBadge(ex.curriculumKey);
 
@@ -298,7 +303,14 @@ function finishRound(isCorrect, explanation){
       sug = '<div style="margin-top:6px; font-size:.8rem; font-weight:600;">🚀 Stark! Probiere die Stufe 🚀 Anforderung.</div>';
     }
   }
-  fb.innerHTML = msg + '<span class="explain">'+explanation+'</span>'+sug;
+  /* P3.2: Gezielter Korrektur-Hinweis bei falscher Antwort */
+  var extra = "";
+  if(!isCorrect && ex){
+    var korr = TIPP1_BY_TOPIC[ex.topic];
+    if(korr) extra = '<div style="margin-top:6px; font-size:.8rem; font-weight:600;">🧭 Merke: '+korr+'</div>';
+  }
+  fb.innerHTML = msg + '<span class="explain">'+explanation+'</span>'+sug+extra;
+  document.getElementById("tipBtn").style.display = "none";
   document.getElementById("checkBtn").disabled = true;
   document.getElementById("nextBtn").style.display="inline-block";
 }
@@ -329,6 +341,19 @@ function handleChoice(i){
 }
 
 document.getElementById("checkBtn").addEventListener("click", handleCheck);
+document.getElementById("tipBtn").addEventListener("click", function(){
+  if(!state.current || state.answered) return;
+  var tips = deriveTips(state.current);
+  if(state.tipShown < tips.length){
+    state.tipShown++;
+    var ht = document.getElementById("hintText");
+    var line = "💡 " + tips[state.tipShown-1];
+    ht.innerHTML = ht.innerHTML ? ht.innerHTML+"<br>"+line : line;
+    if(state.tipShown >= tips.length){
+      document.getElementById("tipBtn").style.display = "none";
+    }
+  }
+});
 document.getElementById("nextBtn").addEventListener("click", nextExercise);
 document.getElementById("resetBtn").addEventListener("click", function(){
   if(window.confirm("Wirklich den gesamten Fortschritt (Punkte, Serie, Abzeichen) in diesem Browser löschen?")){

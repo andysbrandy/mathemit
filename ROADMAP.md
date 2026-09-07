@@ -8,6 +8,7 @@
 
 - **48 Generatoren** in 8 Kategorien (Dreiecke, Vierecke, Kreis, Körper, Oberfläche, Brüche, Prozent, Textaufgaben, Gleichungen/Diagramme)
 - **3 Schwierigkeitsstufen** je Generator (🌱/🎯/🚀) + dynamische Anpassungs-Vorschläge
+- **Pädagogisches Tipp-System**: progressive Offenlegung (Andeuten → Formel/Ansatz) + gezielte Korrekturhinweise bei Fehlern
 - **Österreichischer Lehrplan-Mapping** (Codes H1–H3, I1–I3)
 - **4 Level**, Streaks, Basis-Badges, Auth-System
 - **Comic-SVG-Engine** (gerundete Silhouetten, dynamische Skizzen)
@@ -41,8 +42,8 @@
 
 | # | Schritt | Status |
 |---|---------|--------|
-| 3.1 | 3-stufiges Tipp-System (Andeuten → Formel → Rechenweg) | ❌ |
-| 3.2 | Fehler-Feedback mit gezielter Korrektur-Hinweis | ❌ |
+| 3.1 | 3-stufiges Tipp-System (Andeuten → Formel → Rechenweg) | ✅ Progressiv (💡-Button: Andeuten → Formel/Ansatz) |
+| 3.2 | Fehler-Feedback mit gezielter Korrektur-Hinweis | ✅ Topic-Korrekturhinweis (🧭 Merke) bei falscher Antwort |
 
 ### P4 — Gamification & Motivation
 

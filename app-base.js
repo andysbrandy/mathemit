@@ -435,7 +435,40 @@
   var _currentCurriculumKey = null;
 
   function baseEx(category, topic){
-    return {category:category, topic:topic, curriculumKey:_currentCurriculumKey};
+    return {category:category, topic:topic, curriculumKey:_currentCurriculumKey, tips:[]};
+  }
+
+  /* ============ P3: Tipp-System (progressiv) ============ */
+  /* Tipp 1 „Andeuten" je Topic – deckt alle Generatoren ab, ohne 48x Content zu pflegen.
+   * Generatoren können ex.tips=[...] setzen und überschreiben damit die Ableitung. */
+  var TIPP1_BY_TOPIC = {
+    winkel:"Denk an die Winkelsumme: Dreieck 180°, Viereck 360°.",
+    umfang:"Umfang = Summe aller Seiten. Welche Seiten sind gleich lang?",
+    flaeche:"Welche Fläche ist es? Jede Form hat ihre Formel (Grundseite × Höhe ÷ …).",
+    erkennen:"Achte auf Markierungen (Gleichen-Striche) und rechte Winkel (kleines Quadrat).",
+    eigenschaften:"Prüfe die Aussage an einer kleinen Skizze.",
+    volumen:"Volumen = Grundfläche × Höhe. Welcher Körper ist es?",
+    oberflaeche:"Oberfläche = alle Außenflächen zusammen (Stelle dir das Netz vor).",
+    bruch:"Gleiche Nenner? Sonst Hauptnenner suchen. Bei ×: Zähler×Zähler, Nenner×Nenner.",
+    prozent:"Prozent heißt „von Hundert“: Grundwert × (p : 100).",
+    textaufgabe:"Unterstreiche Zahlen und Frage. Welcher Rechenweg führt zur Antwort?",
+    gleichung:"Bringe x allein auf eine Seite – umgekehrte Operationen auf beiden Seiten.",
+    tabelle:"Suche die richtige Zeile und Spalte – lies genau ab.",
+    diagramm:"Finde den Balken und lese an der Achse bzw. über dem Balken ab.",
+    gemischteZahlen:"Ganze Zahl × Nenner + Zähler = neuer Zähler. Der Nenner bleibt.",
+    bruchDezimal:"Zähler : Nenner = Dezimalzahl (mit Komma weiterrechnen).",
+    zinsrechnung:"Z = K · p · t – setze Kapital, Zinssatz und Zeit ein.",
+    proportionalitaet:"Gleiche Sonne ⇒ gleiches Verhältnis. Stelle den Dreisatz auf.",
+    mehrstufig:"Teile auf in Schritte: 1) pro Kind 2) alle zusammen 3) Extras.",
+    _default:"Lies die Aufgabe noch einmal langsam – welche Zahlen und welche Frage gibt es?"
+  };
+  function deriveTips(ex){
+    if(ex.tips && ex.tips.length>0) return ex.tips;
+    var tips = [];
+    var t1 = TIPP1_BY_TOPIC[ex.topic] || TIPP1_BY_TOPIC[ex.category] || TIPP1_BY_TOPIC._default;
+    tips.push(t1);
+    if(ex.hint && ex.hint!==t1) tips.push(ex.hint); // Tipp 2: Formel/Ansatz
+    return tips;
   }
 
   /* ============ Curriculum UI: Badge & Modal ============ */
@@ -2023,6 +2056,6 @@
     triangleFromSides, isValidTriangle, parallelogramFromSides, baseEx,
     COLORS, AUSTRIA, TRI_TEMPLATES, QUAD_TEMPLATES, QUAD_NAMES,
     TRI_STATEMENTS, QUAD_STATEMENTS, CURRICULUM_MAP, GEN, MODES, GRADES,
-    GRADE_GROUPS, GRADE_TAGS, DIFFICULTIES
+    GRADE_GROUPS, GRADE_TAGS, DIFFICULTIES, TIPP1_BY_TOPIC, deriveTips
   };
 })();

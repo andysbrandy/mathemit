@@ -16,6 +16,7 @@
   var GRADES         = MB.GRADES;
   var GRADE_GROUPS   = MB.GRADE_GROUPS;
   var GRADE_TAGS     = MB.GRADE_TAGS;
+  var DIFFICULTIES  = MB.DIFFICULTIES;
   // ENCOURAGE_OK / ENCOURAGE_BAD / LEVELS / BADGES sind in dieser Datei lokal definiert.
 
   // ---- Render-Hilfsfunktionen (basieren auf app-base.js) ----
@@ -28,6 +29,7 @@
 var state = {
   mode: "alles",
   grade: "all",
+  diff: 2,
   points: 0,
   streak: 0,
   bestStreak: 0,
@@ -66,7 +68,7 @@ function saveProgress(){
     var data = {
       points:state.points, streak:state.streak, bestStreak:state.bestStreak,
       solved:state.solved, correct:state.correct, badges:state.badges,
-      mode:state.mode, grade:state.grade
+      mode:state.mode, grade:state.grade, diff:state.diff
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }catch(e){ /* z. B. Privatmodus ohne Speicherzugriff - Fortschritt bleibt dann nur für diese Sitzung erhalten */ }
@@ -84,6 +86,7 @@ function loadProgress(){
     state.badges = d.badges||[];
     state.mode = MODES.some(function(m){return m.id===d.mode;}) ? d.mode : "alles";
     state.grade = GRADES.some(function(g){return g.id===d.grade;}) ? d.grade : "all";
+    state.diff = (d.diff===1 || d.diff===2 || d.diff===3) ? d.diff : 2;
   }catch(e){ /* beschädigter oder fehlender Speicher wird ignoriert, App startet mit Standardwerten */ }
 }
 function resetProgress(){
@@ -125,6 +128,23 @@ GRADES.forEach(function(g){
     nextExercise();
   });
   gradeChipsHost.appendChild(btn);
+});
+
+/* Schwierigkeitsstufen (P2.1) */
+var diffChipsHost = document.getElementById("diffChips");
+DIFFICULTIES.forEach(function(d){
+  var btn = document.createElement("button");
+  btn.className = "chip" + (d.id===state.diff?" active":"");
+  btn.textContent = d.label;
+  btn.dataset.diff = d.id;
+  btn.addEventListener("click", function(){
+    state.diff = d.id;
+    Array.prototype.forEach.call(diffChipsHost.children, function(c){ c.classList.remove("active"); });
+    btn.classList.add("active");
+    saveProgress();
+    nextExercise();
+  });
+  diffChipsHost.appendChild(btn);
 });
 
 function updateStatsUI(){
@@ -199,7 +219,7 @@ function poolForCurrentFilters(){
 function nextExercise(){
   var pool = poolForCurrentFilters();
   var key = choice(pool);
-  var ex = GEN[key]();
+  var ex = GEN[key](state.diff);
   state.current = ex;
   state.answered = false;
 

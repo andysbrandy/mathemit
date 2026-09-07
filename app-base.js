@@ -964,10 +964,11 @@
 
   function gcd(a,b){ return b===0 ? a : gcd(b, a%b); }
 
-  function genBruchKuerzen(){
-    var q = rand(2,6), p;
+  function genBruchKuerzen(diff){
+    diff = diff || 2;
+    var q = diff===1 ? rand(2,4) : (diff===3 ? rand(4,12) : rand(2,6)), p;
     do{ p = rand(1,q-1); } while(gcd(p,q)!==1);
-    var k = rand(2,4);
+    var k = diff===1 ? 2 : (diff===3 ? rand(2,5) : rand(2,4));
     var num = p*k, denom = q*k;
     var svg = fractionFigureSVG(num, denom, COLORS.bruch.main, COLORS.bruch.soft);
     var correct = p+"/"+q;
@@ -978,6 +979,7 @@
     ex.hint = "Suche die größte Zahl, durch die Zähler und Nenner beide teilbar sind.";
     ex.svg=svg; ex.badge="Bruch · Kürzen"; ex.badgeColor=COLORS.bruch.main;
     ex.inputType="mc"; ex.choices=options; ex.correctIndex=options.indexOf(correct);
+    ex.answer = correct;
     ex.explanation = num+"/"+denom+" : "+k+" = "+correct+".";
     return ex;
   }
@@ -1150,10 +1152,11 @@
 
   /* ============ Phase 3: Prozentrechnen ============ */
 
-  function genProzentVonZahl(){
-    var p = choice([5,10,20,25,50,75]);
+  function genProzentVonZahl(diff){
+    diff = diff || 2;
+    var p = diff===1 ? choice([10,25,50]) : (diff===3 ? choice([5,10,15,20,25,50,75]) : choice([5,10,20,25,50,75]));
     var denomReduced = 100/gcd(p,100);
-    var base = denomReduced*rand(1,12);
+    var base = denomReduced*(diff===1 ? rand(1,4) : (diff===3 ? rand(5,12) : rand(1,12)));
     var answer = p*base/100;
     var svg = percentBarSVG(p,100,COLORS.prozent.main,COLORS.prozent.soft, p+"% von "+base+" = ?");
     var ex = baseEx("prozent","prozent");
@@ -1281,10 +1284,11 @@
   /* ============ Phase 4: Lineare Gleichungen ============ */
 
   // Gleichung ax + b = c, x ∈ ℕ (ganzzahlige positive Lösung)
-  function genGleichungEinfach(){
-    var a = choice([2,3,4,5]);
-    var x = rand(2,8);
-    var b = rand(1,10);
+  function genGleichungEinfach(diff){
+    diff = diff || 2;
+    var a = diff===1 ? choice([1,2,3]) : (diff===3 ? choice([2,4,6,8,10,12]) : choice([2,3,4,5]));
+    var x = diff===1 ? rand(1,5) : (diff===3 ? rand(2,15) : rand(2,8));
+    var b = diff===1 ? rand(1,5) : (diff===3 ? rand(1,25) : rand(1,10));
     var c = a*x + b;
     var svg = balanceSVG(a+"x + "+b, ""+c, COLORS.gleichung.main, COLORS.gleichung.soft);
     var ex = baseEx("gleichung","gleichung");
@@ -1298,13 +1302,15 @@
   }
 
   // Tabelle lesen (I3.M1): einfache Zuordnungstabelle, Wert ablesen
-  function genTabelleLesen(){
+  function genTabelleLesen(diff){
+    diff = diff || 2;
     var names = choice([["Anna","Ben","Clara","David"],["Lena","Max","Sophie","Tom"],["Emma","Felix","Mia","Paul"]]);
-    var rowCount = rand(3,4);
+    var rowCount = diff===1 ? 3 : 4;
+    var minVal = diff===3 ? 10 : 2, maxVal = diff===1 ? 10 : (diff===3 ? 99 : 20);
     var headers = ["Name", choice(["Punkte","Tore","Bücher","Blumen"])];
     var rows = [];
     for(var r=0;r<rowCount;r++){
-      rows.push([names[r], ""+rand(2,20)]);
+      rows.push([names[r], ""+rand(minVal,maxVal)]);
     }
     var qRow = rand(0,rowCount-1);
     var answer = +rows[qRow][1];
@@ -1320,12 +1326,13 @@
   }
 
   // Säulendiagramm lesen (I3.M1): Balken auswerten
-  function genDiagrammBalken(){
+  function genDiagrammBalken(diff){
+    diff = diff || 2;
     var labels = choice([["Apfel","Birne","Kirsche","Pflaume"],["Hund","Katze","Vogel","Fisch"],["Radi","Bus","Auto","Zug"]]);
-    var n = rand(3,4);
+    var n = diff===1 ? 3 : 4;
     var values = [], yMax = 0;
     for(var i=0;i<n;i++){
-      var v = rand(2,10)*5;
+      var v = (diff===1 ? rand(1,6) : (diff===3 ? rand(5,20) : rand(2,10)))*5;
       values.push(v);
       if(v>yMax) yMax = v;
     }
@@ -1344,9 +1351,10 @@
 
 
   // Gemischte Zahl in unechten Bruch umwandeln (H1.I1)
-  function genGemischteZahlen(){
-    var w = rand(1,4);              // ganze Zahl
-    var n = choice([2,3,4,5,6]);    // Nenner
+  function genGemischteZahlen(diff){
+    diff = diff || 2;
+    var w = diff===1 ? rand(1,2) : (diff===3 ? rand(2,6) : rand(1,4));              // ganze Zahl
+    var n = diff===1 ? choice([2,3,4]) : (diff===3 ? choice([3,4,5,6,8,10]) : choice([2,3,4,5,6]));    // Nenner
     var z;
     do{ z = rand(1,n-1); } while(gcd(z,n)!==1); // echter Bruch, gekürzt
     var improperNum = w*n + z;
@@ -1368,9 +1376,10 @@
   }
 
   // Bruch in Dezimalzahl umwandeln und umgekehrt (H1.I1)
-  function genBruchDezimal(){
-    var mode = choice(["bruchZuDezimal","dezimalZuBruch"]);
-    var denom = choice([2,4,5,8,10,20]);
+  function genBruchDezimal(diff){
+    diff = diff || 2;
+    var mode = diff===1 ? "bruchZuDezimal" : choice(["bruchZuDezimal","dezimalZuBruch"]);
+    var denom = diff===1 ? choice([2,4,5,10]) : (diff===3 ? choice([4,8,20,25,50]) : choice([2,4,5,8,10,20]));
     var numer;
     do{ numer = rand(1,denom-1); } while(gcd(numer,denom)!==1);
     var decimal = numer/denom;
@@ -1397,10 +1406,11 @@
   }
 
   // Zinsrechnung (H1.I2): Zinsen = Kapital · Zinssatz · Zeit
-  function genZinsrechnung(){
-    var capital = rand(1,10)*100;  // Kapital in € (Vielfaches von 100)
+  function genZinsrechnung(diff){
+    diff = diff || 2;
+    var capital = (diff===1 ? rand(1,5) : (diff===3 ? rand(5,20) : rand(1,10)))*100;  // Kapital in € (Vielfaches von 100)
     var rate = choice([2,3,4,5,6]);   // Zinssatz in %
-    var years = rand(1,5);             // Zeit in Jahren
+    var years = diff===1 ? rand(1,2) : (diff===3 ? rand(2,10) : rand(1,5));             // Zeit in Jahren
     var interest = capital*rate*years/100;   // ganzzahlig, da Kapital Vielfaches von 100
     var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
     svg += '<text class="dim-label" x="150" y="45" text-anchor="middle" font-size="17">Kapital: '+capital+' €</text>';
@@ -1419,10 +1429,11 @@
   }
 
   // Direkte Proportionalität: Schattenlänge (H2.I2)
-  function genProportionalitaet(){
+  function genProportionalitaet(diff){
+    diff = diff || 2;
     var personH = 150;            // Person 1,50 m (in cm)
     var personS = 250;          // Schatten der Person 2,50 m (in cm)
-    var treeS = 500*rand(2,5);  // Baumschatten in cm:  ‎10–25 m
+    var treeS = 500*(diff===1 ? rand(1,2) : (diff===3 ? rand(4,8) : rand(2,5)));  // Baumschatten in cm:  ‎5–40 m
     // Saubere ganzzahlige Lösung: Verhältnis personH:personS = 150:250 = 3:5
     var treeH = personH*treeS/personS; // = 0,6·treeS → ganzzahlig,
     var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
@@ -1450,11 +1461,12 @@
     return ex;
   }
 // Mehrstufige Sachaufgabe (I1.M1): Klassen-Ausflug ins Freibad
-  function genMehrstufig(){
-    var kids = rand(15,28);          // Kinder in der Klasse
-    var entry = choice([2,3,4]);    // Eintritt pro Kind (€)
-    var ice_cream = choice([1,2]);  // Eis pro Kind (€)
-    var bus = 10*rand(3,6);       // Buskosten (30–60 €)
+  function genMehrstufig(diff){
+    diff = diff || 2;
+    var kids = diff===1 ? rand(5,12) : (diff===3 ? rand(20,30) : rand(15,28));          // Kinder in der Klasse
+    var entry = diff===1 ? choice([1,2]) : (diff===3 ? choice([3,4,5]) : choice([2,3,4]));    // Eintritt pro Kind (€)
+    var ice_cream = diff===1 ? 1 : (diff===3 ? choice([2,3]) : choice([1,2]));  // Eis pro Kind (€)
+    var bus = 10*(diff===1 ? rand(1,3) : (diff===3 ? rand(3,8) : rand(3,6)));       // Buskosten
     var perKid = entry + ice_cream;   // pro Kind
     var total = kids*perKid + bus;     // Gesamtkosten
     var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
@@ -1771,9 +1783,9 @@
   /* ============ Pools & Modes ============ */
   // Hilfsfunktion: setzt _currentCurriculumKey und ruft den Generator auf
   function withCurriculum(key, fn){
-    return function(){
+    return function(diff){
       _currentCurriculumKey = key;
-      return fn();
+      return fn(diff === undefined ? 2 : diff);
     };
   }
 
@@ -1870,6 +1882,13 @@
     {id:"12", label:"1./2. Klasse"},
     {id:"34", label:"3./4. Klasse"}
   ];
+  /* Schwierigkeitsstufen (P2.1): 1=Einstieg, 2=Training (Standard), 3=Anforderung.
+   * Generatoren erhalten diff als Parameter; ohne Migration gilt weiterhin Stufe 2. */
+  var DIFFICULTIES = [
+    {id:1, label:"🌱 Einstieg"},
+    {id:2, label:"🎯 Training"},
+    {id:3, label:"🚀 Anforderung"}
+  ];
 
   /* ============ Österreichischer Lehrplan: Bildungsstandards & Kompetenzbereiche ============
    * Quellen-Grundlage: BMBWF Lehrplan 2023 (Mathematik, AHS-Unterstufe / Mittelschule)
@@ -1953,6 +1972,6 @@
     triangleFromSides, isValidTriangle, parallelogramFromSides, baseEx,
     COLORS, AUSTRIA, TRI_TEMPLATES, QUAD_TEMPLATES, QUAD_NAMES,
     TRI_STATEMENTS, QUAD_STATEMENTS, CURRICULUM_MAP, GEN, MODES, GRADES,
-    GRADE_GROUPS, GRADE_TAGS
+    GRADE_GROUPS, GRADE_TAGS, DIFFICULTIES
   };
 })();

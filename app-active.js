@@ -306,8 +306,8 @@ function finishRound(isCorrect, explanation){
   }
   /* P3.2: Gezielter Korrektur-Hinweis bei falscher Antwort */
   var extra = "";
-  if(!isCorrect && ex){
-    var korr = TIPP1_BY_TOPIC[ex.topic];
+  if(!isCorrect && state.current){
+    var korr = TIPP1_BY_TOPIC[state.current.topic];
     if(korr) extra = '<div style="margin-top:6px; font-size:.8rem; font-weight:600;">🧭 Merke: '+korr+'</div>';
   }
   fb.innerHTML = msg + '<span class="explain">'+explanation+'</span>'+sug+extra;

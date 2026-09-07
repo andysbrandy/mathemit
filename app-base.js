@@ -1342,6 +1342,137 @@
     return ex;
   }
 
+
+  // Gemischte Zahl in unechten Bruch umwandeln (H1.I1)
+  function genGemischteZahlen(){
+    var w = rand(1,4);              // ganze Zahl
+    var n = choice([2,3,4,5,6]);    // Nenner
+    var z;
+    do{ z = rand(1,n-1); } while(gcd(z,n)!==1); // echter Bruch, gekürzt
+    var improperNum = w*n + z;
+    var correct = improperNum+"/"+n;
+    var distractSet = [improperNum+"/"+(n+1), z+"/"+n, (improperNum+w)+"/"+n];
+    var options = shuffle([correct].concat(distractSet));
+    var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    svg += '<text class="dim-label" x="150" y="45" text-anchor="middle" font-size="20">'+w+' '+z+'/'+n+'</text>';
+    svg += fractionBarSVG(z, n, COLORS.bruch.main, COLORS.bruch.soft, 70);
+    svg += '</svg>';
+    var ex = baseEx("bruch","gemischteZahlen");
+    ex.question = "Wandle die gemischte Zahl "+w+" "+z+"/"+n+" in einen unechten Bruch um.";
+    ex.hint = "Multipliziere die ganze Zahl mit dem Nenner und addiere den Zähler: "+w+"·"+n+" + "+z+" = "+(w*n+z)+". Der Nenner bleibt "+n+".";
+    ex.svg=svg; ex.badge="Gemischte Zahl · Umwandeln"; ex.badgeColor=COLORS.bruch.main;
+    ex.inputType="mc"; ex.choices=options; ex.correctIndex=options.indexOf(correct);
+    ex.answer = correct;
+    ex.explanation = w+" "+z+"/"+n+" = ("+w+"·"+n+" + "+z+")/"+n+" = "+improperNum+"/"+n+".";
+    return ex;
+  }
+
+  // Bruch in Dezimalzahl umwandeln und umgekehrt (H1.I1)
+  function genBruchDezimal(){
+    var mode = choice(["bruchZuDezimal","dezimalZuBruch"]);
+    var denom = choice([2,4,5,8,10,20]);
+    var numer;
+    do{ numer = rand(1,denom-1); } while(gcd(numer,denom)!==1);
+    var decimal = numer/denom;
+    var svg = fractionFigureSVG(numer, denom, COLORS.bruch.main, COLORS.bruch.soft);
+    var ex = baseEx("bruch","bruchDezimal");
+    if(mode === "bruchZuDezimal"){
+      ex.question = "Wandle den Bruch "+numer+"/"+denom+" in eine Dezimalzahl um.";
+      ex.hint = "Teile den Zähler durch den Nenner (Zähler : Nenner).";
+      ex.svg=svg; ex.badge="Bruch → Dezimal"; ex.badgeColor=COLORS.bruch.main;
+      ex.inputType="number"; ex.unit=""; ex.tolerance=0.001;
+      ex.answer = decimal;
+      ex.explanation = numer+"/"+denom+" = "+numer+" : "+denom+" = "+fmt(decimal)+".";
+    } else {
+      ex.question = "Schreibe die Dezimalzahl "+fmt(decimal)+" als gekürzten Bruch.";
+      ex.hint = "Schreibe die Dezimalzahl als Zehntel-/Hundertstelbruch und kürze dann.";
+      ex.svg=svg; ex.badge="Dezimal → Bruch"; ex.badgeColor=COLORS.bruch.main;
+      var distractSet = [numer+"/"+(denom*2), (numer+1)+"/"+denom, numer+"/"+(denom-1>0?denom-1:2)];
+      var options = shuffle([numer+"/"+denom].concat(distractSet));
+      ex.inputType="mc"; ex.choices=options; ex.correctIndex=options.indexOf(numer+"/"+denom);
+      ex.answer = numer+"/"+denom;
+      ex.explanation = fmt(decimal)+" = "+numer+"/"+denom+" (gekürzt).";
+    }
+    return ex;
+  }
+
+  // Zinsrechnung (H1.I2): Zinsen = Kapital · Zinssatz · Zeit
+  function genZinsrechnung(){
+    var capital = rand(1,10)*100;  // Kapital in € (Vielfaches von 100)
+    var rate = choice([2,3,4,5,6]);   // Zinssatz in %
+    var years = rand(1,5);             // Zeit in Jahren
+    var interest = capital*rate*years/100;   // ganzzahlig, da Kapital Vielfaches von 100
+    var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    svg += '<text class="dim-label" x="150" y="45" text-anchor="middle" font-size="17">Kapital: '+capital+' €</text>';
+    svg += '<text class="dim-label" x="150" y="85" text-anchor="middle" font-size="17">Zinssatz: '+rate+' %</text>';
+    svg += '<text class="dim-label" x="150" y="125" text-anchor="middle" font-size="17">Zeit: '+years+' Jahr'+(years>1?"e":"")+'</text>';
+    svg += '<text class="dim-label" x="150" y="175" text-anchor="middle" font-size="18">Zinsen = ?</text>';
+    svg += '</svg>';
+    var ex = baseEx("prozent","zinsrechnung");
+    ex.question = "Ein Sparbuch hat einen Zinssatz von "+rate+" %. Wie viel Zinsen erhält man nach "+years+" Jahr"+(years>1?"en":"")+" für "+capital+" €?";
+    ex.hint = "Formel: Zinsen = Kapital · Zinssatz · Zeit: "+capital+" € · "+rate+" % · "+years+".";
+    ex.svg=svg; ex.badge="Zinsrechnung · Zinsen"; ex.badgeColor=COLORS.prozent.main;
+    ex.inputType="number"; ex.unit="€";
+    ex.answer = interest;
+    ex.explanation = "Zinsen = "+capital+" · "+rate+" % · "+years+" = "+capital+" · "+(rate/100)+" · "+years+" = "+interest+" €.";
+    return ex;
+  }
+
+  // Direkte Proportionalität: Schattenlänge (H2.I2)
+  function genProportionalitaet(){
+    var personH = 150;            // Person 1,50 m (in cm)
+    var personS = 250;          // Schatten der Person 2,50 m (in cm)
+    var treeS = 500*rand(2,5);  // Baumschatten in cm:  ‎10–25 m
+    // Saubere ganzzahlige Lösung: Verhältnis personH:personS = 150:250 = 3:5
+    var treeH = personH*treeS/personS; // = 0,6·treeS → ganzzahlig,
+    var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    svg += '<line x1="20" y1="180" x2="280" y2="180" stroke="var(--ink)" stroke-width="2"/>';
+    // Person
+    svg += '<line x1="75" y1="180" x2="75" y2="'+(180-personH/17)+'" stroke="'+(COLORS.gleichung.main)+'" stroke-width="5" stroke-linecap="round"/>';
+    svg += '<circle cx="75" cy="'+(180-personH/17-6)+'" r="5" fill="'+(COLORS.gleichung.main)+'"/>';
+    svg += '<line x1="75" y1="180" x2="'+(75+personS/34)+'" y2="180" stroke="'+(COLORS.gleichung.soft)+'" stroke-width="3" stroke-dasharray="4 3"/>';
+    svg += '<text class="dim-label" x="75" y="200" text-anchor="middle">1,50 m</text>';
+    svg += '<text class="dim-label" x="75" y="212" text-anchor="middle">Schatten 2,50 m</text>';
+    // Baum
+    svg += '<line x1="220" y1="180" x2="220" y2="'+(180-treeH/17)+'" stroke="'+(COLORS.gleichung.main)+'" stroke-width="11" stroke-linecap="round"/>';
+    svg += '<circle cx="220" cy="'+(180-treeH/17-7)+'" r="7" fill="'+(COLORS.gleichung.main)+'"/>';
+    svg += '<line x1="220" y1="180" x2="'+(220+treeS/34)+'" y2="180" stroke="'+(COLORS.gleichung.soft)+'" stroke-width="3" stroke-dasharray="4 3"/>';
+    svg += '<text class="dim-label" x="220" y="200" text-anchor="middle">Schatten '+(treeS/100)+' m</text>';
+    svg += '<text class="dim-label" x="150" y="40" text-anchor="middle" font-size="16">Baumhöhe = ?</text>';
+    svg += '</svg>';
+    var ex = baseEx("gleichung","proportionalitaet");
+    ex.question = "Ein 1,50 m großes Mädchen wirft einen 2,50 m langen Schatten. Ein Baum wirft zur gleichen Zeit einen Schatten von "+(treeS/100)+" m. Wie hoch ist der Baum?";
+    ex.hint = "Gleiche Sonne ⇒ gleiches Verhältnis: Baumhöhe : Baumschatten = 1,50 :  ‎2,50. Berechne mit dem Dreisatz.";
+    ex.svg=svg; ex.badge="Proportionalität · Schatten"; ex.badgeColor=COLORS.gleichung.main;
+    ex.inputType="number"; ex.unit="m";
+    ex.answer = treeH/100;
+    ex.explanation = "Baumhöhe = "+treeS+" · 1,50 :  ‎2,50 = "+(treeS/100)+" · 0,6 = "+fmt(treeH/100)+" m.";
+    return ex;
+  }
+// Mehrstufige Sachaufgabe (I1.M1): Klassen-Ausflug ins Freibad
+  function genMehrstufig(){
+    var kids = rand(15,28);          // Kinder in der Klasse
+    var entry = choice([2,3,4]);    // Eintritt pro Kind (€)
+    var ice_cream = choice([1,2]);  // Eis pro Kind (€)
+    var bus = 10*rand(3,6);       // Buskosten (30–60 €)
+    var perKid = entry + ice_cream;   // pro Kind
+    var total = kids*perKid + bus;     // Gesamtkosten
+    var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    svg += '<text class="dim-label" x="150" y="45" text-anchor="middle" font-size="18">'+kids+' Kinder</text>';
+    svg += '<text class="dim-label" x="150" y="85" text-anchor="middle" font-size="16">Eintritt '+entry+' € · Eis '+ice_cream+' €</text>';
+    svg += '<text class="dim-label" x="150" y="125" text-anchor="middle" font-size="16">Bus '+bus+' €</text>';
+    svg += '<text class="dim-label" x="150" y="175" text-anchor="middle" font-size="18">Gesamtkosten = ?</text>';
+    svg += '</svg>';
+    var ex = baseEx("textaufgabe","mehrstufig");
+    ex.question = "Die "+kids+" Kinder der 3. Klasse machen einen Ausflug ins Freibad. Jedes Kind zahlt "+entry+" € Eintritt und "+ice_cream+" € für ein Eis. Der Bus kostet "+bus+" €. Wie viele Euro kostet der Ausflug insgesamt?";
+    ex.hint = "1) Eintritt + Eis pro Kind = "+perKid+" €. 2) Für alle Kinder: "+perKid+" · "+kids+" = "+(kids*perKid)+" €. 3) Plus Bus: +"+bus+" €.";
+    ex.svg=svg; ex.badge="Sachaufgabe · Mehrstufig"; ex.badgeColor=COLORS.textaufgabe.main;
+
+    ex.inputType="number"; ex.unit="€";
+    ex.answer = total;
+    ex.explanation = "("+entry+" € + "+ice_cream+" €) · "+kids+" + "+bus+" € = "+total+" €.";
+    return ex;
+  }
   function genTextaufgabeGarten(){
     var l = rand(5,18), b = rand(3,14);
     var maxDim=Math.max(l,b), scale=170/maxDim;
@@ -1687,7 +1818,13 @@
     textaufgabeSchulheft: withCurriculum("textaufgabeSchulheft",  genTextaufgabeSchulheft),
     textaufgabeEiscafe:   withCurriculum("textaufgabeEiscafe",    genTextaufgabeEiscafe),
     gleichungEinfach:     withCurriculum("gleichungEinfach",      genGleichungEinfach),
-    tabelleLesen:        withCurriculum("tabelleLesen",         genTabelleLesen)
+    tabelleLesen:        withCurriculum("tabelleLesen",         genTabelleLesen),
+    diagrammBalken:      withCurriculum("diagrammBalken",        genDiagrammBalken),
+    gemischteZahlen:     withCurriculum("gemischteZahlen",       genGemischteZahlen),
+    bruchDezimal:        withCurriculum("bruchDezimal",          genBruchDezimal),
+    zinsrechnung:        withCurriculum("zinsrechnung",          genZinsrechnung),
+    proportionalitaet:   withCurriculum("proportionalitaet",     genProportionalitaet),
+    mehrstufig:          withCurriculum("mehrstufig",            genMehrstufig)
   };
 
   var MODES = [
@@ -1703,7 +1840,8 @@
     {id:"bruch-prozent", label:"➗ Brüche & Prozent", pool:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","prozentVonZahl","prozentAnteil"]},
     {id:"textaufgaben", label:"📖 Textaufgaben", pool:["textaufgabeGarten","textaufgabePizza","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag"]},
     {id:"alltag", label:"🇦🇹 Alltag in Österreich", pool:["textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag"]},
-    {id:"gleichungen", label:"⚖️ Gleichungen & Tabellen", pool:["gleichungEinfach","tabelleLesen"]}
+    {id:"gleichungen", label:"⚖️ Gleichungen & Tabellen", pool:["gleichungEinfach","tabelleLesen"]},
+    {id:"weiteres", label:"🔢 Weiteres Rechnen", pool:["diagrammBalken","gemischteZahlen","bruchDezimal","zinsrechnung","proportionalitaet","mehrstufig"]}
   ];
 
   /* Schulstufen-Zuordnung je Übungstyp (1.–4. Klasse Mittelschule) */
@@ -1722,7 +1860,9 @@
     textaufgabeWeihnacht:[2,3], textaufgabeSchule:[2,3],
     textaufgabeSkikurs:[3,4], textaufgabeWandertag:[2,3], textaufgabeSchulheft:[2,3], textaufgabeEiscafe:[2,3],
     gleichungEinfach:[3,4],
-    tabelleLesen:[2,3]
+    tabelleLesen:[2,3],
+    diagrammBalken:[2,3], gemischteZahlen:[1,2], bruchDezimal:[1,2],
+    zinsrechnung:[3,4], proportionalitaet:[2,3], mehrstufig:[2,3]
   };
   var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
   var GRADES = [
@@ -1747,6 +1887,8 @@
     "H1.I1":  "Mit Brüchen rechnen und diese in Alltagskontexten anwenden",
     "H1.I2":  "Prozentbegriff verstehen und Prozentrechnungen durchführen",
     "H1.I3":  "Größen in unterschiedlichen Maßeinheiten darstellen und umrechnen",
+    "H2.I1":  "Mit Variablen arbeiten und lineare Gleichungen lösen",
+    "H2.I2":  "Proportionale Zusammenhänge erkennen und anwenden",
     "I1.M1":  "Sachverhalte aus dem Alltag in mathematische Modelle übersetzen",
     "I2.M1":  "Mathematische Verfahren sicher und sinnvoll anwenden",
     "I3.M1":  "Ergebnisse interpretieren, prüfen und in Alltagssprache erklären"
@@ -1793,7 +1935,13 @@
     textaufgabeSchulheft: {codes:["I1.M1","H1.I1","H1.I2","I2.M1"], kompetenz:"Bruch- und Preisberechnung im Schulalltag kombinieren"},
     textaufgabeEiscafe:   {codes:["I1.M1","H1.I1","H1.I2","I3.M1"], kompetenz:"Brüche, Prozente und Beträge im Alltag kombinieren"},
     gleichungEinfach:     {codes:["H2.I1"], kompetenz:"Lineare Gleichung der Form ax + b = c lösen"},
-    tabelleLesen:        {codes:["I3.M1"], kompetenz:"Datentabelle lesen und Werte ablesen"}
+    tabelleLesen:        {codes:["I3.M1"], kompetenz:"Datentabelle lesen und Werte ablesen"},
+    diagrammBalken:      {codes:["I3.M1"], kompetenz:"Säulendiagramm lesen und Werte ablesen"},
+    gemischteZahlen:     {codes:["H1.I1"], kompetenz:"Gemischte Zahlen in unechte Brüche umwandeln und umgekehrt"},
+    bruchDezimal:        {codes:["H1.I1"], kompetenz:"Brüche in Dezimalzahlen umwandeln und umgekehrt"},
+    zinsrechnung:        {codes:["H1.I2"], kompetenz:"Zinsen mit der Zinsformel (Z = K · p · t) berechnen"},
+    proportionalitaet:   {codes:["H2.I2"], kompetenz:"Direkt proportionale Zusammenhänge (z. B. Schattenlängen) anwenden"},
+    mehrstufig:          {codes:["I1.M1","I2.M1"], kompetenz:"Mehrstufige Sachaufgaben in Teilschritten lösen"}
   };
 
   window.MB = {

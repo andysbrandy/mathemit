@@ -486,11 +486,14 @@
   }
 
   // 1) Winkelsumme im Dreieck (Dreieck exakt aus den echten Winkeln konstruiert)
-  function genDreieckWinkel(){
+  function genDreieckWinkel(diff){
+    diff = diff || 2;
     var a,b,c;
     do{
-      a = rand(25,120); b = rand(25,120); c = 180-a-b;
-    } while(c<20 || c>130);
+      a = diff===1?rand(35,90):(diff===3?rand(15,135):rand(25,120));
+      b = diff===1?rand(35,90):(diff===3?rand(15,135):rand(25,120));
+      c = 180-a-b;
+    } while(c<(diff===1?30:20) || c>(diff===1?110:130));
     // Aus den 3 Winkeln exakt konstruieren (Basis AB = c-Anteil, Sinussatz):
     // Winkel a liegt bei A, b bei B, c bei C -> Labels stimmen mit der Zeichnung überein
     var base = 100;
@@ -515,11 +518,13 @@
   }
 
   // 2) Winkelsumme im Viereck (Viereck exakt aus den echten Winkeln konstruiert)
-  function genViereckWinkel(){
+  function genViereckWinkel(diff){
+    diff = diff || 2;
     var vals = null, pts = null;
     for(var tries=0; tries<500 && !pts; tries++){
-      var a=rand(50,140), b=rand(50,140), c=rand(50,140), d=360-a-b-c;
-      if(d<40 || d>150) continue;
+      var lo=diff===1?60:(diff===3?30:50), hi=diff===1?120:(diff===3?160:140);
+      var a=rand(lo,hi), b=rand(lo,hi), c=rand(lo,hi), d=360-a-b-c;
+      if(d<(diff===1?60:40) || d>(diff===1?120:150)) continue;
       var cand=[a,b,c,d];
       pts = quadFromAngles(a,b,c,d);
       if(pts) vals = cand;
@@ -543,10 +548,11 @@
   }
 
   // 3) Umfang Dreieck (scalene, exact construction)
-  function genDreieckUmfang(){
+  function genDreieckUmfang(diff){
+    diff = diff || 2;
     var a,b,c;
     do{
-      a=rand(4,12); b=rand(4,12); c=rand(4,12);
+      a=(diff===1?rand(3,8):(diff===3?rand(5,20):rand(4,12))); b=(diff===1?rand(3,8):(diff===3?rand(5,20):rand(4,12))); c=(diff===1?rand(3,8):(diff===3?rand(5,20):rand(4,12)));
     } while(!isValidTriangle(a,b,c) || (a===b && b===c));
     var raw = triangleFromSides(a,b,c);
     var pts = normalizeAndScale(raw,300,220,36);
@@ -564,10 +570,12 @@
   }
 
   // 4) Umfang Viereck (Quadrat/Rechteck)
-  function genViereckUmfang(){
+  function genViereckUmfang(diff){
+    diff = diff || 2;
     var isSquare = Math.random()<0.4;
-    var a = rand(3,12), b = isSquare? a : rand(3,12);
-    while(!isSquare && b===a){ b = rand(3,12); }
+    var lo=diff===1?2:(diff===3?4:3), hi=diff===1?7:(diff===3?25:12);
+    var a = rand(lo,hi), b = isSquare? a : rand(lo,hi);
+    while(!isSquare && b===a){ b = rand(lo,hi); }
     var maxDim = Math.max(a,b);
     var scale = 170/maxDim;
     var w=a*scale, h=b*scale;
@@ -593,8 +601,9 @@
   }
 
   // 5) Fläche Dreieck (Grundlinie × Höhe / 2)
-  function genDreieckFlaeche(){
-    var g = rand(4,14), h = rand(3,12);
+  function genDreieckFlaeche(diff){
+    diff = diff || 2;
+    var g = diff===1?rand(3,8):(diff===3?rand(6,25):rand(4,14)), h = diff===1?rand(2,6):(diff===3?rand(4,20):rand(3,12));
     var scale = 170/Math.max(g,h,10);
     var gW = g*scale, hH = h*scale;
     var baseY = 190;
@@ -629,10 +638,12 @@
   }
 
   // 6) Fläche Rechteck / Quadrat
-  function genRechteckFlaeche(){
+  function genRechteckFlaeche(diff){
+    diff = diff || 2;
     var isSquare = Math.random()<0.4;
-    var a = rand(3,12), b = isSquare? a : rand(3,12);
-    while(!isSquare && b===a){ b=rand(3,12); }
+    var lo=diff===1?2:(diff===3?4:3), hi=diff===1?7:(diff===3?25:12);
+    var a = rand(lo,hi), b = isSquare? a : rand(lo,hi);
+    while(!isSquare && b===a){ b=rand(lo,hi); }
     var maxDim=Math.max(a,b);
     var scale=170/maxDim;
     var w=a*scale, h=b*scale;
@@ -656,8 +667,9 @@
   }
 
   // 7) Fläche Parallelogramm
-  function genParallelogrammFlaeche(){
-    var g = rand(5,14), h = rand(3,10);
+  function genParallelogrammFlaeche(diff){
+    diff = diff || 2;
+    var g = diff===1?rand(3,8):(diff===3?rand(6,25):rand(5,14)), h = diff===1?rand(2,5):(diff===3?rand(4,18):rand(3,10));
     var scale = 170/Math.max(g,h,10);
     var gW=g*scale, hH=h*scale;
     var slant = rand(20,60);
@@ -692,10 +704,11 @@
   }
 
   // 8) Fläche Trapez (maßstabsgetreu aus a, c, h konstruiert)
-  function genTrapezFlaeche(){
-    var a = rand(8,16); // lange parallele Seite (unten)
+  function genTrapezFlaeche(diff){
+    diff = diff || 2;
+    var a = diff===1?rand(5,10):(diff===3?rand(10,30):rand(8,16)); // lange parallele Seite (unten)
     var c = rand(3,a-2); // kurze parallele Seite (oben)
-    var h = rand(3,10);
+    var h = diff===1?rand(2,6):(diff===3?rand(4,18):rand(3,10));
     var scale = 170/Math.max(a,c,h,10);
     var aW = a*scale, cW = c*scale, hH = h*scale;
     var baseY = 190;
@@ -733,7 +746,8 @@
   }
 
   // 9) Dreieck erkennen (nach Seiten ODER nach Winkeln)
-  function genDreieckErkennen(){
+  function genDreieckErkennen(diff){
+    diff = diff || 2;
     var bySeiten = Math.random()<0.5;
     var key = choice(Object.keys(TRI_TEMPLATES));
     var pts = normalizeAndScale(TRI_TEMPLATES[key], 300, 220, 32);
@@ -757,12 +771,14 @@
       : "Achte auf das kleine Quadrat – es zeigt einen rechten Winkel (90°).";
     ex.svg=svg; ex.badge="Dreieck · Erkennen"; ex.badgeColor=COLORS.dreieck.main;
     ex.inputType="mc"; ex.choices=options; ex.correctIndex=options.indexOf(correct);
+    ex.answer = ex.choices[ex.correctIndex];
     ex.explanation = "Richtig ist: "+correct+".";
     return ex;
   }
 
   // 10) Viereck erkennen
-  function genViereckErkennen(){
+  function genViereckErkennen(diff){
+    diff = diff || 2;
     var key = choice(Object.keys(QUAD_TEMPLATES));
     var pts = normalizeAndScale(QUAD_TEMPLATES[key], 300, 220, 30);
     var ticks = null;
@@ -780,6 +796,7 @@
     ex.hint = "Schau dir Seitenlängen (Striche) und Winkel (Quadrat = rechter Winkel) genau an.";
     ex.svg=svg; ex.badge="Viereck · Erkennen"; ex.badgeColor=COLORS.viereck.main;
     ex.inputType="mc"; ex.choices=options; ex.correctIndex=options.indexOf(correct);
+    ex.answer = ex.choices[ex.correctIndex];
     ex.explanation = "Richtig ist: "+correct+".";
     return ex;
   }
@@ -810,7 +827,8 @@
     {t:"Bei einem Parallelogramm sind alle vier Winkel gleich groß.", v:false}
   ];
 
-  function genEigenschaftenDreieck(){
+  function genEigenschaftenDreieck(diff){
+    diff = diff || 2;
     var s = choice(TRI_STATEMENTS);
     var key = choice(Object.keys(TRI_TEMPLATES));
     var pts = normalizeAndScale(TRI_TEMPLATES[key],300,220,32);
@@ -821,10 +839,12 @@
     ex.svg=svg; ex.badge="Dreieck · Aussage"; ex.badgeColor=COLORS.dreieck.main;
     ex.inputType="mc"; ex.choices=["Wahr","Falsch"];
     ex.correctIndex = s.v ? 0 : 1;
+    ex.answer = ex.choices[ex.correctIndex];
     ex.explanation = s.v ? "Die Aussage stimmt." : "Die Aussage stimmt nicht.";
     return ex;
   }
-  function genEigenschaftenViereck(){
+  function genEigenschaftenViereck(diff){
+    diff = diff || 2;
     var s = choice(QUAD_STATEMENTS);
     var key = choice(Object.keys(QUAD_TEMPLATES));
     var pts = normalizeAndScale(QUAD_TEMPLATES[key],300,220,30);
@@ -835,14 +855,16 @@
     ex.svg=svg; ex.badge="Viereck · Aussage"; ex.badgeColor=COLORS.viereck.main;
     ex.inputType="mc"; ex.choices=["Wahr","Falsch"];
     ex.correctIndex = s.v ? 0 : 1;
+    ex.answer = ex.choices[ex.correctIndex];
     ex.explanation = s.v ? "Die Aussage stimmt." : "Die Aussage stimmt nicht.";
     return ex;
   }
 
   /* ============ Phase 3: Kreis ============ */
 
-  function genKreisUmfang(){
-    var r = rand(2,10);
+  function genKreisUmfang(diff){
+    diff = diff || 2;
+    var r = diff===1?rand(2,5):(diff===3?rand(6,20):rand(2,10));
     var given = Math.random()<0.4 ? "d" : "r";
     var value = given==="d" ? r*2 : r;
     var svg = circleFigureSVG(value, given, COLORS.kreis.main, COLORS.kreis.soft);
@@ -858,8 +880,9 @@
     return ex;
   }
 
-  function genKreisFlaeche(){
-    var r = rand(2,10);
+  function genKreisFlaeche(diff){
+    diff = diff || 2;
+    var r = diff===1?rand(2,5):(diff===3?rand(6,20):rand(2,10));
     var given = Math.random()<0.4 ? "d" : "r";
     var value = given==="d" ? r*2 : r;
     var svg = circleFigureSVG(value, given, COLORS.kreis.main, COLORS.kreis.soft);
@@ -877,8 +900,9 @@
 
   /* ============ Phase 3: Körper (Volumen) ============ */
 
-  function genQuaderVolumen(){
-    var l=rand(3,10), b=rand(2,8), h=rand(2,8);
+  function genQuaderVolumen(diff){
+    diff = diff || 2;
+    var l=(diff===1?rand(2,5):(diff===3?rand(4,15):rand(3,10))), b=(diff===1?rand(1,4):(diff===3?rand(3,12):rand(2,8))), h=(diff===1?rand(1,4):(diff===3?rand(3,12):rand(2,8)));
     var svg = boxFigureSVG(l,b,h,COLORS.koerper.main,COLORS.koerper.soft,false);
     var ex = baseEx("koerper","volumen");
     ex.question = "Berechne das Volumen dieses Quaders.";
@@ -890,8 +914,9 @@
     return ex;
   }
 
-  function genWuerfelVolumen(){
-    var a = rand(2,9);
+  function genWuerfelVolumen(diff){
+    diff = diff || 2;
+    var a = diff===1?rand(1,4):(diff===3?rand(5,15):rand(2,9));
     var svg = boxFigureSVG(a,a,a,COLORS.koerper.main,COLORS.koerper.soft,true);
     var ex = baseEx("koerper","volumen");
     ex.question = "Berechne das Volumen dieses Würfels.";
@@ -903,8 +928,9 @@
     return ex;
   }
 
-  function genZylinderVolumen(){
-    var r = rand(2,7), h = rand(3,12);
+  function genZylinderVolumen(diff){
+    diff = diff || 2;
+    var r = diff===1?rand(1,4):(diff===3?rand(4,12):rand(2,7)), h = diff===1?rand(2,6):(diff===3?rand(6,20):rand(3,12));
     var svg = cylinderFigureSVG(r,h,COLORS.koerper.main,COLORS.koerper.soft);
     var ex = baseEx("koerper","volumen");
     ex.question = "Berechne das Volumen dieses Zylinders.";
@@ -918,8 +944,9 @@
 
   /* ============ Phase 3b: Oberflächenberechnung von Körpern ============ */
 
-  function genQuaderOberflaeche(){
-    var l=rand(3,10), b=rand(2,8), h=rand(2,8);
+  function genQuaderOberflaeche(diff){
+    diff = diff || 2;
+    var l=(diff===1?rand(2,5):(diff===3?rand(4,15):rand(3,10))), b=(diff===1?rand(1,4):(diff===3?rand(3,12):rand(2,8))), h=(diff===1?rand(1,4):(diff===3?rand(3,12):rand(2,8)));
     var svg = boxFigureSVG(l,b,h,COLORS.koerper.main,COLORS.koerper.soft,false);
     var oberflaeche = 2*(l*b + b*h + l*h);
     var ex = baseEx("koerper","oberflaeche");
@@ -932,8 +959,9 @@
     return ex;
   }
 
-  function genWuerfelOberflaeche(){
-    var a = rand(3,10);
+  function genWuerfelOberflaeche(diff){
+    diff = diff || 2;
+    var a = diff===1?rand(1,4):(diff===3?rand(5,15):rand(3,10));
     var svg = boxFigureSVG(a,a,a,COLORS.koerper.main,COLORS.koerper.soft,true);
     var oberflaeche = 6*a*a;
     var ex = baseEx("koerper","oberflaeche");
@@ -946,8 +974,9 @@
     return ex;
   }
 
-  function genZylinderOberflaeche(){
-    var r = rand(2,6), h = rand(3,10);
+  function genZylinderOberflaeche(diff){
+    diff = diff || 2;
+    var r = diff===1?rand(1,4):(diff===3?rand(4,12):rand(2,6)), h = diff===1?rand(2,6):(diff===3?rand(5,16):rand(3,10));
     var svg = cylinderFigureSVG(r,h,COLORS.koerper.main,COLORS.koerper.soft);
     var oberflaeche = 2*Math.PI*r*(r+h);
     var ex = baseEx("koerper","oberflaeche");
@@ -984,8 +1013,9 @@
     return ex;
   }
 
-  function genBruchAddition(){
-    var d = rand(4,10);
+  function genBruchAddition(diff){
+    diff = diff || 2;
+    var d = diff===1?rand(3,6):(diff===3?rand(8,16):rand(4,10));
     var n1 = rand(1,d-2), n2 = rand(1,d-n1-1);
     if(n2<1) n2=1;
     var sumNum = n1+n2;
@@ -998,12 +1028,14 @@
     ex.hint = "Bei gleichem Nenner werden nur die Zähler addiert, der Nenner bleibt gleich.";
     ex.svg=svg; ex.badge="Bruch · Addition"; ex.badgeColor=COLORS.bruch.main;
     ex.inputType="mc"; ex.choices=options; ex.correctIndex=options.indexOf(correct);
+    ex.answer = ex.choices[ex.correctIndex];
     ex.explanation = n1+"/"+d+" + "+n2+"/"+d+" = ("+n1+"+"+n2+")/"+d+" = "+correct+".";
     return ex;
   }
 
-  function genBruchVergleich(){
-    var denomsPool = [2,3,4,5,6,8,10];
+  function genBruchVergleich(diff){
+    diff = diff || 2;
+    var denomsPool = diff===1?[2,3,4,6]:(diff===3?[2,3,4,5,6,7,8,9,10,12]:[2,3,4,5,6,8,10]);
     var d1,d2,n1,n2, attempts=0;
     do{
       d1 = choice(denomsPool);
@@ -1025,6 +1057,7 @@
     ex.hint = "Vergleiche die eingefärbten Anteile der beiden Balken.";
     ex.svg=svg; ex.badge="Bruch · Vergleichen"; ex.badgeColor=COLORS.bruch.main;
     ex.inputType="mc"; ex.choices=options; ex.correctIndex=options.indexOf(bigger);
+    ex.answer = ex.choices[ex.correctIndex];
     ex.explanation = bigger+" ist der größere Bruch.";
     return ex;
   }
@@ -1035,9 +1068,10 @@
   function lcm(a,b){ return (a*b) / gcd(a,b); }
 
   // Addition/Subtraktion mit unterschiedlichen Nennern
-  function genBruchAdditionVerschNenner(){
+  function genBruchAdditionVerschNenner(diff){
+    diff = diff || 2;
     var op = choice(["plus","minus"]);
-    var pool = [2,3,4,5,6,8,10,12];
+    var pool = diff===1?[2,3,4,6,8]:(diff===3?[2,3,4,5,6,7,8,9,10,12,15]:[2,3,4,5,6,8,10,12]);
     var d1, d2, n1, n2;
     // Sicherstellen, dass die Nenner unterschiedlich sind
     do{ d1 = choice(pool); d2 = choice(pool); } while(d1 === d2);
@@ -1081,15 +1115,17 @@
     // Falls zu wenig unterschiedliche Optionen, neu generieren
     if(options.length < 2){ return genBruchAdditionVerschNenner(); }
     ex.choices=options; ex.correctIndex=options.indexOf(correctAnswer);
+    ex.answer = ex.choices[ex.correctIndex];
     ex.explanation = n1+"/"+d1+" "+opSymbol+" "+n2+"/"+d2+" = "+n1e+"/"+kgV+" "+opSymbol+" "+n2e+"/"+kgV+" = "+resZaehler+"/"+kgV+(g>1?" = "+resZk+"/"+resNk+"":"")+".";
     return ex;
   }
 
   // Multiplikation
-  function genBruchMultiplikation(){
-    var pool = [2,3,4,5,6,7,8,9,10];
-    var n1 = rand(1,9), d1 = choice(pool);
-    var n2 = rand(1,9), d2 = choice(pool);
+  function genBruchMultiplikation(diff){
+    diff = diff || 2;
+    var pool = diff===1?[2,3,4,5]:(diff===3?[2,3,4,5,6,7,8,9,10,11,12]:[2,3,4,5,6,7,8,9,10]);
+    var n1 = diff===1?rand(1,4):(diff===3?rand(1,12):rand(1,9)), d1 = choice(pool);
+    var n2 = diff===1?rand(1,4):(diff===3?rand(1,12):rand(1,9)), d2 = choice(pool);
     if(n1 >= d1) n1 = rand(1, d1-1);
     if(n2 >= d2) n2 = rand(1, d2-1);
     var resZaehler = n1 * n2;
@@ -1113,15 +1149,17 @@
     var options = shuffle(pool2.filter(function(v,i,a){return a.indexOf(v)===i;}));
     if(options.length < 2){ return genBruchMultiplikation(); }
     ex.choices=options; ex.correctIndex=options.indexOf(correctAnswer);
+    ex.answer = ex.choices[ex.correctIndex];
     ex.explanation = n1+"/"+d1+" · "+n2+"/"+d2+" = "+resZaehler+"/"+resNenner+(g>1?" = "+resZk+"/"+resNk+"":"")+".";
     return ex;
   }
 
   // Division
-  function genBruchDivision(){
-    var pool = [2,3,4,5,6,7,8,9,10];
-    var n1 = rand(1,9), d1 = choice(pool);
-    var n2 = rand(1,9), d2 = choice(pool);
+  function genBruchDivision(diff){
+    diff = diff || 2;
+    var pool = diff===1?[2,3,4,5]:(diff===3?[2,3,4,5,6,7,8,9,10,11,12]:[2,3,4,5,6,7,8,9,10]);
+    var n1 = diff===1?rand(1,4):(diff===3?rand(1,12):rand(1,9)), d1 = choice(pool);
+    var n2 = diff===1?rand(1,4):(diff===3?rand(1,12):rand(1,9)), d2 = choice(pool);
     if(n1 >= d1) n1 = rand(1, d1-1);
     if(n2 >= d2) n2 = rand(1, d2-1);
     // Division: a/b : c/d = a·d / b·c
@@ -1146,6 +1184,7 @@
     var options = shuffle(pool2.filter(function(v,i,a){return a.indexOf(v)===i;}));
     if(options.length < 2){ return genBruchDivision(); }
     ex.choices=options; ex.correctIndex=options.indexOf(correctAnswer);
+    ex.answer = ex.choices[ex.correctIndex];
     ex.explanation = n1+"/"+d1+" : "+n2+"/"+d2+" = "+n1+"/"+d1+" · "+d2+"/"+n2+" = "+resZaehler+"/"+resNenner+(g>1?" = "+resZk+"/"+resNk+"":"")+".";
     return ex;
   }
@@ -1169,8 +1208,9 @@
     return ex;
   }
 
-  function genProzentAnteil(){
-    var total = choice([4,5,8,10,20,25,40,50]);
+  function genProzentAnteil(diff){
+    diff = diff || 2;
+    var total = diff===1?choice([2,4,5,10]):(diff===3?choice([8,16,20,25,40,50]):choice([4,5,8,10,20,25,40,50]));
     var valid = [];
     for(var k=1;k<total;k++){ if((k*100)%total===0) valid.push(k); }
     var part = choice(valid);
@@ -1485,8 +1525,9 @@
     ex.explanation = "("+entry+" € + "+ice_cream+" €) · "+kids+" + "+bus+" € = "+total+" €.";
     return ex;
   }
-  function genTextaufgabeGarten(){
-    var l = rand(5,18), b = rand(3,14);
+  function genTextaufgabeGarten(diff){
+    diff = diff || 2;
+    var l = diff===1?rand(3,9):(diff===3?rand(8,30):rand(5,18)), b = diff===1?rand(2,6):(diff===3?rand(5,22):rand(3,14));
     var maxDim=Math.max(l,b), scale=170/maxDim;
     var w=l*scale, h=b*scale, x0=(300-w)/2, y0=(220-h)/2;
     var pts=[{x:x0,y:y0},{x:x0+w,y:y0},{x:x0+w,y:y0+h},{x:x0,y:y0+h}];
@@ -1501,8 +1542,9 @@
     return ex;
   }
 
-  function genTextaufgabePizza(){
-    var n = choice([6,8,10,12]);
+  function genTextaufgabePizza(diff){
+    diff = diff || 2;
+    var n = diff===1?choice([4,6,8]):(diff===3?choice([10,12,16,20]):choice([6,8,10,12]));
     var k = rand(1,n-1);
     var svg = fractionFigureSVG(k,n,COLORS.textaufgabe.main,COLORS.textaufgabe.soft);
     var percent = (k/n)*100;
@@ -1588,11 +1630,12 @@
    */
 
   // Wien: Grundfläche eines bekannten österreichischen Bauwerks
-  function genTextaufgabeWien(){
+  function genTextaufgabeWien(diff){
+    diff = diff || 2;
     var stadt = choice(Object.keys(AUSTRIA.sehenswuerdigkeiten));
     var bauwerk = choice(AUSTRIA.sehenswuerdigkeiten[stadt]);
-    var l = rand(20, 80);
-    var b = rand(10, 40);
+    var l = diff===1?rand(15,40):(diff===3?rand(40,150):rand(20,80));
+    var b = diff===1?rand(8,20):(diff===3?rand(20,80):rand(10,40));
     var flaeche = l * b;
     var maxDim=Math.max(l,b), scale=170/maxDim;
     var w=l*scale, h=b*scale, x0=(300-w)/2, y0=(220-h)/2;
@@ -1609,11 +1652,12 @@
 }
 
   // Wandern: Höhenmeter (sehr österreichisch!)
-  function genTextaufgabeWandern(){
+  function genTextaufgabeWandern(diff){
+    diff = diff || 2;
     var start = rand(400, 1800);
-    var diff = rand(150, 900);
-    var ziel = start + diff;
-    var strecke = rand(2, 12);
+    var hoehen = diff===1?rand(100,400):(diff===3?rand(500,1200):rand(150,900));
+    var ziel = start + hoehen;
+    var strecke = diff===1?rand(2,6):(diff===3?rand(6,18):rand(2,12));
     var ex = baseEx("textaufgabe","textaufgabe");
     var name1 = choice(AUSTRIA.vornamen);
     var name2 = choice(AUSTRIA.vornamen);
@@ -1623,17 +1667,18 @@
     ex.svg=austriaMapSVG({city:"Innsbruck", icon:"🥾", label:"Wandern", color:"#4A7FD6"});
     ex.badge="Alltag · Wandern"; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="m";
-    ex.answer = diff;
-    ex.explanation = "Höhenmeter = "+ziel+" m − "+start+" m = "+fmtAT(diff)+" m.";
+    ex.answer = hoehen;
+    ex.explanation = "Höhenmeter = "+ziel+" m − "+start+" m = "+fmtAT(hoehen)+" m.";
     return ex;
   }
 
   // Einkauf: Preisberechnung mit Euro
-  function genTextaufgabeEinkauf(){
+  function genTextaufgabeEinkauf(diff){
+    diff = diff || 2;
     var laden = choice(AUSTRIA.einkauf);
     var produkt = choice(AUSTRIA.lebensmittel);
-    var einzel = rand(5, 45) / 10;
-    var menge = rand(2, 6);
+    var einzel = (diff===1?rand(5,20):(diff===3?rand(30,90):rand(5,45))) / 10;
+    var menge = diff===1?rand(1,3):(diff===3?rand(4,10):rand(2,6));
     var summe = Math.round(einzel * menge * 100) / 100;
     var ex = baseEx("textaufgabe","textaufgabe");
     var name = choice(AUSTRIA.vornamen);
@@ -1648,11 +1693,12 @@
   }
 
   // Christkindlmarkt: Mehrere Posten addieren + Wechselgeld
-  function genTextaufgabeWeihnacht(){
+  function genTextaufgabeWeihnacht(diff){
+    diff = diff || 2;
     var name = choice(AUSTRIA.vornamen);
-    var p1 = rand(20, 55) / 10;
-    var p2 = rand(10, 35) / 10;
-    var p3 = rand(8, 25) / 10;
+    var p1 = (diff===1?rand(10,30):(diff===3?rand(40,95):rand(20,55))) / 10;
+    var p2 = (diff===1?rand(6,18):(diff===3?rand(25,60):rand(10,35))) / 10;
+    var p3 = (diff===1?rand(4,14):(diff===3?rand(15,40):rand(8,25))) / 10;
     var n1 = rand(1, 3);
     var n2 = rand(1, 2);
     var n3 = rand(1, 2);
@@ -1671,10 +1717,11 @@
   }
 
   // Schule: Bruch-/Anteilsaufgabe aus dem Schulalltag
-  function genTextaufgabeSchule(){
+  function genTextaufgabeSchule(diff){
+    diff = diff || 2;
     var schulTyp = choice(["Mittelschule","AHS-Unterstufe","Volksschule"]);
     var klassenGroesse = choice([20, 22, 24, 25, 26, 28]);
-    var nenner = choice([2, 4, 5, 8, 10]);
+    var nenner = diff===1?choice([2,4,5]):(diff===3?choice([8,10]):choice([2, 4, 5, 8, 10]));
     var zaehler = rand(1, nenner-1);
     var anzahl = (klassenGroesse * zaehler) / nenner;
     if(anzahl !== Math.round(anzahl)) return genTextaufgabeSchule();
@@ -1695,11 +1742,12 @@
    */
 
   // Skikurs mit Frühbucher-Rabatt
-  function genTextaufgabeSkikurs(){
+  function genTextaufgabeSkikurs(diff){
+    diff = diff || 2;
     var name = choice(AUSTRIA.vornamen);
     var ort = choice(["Schladming","Kitzbühel","Sölden","Mayrhofen","Zell am See","Ischgl","Saalbach"]);
-    var basis = choice([120, 150, 180, 200, 240, 280]);
-    var rabatt = choice([10, 15, 20, 25]);
+    var basis = diff===1?choice([120,150,180]):(diff===3?choice([240,280,320,360]):choice([120, 150, 180, 200, 240, 280]));
+    var rabatt = diff===1?choice([10,20]):(diff===3?choice([15,20,25,30]):choice([10, 15, 20, 25]));
     var rabattBetrag = basis * rabatt / 100;
     var endpreis = basis - rabattBetrag;
     var ex = baseEx("textaufgabe","textaufgabe");
@@ -1714,12 +1762,13 @@
   }
 
   // Wandertag: Höhenmeter + Distanz + Zeit (gemischte Aufgabe)
-  function genTextaufgabeWandertag(){
+  function genTextaufgabeWandertag(diff){
+    diff = diff || 2;
     var name = choice(AUSTRIA.vornamen);
     var name2 = choice(AUSTRIA.vornamen);
     var berg = choice(["Rax","Schneeberg","Hochkönig","Dachstein","Großer Pyhrgas"]);
     var startHoehe = rand(700, 1400);
-    var zielHoehe = startHoehe + rand(300, 800);
+    var zielHoehe = startHoehe + (diff===1?rand(100,400):(diff===3?rand(500,1200):rand(300,800)));
     var hoehenmeter = zielHoehe - startHoehe;
     var distanz = rand(4, 12); // km
     var zeitStunden = rand(2, 5); // h
@@ -1736,11 +1785,12 @@
   }
 
   // Schulheft: Bruchteil + Preis (kombiniert)
-  function genTextaufgabeSchulheft(){
+  function genTextaufgabeSchulheft(diff){
+    diff = diff || 2;
     var name = choice(AUSTRIA.vornamen);
     var produkt = choice(AUSTRIA.produkte);
-    var preis = rand(20, 80) / 10; // 2,00 - 8,00 €
-    var nenner = choice([2, 4, 5, 10]);
+    var preis = (diff===1?rand(10,40):(diff===3?rand(60,150):rand(20,80))) / 10; // 1,00 - 15,00 €
+    var nenner = diff===1?choice([2,5]):(diff===3?choice([4,8,10]):choice([2, 4, 5, 10]));
     var zaehler = rand(1, nenner-1);
     var anzahlBenoetigt = nenner; // z.B. 5 Hefte
     var anzahlGekauft = (anzahlBenoetigt * zaehler) / nenner;
@@ -1759,10 +1809,11 @@
   }
 
   // Eisdiele: Bruch, Prozent, Addition
-  function genTextaufgabeEiscafe(){
+  function genTextaufgabeEiscafe(diff){
+    diff = diff || 2;
     var name = choice(AUSTRIA.vornamen);
-    var kugelPreis = rand(15, 30) / 10; // 1,50 - 3,00 €
-    var anzahlKugeln = rand(2, 4);
+    var kugelPreis = (diff===1?rand(12,20):(diff===3?rand(25,45):rand(15,30))) / 10; // 1,20 - 4,50 €
+    var anzahlKugeln = diff===1?rand(2,3):(diff===3?rand(3,6):rand(2,4));
     var preisEis = Math.round(anzahlKugeln * kugelPreis * 100) / 100;
     var portionen = [3, 4, 5];
     var nenner = choice(portionen);

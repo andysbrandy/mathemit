@@ -39,6 +39,7 @@ var state = {
   answered: false,
   badges: []
 };
+var missByGen = {}, hitByGen = {}; // P2.2: Fehler-/Treffer-Serien je Übungstyp (Session)
 
 var LEVELS = [
   {name:"Geometrie-Lehrling", min:0},
@@ -219,6 +220,7 @@ function poolForCurrentFilters(){
 function nextExercise(){
   var pool = poolForCurrentFilters();
   var key = choice(pool);
+  state.currentKey = key;
   var ex = GEN[key](state.diff);
   state.current = ex;
   state.answered = false;
@@ -265,6 +267,12 @@ function nextExercise(){
 function finishRound(isCorrect, explanation){
   state.answered = true;
   state.solved += 1;
+  /* P2.2: Serien je Übungstyp tracken */
+  var mk = state.currentKey;
+  if(mk){
+    if(isCorrect){ missByGen[mk]=0; hitByGen[mk]=(hitByGen[mk]||0)+1; }
+    else { missByGen[mk]=(missByGen[mk]||0)+1; hitByGen[mk]=0; }
+  }
   if(isCorrect){
     state.correct += 1;
     state.streak += 1;
@@ -281,7 +289,16 @@ function finishRound(isCorrect, explanation){
   var fb = document.getElementById("feedback");
   fb.className = "feedback show " + (isCorrect?"ok":"bad");
   var msg = isCorrect ? choice(ENCOURAGE_OK) : choice(ENCOURAGE_BAD);
-  fb.innerHTML = msg + '<span class="explain">'+explanation+'</span>';
+  /* P2.2: Dynamische Anpassungs-Vorschläge (einmalig je Schwelle) */
+  var sug = "";
+  if(mk){
+    if(!isCorrect && missByGen[mk]===2 && state.diff>1){
+      sug = '<div style="margin-top:6px; font-size:.8rem; font-weight:600;">💡 Tipp: Wechsle auf 🌱 Einstieg – genau daran üben wir gerade.</div>';
+    } else if(isCorrect && hitByGen[mk]===3 && state.diff<3){
+      sug = '<div style="margin-top:6px; font-size:.8rem; font-weight:600;">🚀 Stark! Probiere die Stufe 🚀 Anforderung.</div>';
+    }
+  }
+  fb.innerHTML = msg + '<span class="explain">'+explanation+'</span>'+sug;
   document.getElementById("checkBtn").disabled = true;
   document.getElementById("nextBtn").style.display="inline-block";
 }

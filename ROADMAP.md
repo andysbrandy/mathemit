@@ -7,6 +7,7 @@
 ## 📊 Aktueller Stand (v20)
 
 - **48 Generatoren** in 8 Kategorien (Dreiecke, Vierecke, Kreis, Körper, Oberfläche, Brüche, Prozent, Textaufgaben, Gleichungen/Diagramme)
+- **3 Schwierigkeitsstufen** je Generator (🌱/🎯/🚀) + dynamische Anpassungs-Vorschläge
 - **Österreichischer Lehrplan-Mapping** (Codes H1–H3, I1–I3)
 - **4 Level**, Streaks, Basis-Badges, Auth-System
 - **Comic-SVG-Engine** (gerundete Silhouetten, dynamische Skizzen)
@@ -33,8 +34,8 @@
 
 | # | Schritt | Status |
 |---|---------|--------|
-| 2.1 | 3 Stufen pro Generator (Einstieg/Training/Anforderung) | 🔄 Infrastruktur + Pilot 10/48 |
-| 2.2 | Dynamische Anpassung nach Fehlversuchen | ❌ |
+| 2.1 | 3 Stufen pro Generator (Einstieg/Training/Anforderung) | ✅ 48/48 (Erkennen/Eigenschaften: template-basiert, stufenunabhängig) |
+| 2.2 | Dynamische Anpassung nach Fehlversuchen | ✅ (2× falsch → 🌱-Vorschlag, 3× richtig → 🚀-Vorschlag) |
 
 ### P3 — Pädagogischer Support
 

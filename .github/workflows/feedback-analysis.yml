@@ -20,7 +20,7 @@ jobs:
       - name: Run analysis
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          HF_TOKEN: ${{ secrets.HF_API_TOKEN }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: python scripts/analyze_feedback.py
       - name: Commit & PR

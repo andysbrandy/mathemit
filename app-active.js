@@ -608,17 +608,21 @@ function loadProgressFromAPI(customToken) {
   apiFetch('/progress.php').then(function(data) {
     if (data.status === 'ok' && data.data) {
       var d = data.data;
-      state.points  = Math.max(state.points, d.points || 0);
-      state.streak  = Math.max(state.streak, d.streak || 0);
-      state.best_streak = Math.max(state.best_streak, d.best_streak || 0);
-      state.solved  = Math.max(state.solved, d.solved || 0);
-      state.correct = Math.max(state.correct, d.correct || 0);
-      state.badges  = Array.from(new Set((state.badges||[]).concat(d.badges||[])));
+      /* Login: Server ist Source-of-Truth und überschreibt den lokalen (Gast-)Stand */
+      state.points  = d.points      || 0;
+      state.streak  = d.streak      || 0;
+      state.bestStreak = d.best_streak || 0;
+      state.solved  = d.solved      || 0;
+      state.correct = d.correct     || 0;
+      state.badges  = d.badges      || state.badges || [];
+      state.mode    = (d.mode && MODES.some(function(m){return m.id===d.mode;})) ? d.mode : (state.mode || 'alles');
+      state.grade   = (d.grade && GRADES.some(function(g){return g.id===d.grade;})) ? d.grade : (state.grade || 'all');
+      console.log('[mathemit] Fortschritt vom Server geladen:', JSON.stringify({p:state.points,s:state.streak,bs:state.bestStreak}));
       updateStatsUI();
-      syncProgressToAPI(); // gemergten Stand gleich zurückschreiben
+      syncProgressToAPI();
     }
   }, function(err) {
-    // Netzwerkfehler ignorieren - Fortschritt bleibt lokal
+    console.warn('[mathemit] Fortschritt konnte nicht vom Server geladen werden:', err);
   });
 }
 

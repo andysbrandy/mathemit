@@ -1760,7 +1760,7 @@
     if(anzahl !== Math.round(anzahl)) return genTextaufgabeSchule();
     var name = choice(AUSTRIA.vornamen);
     var ex = baseEx("textaufgabe","textaufgabe");
-    ex.question = "In einer "+klassenGroesse+"-köpfigen Klasse einer "+schulTyp+" haben "+zaehler+"/"+nenner+" aller Kinder die Mathematik-Schularbeit mit 'Sehr gut' oder 'Gut' bestanden. Wie viele Kinder sind das?";
+    ex.question = "In einer "+klassenGroesse+"-köpfigen Klasse einer "+schulTyp+" haben "+zaehler+" von "+nenner+" Kindern die Mathematik-Schularbeit mit 'Sehr gut' oder 'Gut' bestanden. Wie viele Kinder sind das?";
     ex.hint = "Anzahl = Klassengröße · Bruch. Zuerst den Bruch als Dezimalzahl denken, dann mit der Klassengröße multiplizieren.";
     ex.svg=austriaMapSVG({city:"St. Pölten", icon:"🎒", label:"Schule", color:"#1FA294"});
     ex.badge="Alltag · Schule"; ex.badgeColor=COLORS.textaufgabe.main;
@@ -1854,7 +1854,7 @@
     var rabatt = Math.round((preisEis * zaehler / nenner) * 100) / 100; // zaehler/nenner gratis
     var endpreis = Math.round((preisEis - rabatt) * 100) / 100;
     var ex = baseEx("textaufgabe","textaufgabe");
-    ex.question = name+" geht in die Eisdiele und bestellt "+anzahlKugeln+" Kugeln Eis um je "+fmtEUR(kugelPreis)+". Die Eisdiele hat eine Aktion: "+zaehler+"/"+nenner+" des Preises werden als Rabatt abgezogen. Wie viel bezahlt "+name+"?";
+    ex.question = name+" geht in die Eisdiele und bestellt "+anzahlKugeln+" Kugeln Eis um je "+fmtEUR(kugelPreis)+". Die Eisdiele hat eine Aktion: "+zaehler+" von "+nenner+" Teilen des Preises werden als Rabatt abgezogen. Wie viel bezahlt "+name+"?";
     ex.hint = "1) Gesamtpreis = Anzahl · Kugelpreis. 2) Rabatt = Gesamtpreis · "+zaehler+"/"+nenner+". 3) Endpreis = Gesamtpreis − Rabatt.";
     ex.svg=austriaMapSVG({city:"Graz", icon:"🍦", label:"Eisdiele", color:"#E0598B"});
     ex.badge="Alltag · Eisdiele"; ex.badgeColor=COLORS.textaufgabe.main;

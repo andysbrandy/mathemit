@@ -703,6 +703,77 @@ function escHtml(str) {
     .replace(/"/g,'&quot;');
 }
 
+// ============ Feedback-Feature (P3) ============
+var FEEDBACK_PAT = window.FEEDBACK_CONFIG ? window.FEEDBACK_CONFIG.pat : '';
+var REPO_FEEDBACK = 'andybrandy/mathemit';
+
+function escHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function openFeedbackModal(){
+  var modal = document.getElementById('feedbackModal');
+  if(!modal){
+    var html = '<div id="feedbackModal" style="position:fixed;bottom:20px;right:20px;width:340px;background:#fff;border:2px solid #4a90d9;border-radius:12px;padding:16px;z-index:9999;box-shadow:0 4px 24px rgba(0,0,0,0.2);font-family:sans-serif;">' +
+      '<h4 style="margin:0 0 8px 0;font-size:.95rem;">💬 Feedback geben</h4>' +
+      '<textarea id="feedbackText" rows="3" placeholder="Was gefällt dir? Was stört dich?" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:.85rem;resize:vertical;"></textarea>' +
+      '<div style="margin-top:8px;display:flex;gap:6px;justify-content:flex-end;">' +
+      '<button id="feedbackCancel" style="padding:6px 12px;font-size:.8rem;border:1px solid #ccc;border-radius:6px;background:#f5f5f5;cursor:pointer;">Abbrechen</button>' +
+      '<button id="feedbackSubmit" style="padding:6px 12px;font-size:.8rem;border:none;border-radius:6px;background:#4a90d9;color:#fff;cursor:pointer;">Absenden</button>' +
+      '</div><div id="feedbackMsg" style="margin-top:6px;font-size:.78rem;color:#666;"></div></div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+    document.getElementById('feedbackCancel').onclick = closeFeedbackModal;
+    document.getElementById('feedbackSubmit').onclick = submitFeedback;
+    modal = document.getElementById('feedbackModal');
+  }
+  modal.style.display = 'block';
+}
+function closeFeedbackModal(){
+  var m = document.getElementById('feedbackModal');
+  if(m) m.style.display = 'none';
+}
+function submitFeedback(){
+  var txt = (document.getElementById('feedbackText').value || '').trim();
+  if(!txt){
+    document.getElementById('feedbackMsg').textContent = 'Bitte gib mindestens einen Hinweis ein.';
+    return;
+  }
+  var payload = { exercise: JSON.parse(JSON.stringify(state.current)), feedback: txt, timestamp: Date.now() };
+  fetch('https://api.github.com/repos/' + REPO_FEEDBACK + '/issues', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'token ' + (FEEDBACK_PAT || ''),
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      title: 'Feedback: ' + (state.current && state.current.q ? state.current.q.slice(0,40) : 'Aufgabe'),
+      labels: ['feedback'],
+      body: JSON.stringify(payload, null, 2)
+    })
+  }).then(function(r){
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function(){
+    closeFeedbackModal();
+    document.getElementById('feedbackMsg').textContent = '✅ Danke! Feedback wurde gespeichert.';
+    setTimeout(closeFeedbackModal, 2000);
+  }).catch(function(e){
+    document.getElementById('feedbackMsg').textContent = '⚠️ Fehler: ' + e.message;
+  });
+}
+
+// Button nach 10s anzeigen
+setTimeout(function(){
+  var btn = document.getElementById('feedbackBtn');
+  if(!btn){
+    var b = document.createElement('button');
+    b.id = 'feedbackBtn';
+    b.textContent = '💬 Feedback';
+    b.style.cssText = 'position:fixed;bottom:12px;right:12px;z-index:9998;padding:6px 12px;font-size:.78rem;border:1px solid #4a90d9;border-radius:8px;background:#eef4fd;cursor:pointer;color:#333;';
+    b.onclick = openFeedbackModal;
+    document.body.appendChild(b);
+  }
+}, 10000);
+
 // Overlay startet immer geschlossen – Login ist ein Angebot, kein Zwang.
 renderUserInfo();
 var token = getToken();

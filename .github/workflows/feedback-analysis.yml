@@ -23,7 +23,9 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: python scripts/analyze_feedback.py
-      - name: Commit & PR
+      - name: Commit and push changes
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -31,5 +33,5 @@ jobs:
             git add feedback/*.md
             git commit -m "📝 Feedback-Analyse $(date +%F)"
             git push
-            gh pr create --title "Feedback-Vorschläge $(date +%F)" --body "Automatisch generierte Verbesserungsvorschläge aus Feedback des Vortags." --base main --head feedback-analysis || true
+            gh pr create --title "Feedback-Vorschläge $(date +%F)" --body "Automatisch generierte Verbesserungsvorschläge aus Feedback des Vortags." --base main --head ${{ github.ref }} || true
           fi

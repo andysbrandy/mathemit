@@ -1558,6 +1558,15 @@
     ex.explanation = "("+entry+" € + "+ice_cream+" €) · "+kids+" + "+bus+" € = "+total+" €.";
     return ex;
   }
+  /* Deutscher Bruch-Begriff für Textaufgaben (z. B. 1/2 → "die Hälfte", 2/5 → "zwei Fünftel") */
+  function bruchWort(z,n){
+    var zN=["","ein","zwei","drei","vier","fünf","sechs","sieben","acht","neun","zehn"];
+    var nN={2:"Hälfte",3:"Drittel",4:"Viertel",5:"Fünftel",6:"Sechstel",7:"Siebtel",8:"Achtel",9:"Neuntel",10:"Zehntel"};
+    if(z===1&&n===2) return "die Hälfte";
+    var w=nN[n]; if(!w) return z+"/"+n;
+    return zN[z]+" "+w;
+  }
+
   function genTextaufgabeGarten(diff){
     diff = diff || 2;
     var l = diff===1?rand(3,9):(diff===3?rand(8,30):rand(5,18)), b = diff===1?rand(2,6):(diff===3?rand(5,22):rand(3,14));
@@ -1854,7 +1863,7 @@
     var rabatt = Math.round((preisEis * zaehler / nenner) * 100) / 100; // zaehler/nenner gratis
     var endpreis = Math.round((preisEis - rabatt) * 100) / 100;
     var ex = baseEx("textaufgabe","textaufgabe");
-    ex.question = name+" geht in die Eisdiele und bestellt "+anzahlKugeln+" Kugeln Eis um je "+fmtEUR(kugelPreis)+". Die Eisdiele hat eine Aktion: "+zaehler+" von "+nenner+" Teilen des Preises werden als Rabatt abgezogen. Wie viel bezahlt "+name+"?";
+    ex.question = name+" geht in die Eisdiele und bestellt "+anzahlKugeln+" Kugeln Eis um je "+fmtEUR(kugelPreis)+". Die Eisdiele hat eine Aktion: Als Rabatt gibt es "+bruchWort(zaehler,nenner)+" des Preises. Wie viel bezahlt "+name+"?";
     ex.hint = "1) Gesamtpreis = Anzahl · Kugelpreis. 2) Rabatt = Gesamtpreis · "+zaehler+"/"+nenner+". 3) Endpreis = Gesamtpreis − Rabatt.";
     ex.svg=austriaMapSVG({city:"Graz", icon:"🍦", label:"Eisdiele", color:"#E0598B"});
     ex.badge="Alltag · Eisdiele"; ex.badgeColor=COLORS.textaufgabe.main;
@@ -2056,6 +2065,6 @@
     triangleFromSides, isValidTriangle, parallelogramFromSides, baseEx,
     COLORS, AUSTRIA, TRI_TEMPLATES, QUAD_TEMPLATES, QUAD_NAMES,
     TRI_STATEMENTS, QUAD_STATEMENTS, CURRICULUM_MAP, GEN, MODES, GRADES,
-    GRADE_GROUPS, GRADE_TAGS, DIFFICULTIES, TIPP1_BY_TOPIC, deriveTips
+    GRADE_GROUPS, GRADE_TAGS, DIFFICULTIES, TIPP1_BY_TOPIC, deriveTips, bruchWort
   };
 })();

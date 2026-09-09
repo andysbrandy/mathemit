@@ -62,7 +62,7 @@ if (!$body) {
     exit;
 }
 
-$ch = curl_init('https://api.github.com/repos/andybrandy/mathemit/issues');
+$ch = curl_init('https://api.github.com/repos/andysbrandy/mathemit/issues');
 curl_setopt_array($ch, [
     CURLOPT_POST => true,
     CURLOPT_POSTFIELDS => $body,

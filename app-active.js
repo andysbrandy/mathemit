@@ -704,8 +704,6 @@ function escHtml(str) {
 }
 
 // ============ Feedback-Feature (P3) ============
-var FEEDBACK_PAT = window.FEEDBACK_CONFIG ? window.FEEDBACK_CONFIG.pat : '';
-var REPO_FEEDBACK = 'andybrandy/mathemit';
 
 function escHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -737,11 +735,9 @@ function submitFeedback(){
     return;
   }
   var payload = { exercise: JSON.parse(JSON.stringify(state.current)), feedback: txt, timestamp: Date.now() };
-  fetch('https://api.github.com/repos/' + REPO_FEEDBACK + '/issues', {
+  fetch('/feedback.php', {
     method: 'POST',
     headers: {
-      'Authorization': 'token ' + (FEEDBACK_PAT || ''),
-      'Accept': 'application/vnd.github+json',
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({

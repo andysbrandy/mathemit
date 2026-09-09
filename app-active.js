@@ -735,7 +735,9 @@ function submitFeedback(){
     return;
   }
   var payload = { exercise: JSON.parse(JSON.stringify(state.current)), feedback: txt, timestamp: Date.now() };
-  fetch('/feedback.php', {
+  // Relativ zur App auflösen (funktioniert auch bei Installation im Unterordner)
+  var url = new URL('feedback.php', window.location.href);
+  fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -746,10 +748,13 @@ function submitFeedback(){
       body: JSON.stringify(payload, null, 2)
     })
   }).then(function(r){
-    if(!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
+    return r.json().then(function(d){
+      if(!r.ok){
+        throw new Error((d && d.error ? d.error : 'HTTP ' + r.status) + (d && d.hint ? ' – ' + d.hint : ''));
+      }
+      return d;
+    });
   }).then(function(){
-    closeFeedbackModal();
     document.getElementById('feedbackMsg').textContent = '✅ Danke! Feedback wurde gespeichert.';
     setTimeout(closeFeedbackModal, 2000);
   }).catch(function(e){

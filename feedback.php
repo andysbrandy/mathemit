@@ -1,12 +1,19 @@
 <?php
-// Feedback-Proxy: Frontend sendet nur an /feedback.php, das Token bleibt auf dem Server.
+// Feedback-Proxy: Frontend sendet nur an feedback.php (relativ zur App), das Token bleibt auf dem Server.
 // Erwartet: Environment-Variable GH_FEEDBACK_TOKEN (z. B. via .htaccess SetEnv).
 
 header('Content-Type: application/json');
+header('Allow: POST');
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+// Falls der Server ein Redirect (z. B. http->https) dazwischengeschaltet hat, kam die
+// Anfrage als GET an - dann klar diagnostizieren statt nur "405".
+$method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '';
+if ($method !== 'POST') {
     http_response_code(405);
-    echo json_encode(['error' => 'Method not allowed']);
+    echo json_encode([
+        'error' => 'Method not allowed. Expected POST, received: ' . $method,
+        'hint'  => 'Wird die App ueber http:// aufgerufen? Die https-Umleitung wandelt POST zu GET um.'
+    ]);
     exit;
 }
 

@@ -2,12 +2,36 @@
 // Feedback-Proxy: Frontend sendet nur an feedback.php (relativ zur App), das Token bleibt auf dem Server.
 // Erwartet: Environment-Variable GH_FEEDBACK_TOKEN (z. B. via .htaccess SetEnv).
 
-header('Content-Type: application/json');
-header('Allow: POST');
+// Diagnose immer mit JSON antworten (auch bei 405/500), damit das Modal Klartext zeigt.
+// Wichtig: Apache kann selbst 405 liefern (z. B. PHP-Handler, mod_security) - dann
+// kommt diese Datei gar nicht zur Ausfuehrung. Der Unterschied ist sichtbar:
+// - Modal zeigt "HTTP 405" ohne Diagnose -> Apache blockiert, siehe Hosting-Support/PHP-Handler
+// - Modal zeigt "Expected POST, received: ..." -> diese Datei lief, Methoden-Problem im Frontend
 
-// Falls der Server ein Redirect (z. B. http->https) dazwischengeschaltet hat, kam die
-// Anfrage als GET an - dann klar diagnostizieren statt nur "405".
+header('Content-Type: application/json');
+header('Allow: POST, GET, HEAD');
+header('Access-Control-Allow-Origin: ' . (isset($_SERVER['HTTPS_ORIGIN']) ? $_SERVER['HTTPS_ORIGIN'] : '*'));
+
+// OPTIONS-Preflight nicht blockieren
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
+
 $method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '';
+
+// Diagnose-Endpunkt: Jede Methode erlaubt, nur zum Pruefen ob PHP ueberhaupt laeuft
+if ($method === 'GET') {
+    http_response_code(200);
+    echo json_encode([
+        'status' => 'feedback.php reachable',
+        'method' => $method,
+        'token_set' => (getenv('GH_FEEDBACK_TOKEN') ? true : false),
+        'php_version' => PHP_VERSION
+    ]);
+    exit;
+}
+
 if ($method !== 'POST') {
     http_response_code(405);
     echo json_encode([

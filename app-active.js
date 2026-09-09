@@ -735,8 +735,10 @@ function submitFeedback(){
     return;
   }
   var payload = { exercise: JSON.parse(JSON.stringify(state.current)), feedback: txt, timestamp: Date.now() };
-  // Relativ zur App auflösen (funktioniert auch bei Installation im Unterordner)
+  // Relativ zur App auflösen; https erzwingen, damit die http->https-Weiterleitung
+  // die Anfrage nicht POST->GET umwandelt (führt sonst zu 405).
   var url = new URL('feedback.php', window.location.href);
+  if(url.protocol === 'http:') url.protocol = 'https:';
   fetch(url, {
     method: 'POST',
     headers: {
@@ -748,10 +750,13 @@ function submitFeedback(){
       body: JSON.stringify(payload, null, 2)
     })
   }).then(function(r){
-    return r.json().then(function(d){
+    return r.text().then(function(t){
+      var d = null;
+      try { d = JSON.parse(t); } catch(e) { /* Server lieferte kein JSON (z. B. HTML-Fehlerseite) */ }
       if(!r.ok){
         throw new Error((d && d.error ? d.error : 'HTTP ' + r.status) + (d && d.hint ? ' – ' + d.hint : ''));
       }
+      if(!d){ throw new Error('Unerwartete Server-Antwort (kein JSON)'); }
       return d;
     });
   }).then(function(){

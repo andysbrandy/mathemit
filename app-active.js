@@ -735,11 +735,9 @@ function submitFeedback(){
     return;
   }
   var payload = { exercise: JSON.parse(JSON.stringify(state.current)), feedback: txt, timestamp: Date.now() };
-  // Relativ zur App auflösen; https erzwingen, damit die http->https-Weiterleitung
-  // die Anfrage nicht POST->GET umwandelt (führt sonst zu 405).
-  var url = new URL('feedback.php', window.location.href);
-  if(url.protocol === 'http:') url.protocol = 'https:';
-  fetch(url, {
+  // Backend liegt auf mapi.andybrandy.at (wie login/progress) - Feedback läuft über
+  // den serverseitigen Proxy backend/feedback.php, das GitHub-Token bleibt auf dem Server.
+  fetch(API + '/feedback.php', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

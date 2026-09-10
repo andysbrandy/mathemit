@@ -56,7 +56,11 @@ def hf_query(payload):
 
     API_URL = "https://router.huggingface.co/v1/chat/completions"
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    models = ["Qwen/Qwen2.5-7B-Instruct", "HuggingFaceTB/SmolLM2-1.7B-Instruct"]
+    # Provider-SUFFIX: Routing auf aktivierten Provider erzwingen (s. weekly_summary.py)
+    models = [
+        "Qwen/Qwen2.5-7B-Instruct:novita",
+        "HuggingFaceTB/SmolLM2-1.7B-Instruct:hf-inference"
+    ]
     last_err = None
     for model in models:
         response = requests.post(API_URL, headers=headers, json={

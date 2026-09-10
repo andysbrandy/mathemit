@@ -50,7 +50,13 @@ def hf_query(prompt):
 
     API_URL = "https://router.huggingface.co/v1/chat/completions"
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    models = ["Qwen/Qwen2.5-7B-Instruct", "HuggingFaceTB/SmolLM2-1.7B-Instruct"]
+    # Provider SUFFIX am Modellnamen zwingt das Routing auf einen aktivierten
+    # Provider - ohne Suffix waehlt der Router auch deaktivierte (z. B. Together)
+    # und bricht mit "no provider you have enabled" ab.
+    models = [
+        "Qwen/Qwen2.5-7B-Instruct:novita",
+        "HuggingFaceTB/SmolLM2-1.7B-Instruct:hf-inference"
+    ]
     last_err = None
     for model in models:
         response = requests.post(API_URL, headers=headers, json={

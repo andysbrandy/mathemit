@@ -16,13 +16,20 @@ def gh_post(url, data):
     return r.json()
 
 def hf_query(payload):
-    # HF-Inference-Endpoint: api-inference.huggingface.co wurde abgeschaltet,
-    # Nachfolger ist router.huggingface.co (gleiche Models, kostenloses Tier).
-    API_URL = "https://router.huggingface.co/hf-inference/models/google/flan-t5-base"
+    # flan-t5-base ist im Serverless-Tier nicht mehr verfuegbar (400).
+    # Robust: Chat-Completions-Route des HF-Routers mit kleinem kostenlosem Modell.
+    API_URL = "https://router.huggingface.co/v1/chat/completions"
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    response = requests.post(API_URL, headers=headers, json=payload)
-    response.raise_for_status()
-    return response.json()[0]['generated_text']
+    user_content = payload.get('inputs', '') if isinstance(payload, dict) else str(payload)
+    response = requests.post(API_URL, headers=headers, json={
+        "model": "meta-llama/Llama-3.2-3B-Instruct",
+        "messages": [{"role": "user", "content": user_content}],
+        "max_tokens": 300
+    }, timeout=60)
+    if not response.ok:
+        print("HF-Fehler", response.status_code, ":", response.text[:500])
+        response.raise_for_status()
+    return response.json()['choices'][0]['message']['content']
 
 def prioritize_suggestions(raw_suggestions):
     """Filtere & priorisiere die KI-Ausgaben:

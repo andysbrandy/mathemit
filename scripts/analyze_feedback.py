@@ -48,30 +48,51 @@ def pollinations_query(user_content):
     return None
 
 def hf_query(payload):
-    # KI-Kette: 1. GitHub Models, 2. HF (nur mit aktiviertem Provider), 3. Pollinations (keyless).
+    # KI-Kette: 1. GitHub Models, 2. HF (dynamische Modell-Erkennung), 3. Pollinations.
     user_content = payload.get('inputs', '') if isinstance(payload, dict) else str(payload)
     gh = gh_models_query(user_content)
     if gh:
         return gh
 
-    API_URL = "https://router.huggingface.co/v1/chat/completions"
+    # Serverless-Modelle rotieren staendig -> dynamisch abfragen (s. weekly_summary.py)
+    API_URL = "https://router.huggingface.co/v1"
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    # Provider-SUFFIX: Routing auf aktivierten Provider erzwingen (s. weekly_summary.py)
-    models = [
-        "Qwen/Qwen2.5-7B-Instruct:novita",
-        "HuggingFaceTB/SmolLM2-1.7B-Instruct:hf-inference"
-    ]
+    try:
+        listing = requests.get(f"{API_URL}/models", headers=headers, timeout=30)
+        available = [m.get('id', '') for m in listing.json().get('data', [])] if listing.ok else []
+    except Exception:
+        available = []
+
+    preferred = [m for m in available if 'instruct' in m.lower() or 'smol' in m.lower() or 'qwen3' in m.lower() or 'glm' in m.lower()]
+    candidates = (preferred + [m for m in available if m not in preferred])[:6]
+
     last_err = None
-    for model in models:
-        response = requests.post(API_URL, headers=headers, json={
+    for model in candidates:
+        try:
+            response = requests.post(f"{API_URL}/chat/completions", headers=headers, json={
+                "model": model,
+                "messages": [{"role": "user", "content": user_content}],
+                "max_tokens": 300
+            }, timeout=120)
+            if response.ok:
+                print("KI via HF:", model)
+                return response.json()['choices'][0]['message']['content']
+            last_err = f"{model} -> {response.status_code}: {response.text[:200]}"
+            print("HF-Fehler:", last_err)
+        except Exception as e:
+            last_err = f"{model} -> {e}"
+            print("HF-Fehler:", last_err)
+
+    for model in ["Qwen/Qwen3-4B-Instruct-2507", "zai-org/GLM-4.5-Air"]:
+        response = requests.post(f"{API_URL}/chat/completions", headers=headers, json={
             "model": model,
             "messages": [{"role": "user", "content": user_content}],
             "max_tokens": 300
-        }, timeout=90)
+        }, timeout=120)
         if response.ok:
-            print("KI via HF:", model)
+            print("KI via HF (statisch):", model)
             return response.json()['choices'][0]['message']['content']
-        last_err = f"{model} -> {response.status_code}: {response.text[:300]}"
+        last_err = f"{model} -> {response.status_code}: {response.text[:200]}"
         print("HF-Fehler:", last_err)
 
     pol = pollinations_query(user_content)

@@ -9,16 +9,33 @@ def gh_get(url):
     r.raise_for_status()
     return r.json()
 
+def gh_models_query(prompt):
+    # Primär: GitHub Models - kostenlos, Secret GH_TOKEN existiert bereits.
+    API_URL = "https://models.github.ai/inference/chat/completions"
+    headers = {"Authorization": f"Bearer {GH_TOKEN}"}
+    response = requests.post(API_URL, headers=headers, json={
+        "model": "openai/gpt-4o-mini",
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 500
+    }, timeout=90)
+    if response.ok:
+        print("KI via GitHub Models (openai/gpt-4o-mini)")
+        return response.json()['choices'][0]['message']['content']
+    print("GitHub-Models-Fehler:", response.status_code, ":", response.text[:300])
+    return None
+
 def hf_query(prompt):
-    # Llama-Modelle sind "gated" (Lizenz-Akzeptanz nötig) -> model_not_supported.
-    # Fallback-Kette mit nicht-gated Modellen, die im Inference-Tier laufen.
+    # HF hat den kostenlosen Serverless-Tier abgeschaltet; ohne aktivierten
+    # Inference-Provider im HF-Account scheitern alle Modelle (400 model_not_supported).
+    # -> GitHub Models ist der Primär-Anbieter; HF bleibt als Fallback (falls
+    #    auf huggingface.co/settings/inference-providers ein Provider aktiviert wird).
+    gh = gh_models_query(prompt)
+    if gh:
+        return gh
+
     API_URL = "https://router.huggingface.co/v1/chat/completions"
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    models = [
-        "Qwen/Qwen2.5-7B-Instruct",
-        "microsoft/Phi-3.5-mini-instruct",
-        "HuggingFaceTB/SmolLM2-1.7B-Instruct"
-    ]
+    models = ["Qwen/Qwen2.5-7B-Instruct", "HuggingFaceTB/SmolLM2-1.7B-Instruct"]
     last_err = None
     for model in models:
         response = requests.post(API_URL, headers=headers, json={
@@ -27,11 +44,13 @@ def hf_query(prompt):
             "max_tokens": 400
         }, timeout=90)
         if response.ok:
-            print("HF-Modell genutzt:", model)
+            print("KI via HF:", model)
             return response.json()['choices'][0]['message']['content']
         last_err = f"{model} -> {response.status_code}: {response.text[:300]}"
         print("HF-Fehler:", last_err)
-    raise RuntimeError(f"Kein HF-Modell verfuegbar. Letzter Fehler: {last_err}")
+    raise RuntimeError("Kein KI-Anbieter verfuegbar (GitHub Models + HF). "
+                       "Loesung A: HF-Account -> settings/inference-providers -> Provider aktivieren. "
+                       f"Letzter HF-Fehler: {last_err}")
 
 def create_summary_issue(title, body):
     # 4. Benachrichtigungs-Issue mit Zuweisung (GitHub mailt dem Owner automatisch)

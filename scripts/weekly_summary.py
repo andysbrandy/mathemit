@@ -73,8 +73,14 @@ def hf_query(prompt):
                 "max_tokens": 400
             }, timeout=120)
             if response.ok:
-                print("KI via HF:", model)
-                return response.json()['choices'][0]['message']['content']
+                content = response.json()['choices'][0]['message']['content'] or ''
+                if content.strip():
+                    print("KI via HF:", model, f"({len(content)} Zeichen)")
+                    return content
+                # Leere Antwort (z. B. nur Reasoning, kein Content) -> naechstes Modell
+                last_err = f"{model} -> 200 aber leere Antwort: {response.text[:200]}"
+                print("HF-Fehler (leer):", last_err)
+                continue
             last_err = f"{model} -> {response.status_code}: {response.text[:200]}"
             print("HF-Fehler:", last_err)
         except Exception as e:
@@ -89,8 +95,12 @@ def hf_query(prompt):
             "max_tokens": 400
         }, timeout=120)
         if response.ok:
-            print("KI via HF (statisch):", model)
-            return response.json()['choices'][0]['message']['content']
+            content = response.json()['choices'][0]['message']['content'] or ''
+            if content.strip():
+                print("KI via HF (statisch):", model, f"({len(content)} Zeichen)")
+                return content
+            last_err = f"{model} -> 200 aber leere Antwort: {response.text[:200]}"
+            print("HF-Fehler (leer):", last_err)
         last_err = f"{model} -> {response.status_code}: {response.text[:200]}"
         print("HF-Fehler:", last_err)
 
@@ -158,6 +168,9 @@ Anzahl Feedbacks: {len(feedback_texts)}
 """ + "\n".join(feedback_texts[:30])
 
     summary = hf_query(prompt)
+    if not summary or not summary.strip():
+        print("FEHLER: KI lieferte leere Summary - keine Summary-Datei geschrieben.")
+        return
 
     # 3. Summary-Datei schreiben
     os.makedirs('feedback', exist_ok=True)

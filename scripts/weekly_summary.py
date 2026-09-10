@@ -10,7 +10,9 @@ def gh_get(url):
     return r.json()
 
 def hf_query(prompt):
-    API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-base"
+    # HF-Inference-Endpoint: api-inference.huggingface.co wurde abgeschaltet,
+    # Nachfolger ist router.huggingface.co (gleiche Models, kostenloses Tier).
+    API_URL = "https://router.huggingface.co/hf-inference/models/google/flan-t5-base"
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
     response = requests.post(API_URL, headers=headers, json={"inputs": prompt, "parameters": {"max_new_tokens": 300}})
     response.raise_for_status()
@@ -32,8 +34,11 @@ def main():
     week_ago = (today - datetime.timedelta(days=7)).isoformat()
     iso_week = today.isocalendar()[1]
 
-    # 1. Feedback-Issues der letzten 7 Tage holen
-    issues = gh_get(f'https://api.github.com/repos/{REPO}/issues?state=all&labels=feedback&since={week_ago}T00:00:00Z')
+    # 1. Feedback-Issues der letzten 7 Tage holen (Label-ODER-Titel-Filter,
+    #    da GitHub beim Issue-Erstellen ohne existierendes Label das Label still verwirft)
+    issues = [i for i in gh_get(f'https://api.github.com/repos/{REPO}/issues?state=all&since={week_ago}T00:00:00Z')
+              if any(l.get('name') == 'feedback' for l in i.get('labels', []))
+              or i.get('title', '').lower().startswith('feedback')]
     daily_analyses = sorted(glob.glob('feedback/*_analysis.md'))
 
     feedback_texts = []

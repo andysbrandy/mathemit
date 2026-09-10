@@ -16,7 +16,9 @@ def gh_post(url, data):
     return r.json()
 
 def hf_query(payload):
-    API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-base"
+    # HF-Inference-Endpoint: api-inference.huggingface.co wurde abgeschaltet,
+    # Nachfolger ist router.huggingface.co (gleiche Models, kostenloses Tier).
+    API_URL = "https://router.huggingface.co/hf-inference/models/google/flan-t5-base"
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
     response = requests.post(API_URL, headers=headers, json=payload)
     response.raise_for_status()
@@ -52,8 +54,13 @@ def prioritize_suggestions(raw_suggestions):
 
 def main():
     # 1. Feedback-Issues vom Vortag holen
+    # Hinweis: Kein Label-Filter im API-Call - GitHub verwirft unbekannte Labels
+    # stillschweigend beim Issue-Erstellen, daher filtern wir clientseitig.
     yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).date().isoformat()
-    issues = gh_get(f'https://api.github.com/repos/{REPO}/issues?state=all&labels=feedback&since={yesterday}T00:00:00Z')
+    all_issues = gh_get(f'https://api.github.com/repos/{REPO}/issues?state=all&since={yesterday}T00:00:00Z')
+    issues = [i for i in all_issues
+              if any(l['name'] == 'feedback' for l in i.get('labels', []))
+              or i['title'].lower().startswith('feedback')]
     if not issues:
         print("Keine neuen Feedback-Issues.")
         return

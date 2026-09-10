@@ -30,8 +30,25 @@ def gh_models_query(user_content):
     print("GitHub-Models-Fehler:", response.status_code, ":", response.text[:300])
     return None
 
+def pollinations_query(user_content):
+    # Keyless-Fallback: Pollinations.ai (kostenlos, kein Account/Token noetig)
+    try:
+        response = requests.post(
+            "https://text.pollinations.ai/openai",
+            headers={"Content-Type": "application/json"},
+            json={"model": "openai", "messages": [{"role": "user", "content": user_content}]},
+            timeout=90
+        )
+        if response.ok:
+            print("KI via Pollinations (keyless)")
+            return response.json()['choices'][0]['message']['content']
+        print("Pollinations-Fehler:", response.status_code, ":", response.text[:200])
+    except Exception as e:
+        print("Pollinations-Fehler:", e)
+    return None
+
 def hf_query(payload):
-    # GitHub Models ist der Primär-Anbieter; HF nur als Fallback.
+    # KI-Kette: 1. GitHub Models, 2. HF (nur mit aktiviertem Provider), 3. Pollinations (keyless).
     user_content = payload.get('inputs', '') if isinstance(payload, dict) else str(payload)
     gh = gh_models_query(user_content)
     if gh:
@@ -52,7 +69,12 @@ def hf_query(payload):
             return response.json()['choices'][0]['message']['content']
         last_err = f"{model} -> {response.status_code}: {response.text[:300]}"
         print("HF-Fehler:", last_err)
-    raise RuntimeError("Kein KI-Anbieter verfuegbar (GitHub Models + HF). "
+
+    pol = pollinations_query(user_content)
+    if pol:
+        return pol
+
+    raise RuntimeError("Kein KI-Anbieter verfuegbar (GitHub Models + HF + Pollinations). "
                        f"Letzter HF-Fehler: {last_err}")
 
 def prioritize_suggestions(raw_suggestions):

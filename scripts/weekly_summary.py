@@ -24,11 +24,26 @@ def gh_models_query(prompt):
     print("GitHub-Models-Fehler:", response.status_code, ":", response.text[:300])
     return None
 
+def pollinations_query(prompt):
+    # Keyless-Fallback: Pollinations.ai (kostenlos, kein Account/Token noetig)
+    try:
+        response = requests.post(
+            "https://text.pollinations.ai/openai",
+            headers={"Content-Type": "application/json"},
+            json={"model": "openai", "messages": [{"role": "user", "content": prompt}]},
+            timeout=90
+        )
+        if response.ok:
+            print("KI via Pollinations (keyless)")
+            return response.json()['choices'][0]['message']['content']
+        print("Pollinations-Fehler:", response.status_code, ":", response.text[:200])
+    except Exception as e:
+        print("Pollinations-Fehler:", e)
+    return None
+
 def hf_query(prompt):
-    # HF hat den kostenlosen Serverless-Tier abgeschaltet; ohne aktivierten
-    # Inference-Provider im HF-Account scheitern alle Modelle (400 model_not_supported).
-    # -> GitHub Models ist der Primär-Anbieter; HF bleibt als Fallback (falls
-    #    auf huggingface.co/settings/inference-providers ein Provider aktiviert wird).
+    # KI-Kette: 1. GitHub Models (falls nicht bereits eingestellt), 2. HF
+    # (nur wenn im Account ein Inference-Provider aktiviert ist), 3. Pollinations (keyless).
     gh = gh_models_query(prompt)
     if gh:
         return gh
@@ -48,7 +63,12 @@ def hf_query(prompt):
             return response.json()['choices'][0]['message']['content']
         last_err = f"{model} -> {response.status_code}: {response.text[:300]}"
         print("HF-Fehler:", last_err)
-    raise RuntimeError("Kein KI-Anbieter verfuegbar (GitHub Models + HF). "
+
+    pol = pollinations_query(prompt)
+    if pol:
+        return pol
+
+    raise RuntimeError("Kein KI-Anbieter verfuegbar (GitHub Models + HF + Pollinations). "
                        "Loesung A: HF-Account -> settings/inference-providers -> Provider aktivieren. "
                        f"Letzter HF-Fehler: {last_err}")
 

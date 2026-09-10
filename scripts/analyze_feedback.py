@@ -16,20 +16,28 @@ def gh_post(url, data):
     return r.json()
 
 def hf_query(payload):
-    # flan-t5-base ist im Serverless-Tier nicht mehr verfuegbar (400).
-    # Robust: Chat-Completions-Route des HF-Routers mit kleinem kostenlosem Modell.
+    # Llama-Modelle sind "gated" -> Fallback-Kette mit nicht-gated Modellen.
     API_URL = "https://router.huggingface.co/v1/chat/completions"
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
     user_content = payload.get('inputs', '') if isinstance(payload, dict) else str(payload)
-    response = requests.post(API_URL, headers=headers, json={
-        "model": "meta-llama/Llama-3.2-3B-Instruct",
-        "messages": [{"role": "user", "content": user_content}],
-        "max_tokens": 300
-    }, timeout=60)
-    if not response.ok:
-        print("HF-Fehler", response.status_code, ":", response.text[:500])
-        response.raise_for_status()
-    return response.json()['choices'][0]['message']['content']
+    models = [
+        "Qwen/Qwen2.5-7B-Instruct",
+        "microsoft/Phi-3.5-mini-instruct",
+        "HuggingFaceTB/SmolLM2-1.7B-Instruct"
+    ]
+    last_err = None
+    for model in models:
+        response = requests.post(API_URL, headers=headers, json={
+            "model": model,
+            "messages": [{"role": "user", "content": user_content}],
+            "max_tokens": 300
+        }, timeout=90)
+        if response.ok:
+            print("HF-Modell genutzt:", model)
+            return response.json()['choices'][0]['message']['content']
+        last_err = f"{model} -> {response.status_code}: {response.text[:300]}"
+        print("HF-Fehler:", last_err)
+    raise RuntimeError(f"Kein HF-Modell verfuegbar. Letzter Fehler: {last_err}")
 
 def prioritize_suggestions(raw_suggestions):
     """Filtere & priorisiere die KI-Ausgaben:

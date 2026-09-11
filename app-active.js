@@ -421,11 +421,18 @@ if(legalModalEl){
 document.addEventListener("keydown", function(e){
   if(e.key === "Escape") closeLegalModal();
 });
-Array.prototype.forEach.call(document.querySelectorAll("[data-legal]"), function(btn){
-  btn.addEventListener("click", function(){
-    openLegalModal(btn.getAttribute("data-legal"), btn.getAttribute("data-title"));
-  });
+document.addEventListener("click", function(e){
+  var t = e.target && e.target.closest ? e.target.closest("[data-legal]") : null;
+  if(!t) return;
+  e.preventDefault();
+  try{
+    openLegalModal(t.getAttribute("data-legal"), t.getAttribute("data-title"));
+  }catch(err){
+    window.location.href = t.getAttribute("data-legal");
+  }
 });
+window.openLegalModal = openLegalModal;
+window.closeLegalModal = closeLegalModal;
 
 // ============================================================
 // AUTH LAYER – Login, Register, Progress-Sync

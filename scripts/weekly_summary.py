@@ -1,4 +1,4 @@
-import os, json, requests, datetime, glob, re, sys
+import os, json, requests, datetime, re, sys
 
 GH_TOKEN = os.getenv('GH_TOKEN')
 HF_TOKEN = os.getenv('HF_API_TOKEN')
@@ -133,7 +133,6 @@ def main():
     issues = [i for i in gh_get(f'https://api.github.com/repos/{REPO}/issues?state=all&since={week_ago}T00:00:00Z')
               if any(l.get('name') == 'feedback' for l in i.get('labels', []))
               or i.get('title', '').lower().startswith('feedback')]
-    daily_analyses = sorted(glob.glob('feedback/*_analysis.md'))
 
     feedback_texts = []
     for issue in issues:

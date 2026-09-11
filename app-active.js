@@ -385,6 +385,48 @@ document.addEventListener("keydown", function(e){
   if(e.key === "Escape") closeCurriculumModal();
 });
 
+/* ---------- Legal-Modal (Datenschutz / Impressum / AGB) ---------- */
+var legalModalEl = document.getElementById("legalModal");
+var legalModalBodyEl = document.getElementById("legalModalBody");
+var legalModalTitleEl = document.getElementById("legalModalTitle2");
+function extractLegalBody(html){
+  var m = html.match(/<div class="card">([\s\S]*)<\/div>\s*<\/body>/i)
+       || html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+  return m ? m[1].trim() : html;
+}
+function openLegalModal(file, title){
+  if(legalModalTitleEl) legalModalTitleEl.textContent = title || "Rechtliches";
+  if(legalModalBodyEl) legalModalBodyEl.innerHTML = "<p>Lade …</p>";
+  if(legalModalEl) legalModalEl.style.display = "flex";
+  fetch(file, {credentials:"same-origin"}).then(function(r){
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    return r.text();
+  }).then(function(html){
+    if(legalModalBodyEl){
+      legalModalBodyEl.innerHTML = extractLegalBody(html);
+      legalModalBodyEl.scrollTop = 0;
+    }
+  }).catch(function(){
+    if(legalModalBodyEl) legalModalBodyEl.innerHTML = '<p>Der Inhalt konnte nicht geladen werden. <a href="'+file+'" target="_blank" rel="noopener">Direkt öffnen</a></p>';
+  });
+}
+function closeLegalModal(){ if(legalModalEl) legalModalEl.style.display = "none"; }
+var legalModalCloseEl = document.getElementById("legalModalClose");
+if(legalModalCloseEl){ legalModalCloseEl.addEventListener("click", closeLegalModal); }
+if(legalModalEl){
+  legalModalEl.addEventListener("click", function(e){
+    if(e.target === legalModalEl) closeLegalModal();
+  });
+}
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape") closeLegalModal();
+});
+Array.prototype.forEach.call(document.querySelectorAll("[data-legal]"), function(btn){
+  btn.addEventListener("click", function(){
+    openLegalModal(btn.getAttribute("data-legal"), btn.getAttribute("data-title"));
+  });
+});
+
 // ============================================================
 // AUTH LAYER – Login, Register, Progress-Sync
 // ============================================================

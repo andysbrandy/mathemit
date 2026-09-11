@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v54">
+<meta name="app-version" content="v55">
 <title>Die Formen-Werkstatt – Mathe für die Mittelschule</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -62,10 +62,10 @@
             <input type="text" id="regClassCode" name="klasse_code" autocomplete="off" maxlength="12" pattern="[A-Z0-9]*" placeholder="z. B. ABC123" style="text-transform:uppercase;">
             <span class="hint">Vom Lehrer erhalten, 3–12 Zeichen</span>
           </div>
-          <div class="auth-field" style="font-size:.8rem; line-height:1.4;">
-            <label style="display:flex; gap:.5rem; align-items:flex-start; font-weight:normal;">
-              <input type="checkbox" id="regConsent" required style="margin-top:.15rem;">
-              <span>Ich bin <strong>14 Jahre oder älter</strong> – oder ein <strong>Elternteil / Erziehungsberechtigter</strong> hat die Registrierung erlaubt. Nickname wird pseudonym verwendet. [<a href="/datenschutz.html" target="_blank">Datenschutz</a>]</span>
+          <div class="auth-field">
+            <label class="consent" for="regConsent">
+              <input type="checkbox" id="regConsent">
+              <span>Ich bin <strong>14 Jahre oder älter</strong> – oder ein <strong>Elternteil / Erziehungsberechtigter</strong> hat die Registrierung erlaubt. Nickname wird pseudonym verwendet. [<a href="/datenschutz.html" target="_blank" rel="noopener">Datenschutz</a>]</span>
             </label>
           </div>
           <button type="submit" class="auth-submit">Registrieren</button>
@@ -143,6 +143,17 @@
     </div>
   </div>
 
+  <!-- Modal für Rechtliches (Datenschutz / Impressum / Nutzungsbedingungen) -->
+  <div id="legalModal" class="curriculum-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="legalModalTitle2">
+    <div class="curriculum-modal-content">
+      <button class="curriculum-modal-close" id="legalModalClose" type="button" aria-label="Schließen">&times;</button>
+      <h3 class="curriculum-modal-title" id="legalModalTitle2">Rechtliches</h3>
+      <div id="legalModalBody" class="legal-body legal-scroll">
+        <!-- Inhalt wird per JS geladen -->
+      </div>
+    </div>
+  </div>
+
   <div class="session-row">
     <span id="sessionStat">0 Aufgaben gelöst · 0 richtig</span>
     <div class="badges" id="badges"></div>
@@ -157,11 +168,11 @@
 <script src="app-base.js"></script>
 <script src="app-active.js"></script>
 <footer class="app-version">
-  <span class="ver" id="appVersion">v54</span>
-  <span style="margin-left:.6rem; font-size:.75rem; opacity:.75;">
-    <a href="/datenschutz.html">Datenschutz</a> ·
-    <a href="/impressum.html">Impressum</a> ·
-    <a href="/agb.html">Nutzungsbedingungen</a>
+  <span class="ver" id="appVersion">v55</span>
+  <span style="margin-left:.6rem; font-size:.75rem; opacity:.75;" class="footer-links">
+    <button type="button" class="footer-link" data-legal="datenschutz.html" data-title="Datenschutzerklärung">Datenschutz</button> ·
+    <button type="button" class="footer-link" data-legal="impressum.html" data-title="Impressum">Impressum</button> ·
+    <button type="button" class="footer-link" data-legal="agb.html" data-title="Nutzungsbedingungen">Nutzungsbedingungen</button>
   </span>
 </footer>
 </body>

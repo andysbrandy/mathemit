@@ -6,7 +6,7 @@
 
 | # | Tätigkeit | Kategorien Daten | Betroffene | Rechtsgrundlage | Aufbewahrung | Empfänger |
 |---|-----------|------------------|------------|-----------------|--------------|-----------|
-| 1 | Login/Registrierung | Nickname, PIN (bcrypt-Hash) | Schüler:innen | Art 6(1)(b) | bis Kontolöschung | — |
+| 1 | Login/Registrierung | Nickname, PIN (bcrypt-Hash) | User (Schüler:innen) | Art 6(1)(b) | bis Kontolöschung | — |
 | 2 | Fortschrittsspeicherung | Punkte, Streaks, Badges, Modus | registrierte Nutzer | Art 6(1)(b) | bis Kontolöschung | — |
 | 3 | Brute-Force-Schutz | IP, Endpoint, Zeitstempel | alle Besucher | Art 6(1)(f) | 30 Tage (cleanup.php) | — |
 | 4 | Feedback (optional) | Feedbacktext, Übungsdaten, Timestamp | freiwillige Nutzer | Art 6(1)(a) Einwilligung (Button) | bis Löschen des Issues | GitHub Inc. (USA) |

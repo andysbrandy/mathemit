@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v52">
+<meta name="app-version" content="v53">
 <title>Die Formen-Werkstatt – Mathe für die Mittelschule</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -61,6 +61,12 @@
             <label for="regClassCode">Klassen-Code (optional)</label>
             <input type="text" id="regClassCode" name="klasse_code" autocomplete="off" maxlength="12" pattern="[A-Z0-9]*" placeholder="z. B. ABC123" style="text-transform:uppercase;">
             <span class="hint">Vom Lehrer erhalten, 3–12 Zeichen</span>
+          </div>
+          <div class="auth-field" style="font-size:.8rem; line-height:1.4;">
+            <label style="display:flex; gap:.5rem; align-items:flex-start; font-weight:normal;">
+              <input type="checkbox" id="regConsent" required style="margin-top:.15rem;">
+              <span>Ich bin <strong>14 Jahre oder älter</strong> – oder ein <strong>Elternteil / Erziehungsberechtigter</strong> hat die Registrierung erlaubt. Nickname wird pseudonym verwendet. [<a href="/datenschutz.html" target="_blank">Datenschutz</a>]</span>
+            </label>
           </div>
           <button type="submit" class="auth-submit">Registrieren</button>
         </form>
@@ -151,7 +157,12 @@
 <script src="app-base.js"></script>
 <script src="app-active.js"></script>
 <footer class="app-version">
-  <span class="ver" id="appVersion">v52</span>
+  <span class="ver" id="appVersion">v53</span>
+  <span style="margin-left:.6rem; font-size:.75rem; opacity:.75;">
+    <a href="/datenschutz.html">Datenschutz</a> ·
+    <a href="/impressum.html">Impressum</a> ·
+    <a href="/agb.html">Nutzungsbedingungen</a>
+  </span>
 </footer>
 </body>
 </html>

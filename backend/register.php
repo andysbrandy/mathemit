@@ -54,6 +54,14 @@ $nickname_raw = $input['nickname'] ?? '';
 $pin_raw      = $input['pin']      ?? '';
 $class_code   = $input['klasse_code'] ?? null;
 
+// DSGVO Art 8 (AT: Kinder < 14 brauchen Elternzustimmung) — Nachweis speichern
+$consent = !empty($input['consent']) ? 1 : 0;
+if (!$consent) {
+    http_response_code(400);
+    echo json_encode(['status' => 'error', 'message' => 'Elternzustimmung/Altersbestätigung fehlt']);
+    exit;
+}
+
 // Validierung
 $nickname = validate_nickname((string)$nickname_raw);
 $pin      = validate_pin((string)$pin_raw);
@@ -146,9 +154,9 @@ try {
         exit;
     }
 
-    // User einfügen
+    // User einfügen (consent_at = Art-8-DSGVO-Nachweis für Elternzustimmung)
     $stmt = $pdo->prepare(
-        'INSERT INTO users (klasse_id, nickname, pin_hash) VALUES (?, ?, ?)'
+        'INSERT INTO users (klasse_id, nickname, pin_hash, consent_at) VALUES (?, ?, ?, NOW())'
     );
     $stmt->execute([$klasse_id, $nickname, $pin_hash]);
 

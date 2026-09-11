@@ -580,6 +580,12 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
     showMsg('Klassen-Code: 3–12 Zeichen, nur Buchstaben/Zahlen', 'error');
     return;
   }
+  // Art. 8 DSGVO (AT): Elternzustimmung für Kinder unter 14 — Pflichtbestätigung
+  var consent = document.getElementById('regConsent');
+  if (!consent || !consent.checked) {
+    showMsg('Bitte bestätige die Zustimmung (14+ oder Eltern-Erlaubnis).', 'error');
+    return;
+  }
 
   var form = e.target;
   setSubmitLoading(form, true);
@@ -588,7 +594,8 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
     body: {
       nickname: nickname,
       pin: pin,
-      klasse_code: klasse_code || undefined
+      klasse_code: klasse_code || undefined,
+      consent: true
     }
   }).then(function(data) {
     setSubmitLoading(form, false);
@@ -712,6 +719,7 @@ function openFeedbackModal(){
   if(!modal){
     var html = '<div id="feedbackModal" style="position:fixed;bottom:20px;right:20px;width:340px;background:#fff;border:2px solid #4a90d9;border-radius:12px;padding:16px;z-index:9999;box-shadow:0 4px 24px rgba(0,0,0,0.2);font-family:sans-serif;">' +
       '<h4 style="margin:0 0 8px 0;font-size:.95rem;">💬 Feedback geben</h4>' +
+      '<div style="font-size:.72rem;color:#8a6d3b;background:#fdf6e3;border-radius:6px;padding:5px 8px;margin-bottom:8px;line-height:1.35;">⚠️ Feedback wird <strong>öffentlich</strong> gespeichert (GitHub). Bitte <strong>keine echten Namen oder persönlichen Daten</strong> angeben.</div>' +
       '<textarea id="feedbackText" rows="3" placeholder="Was gefällt dir? Was stört dich?" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:.85rem;resize:vertical;"></textarea>' +
       '<div style="margin-top:8px;display:flex;gap:6px;justify-content:flex-end;">' +
       '<button id="feedbackCancel" style="padding:6px 12px;font-size:.8rem;border:1px solid #ccc;border-radius:6px;background:#f5f5f5;cursor:pointer;">Abbrechen</button>' +

@@ -15,10 +15,16 @@ CREATE TABLE IF NOT EXISTS users (
     klasse_id INT NULL,
     nickname VARCHAR(50) NOT NULL,
     pin_hash VARCHAR(255) NOT NULL,
+    -- DSGVO Art 8: Nachweis der Elternzustimmung/Altersbestätigung (AT: <14 Jahre)
+    consent_at DATETIME NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY unique_nick_per_klasse (klasse_id, nickname),
     FOREIGN KEY (klasse_id) REFERENCES klassen(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Migration für bestehende DBs (manuell in phpMyAdmin ausführen):
+-- ALTER TABLE users ADD COLUMN consent_at DATETIME NULL AFTER pin_hash;
+
 
 CREATE TABLE IF NOT EXISTS progress (
     user_id INT PRIMARY KEY,

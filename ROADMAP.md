@@ -1,12 +1,13 @@
 # 🗺️ Mathemit — Roadmap zur besten Mathe-Lern-App in Österreich
 
-> Stand: v50 | Ziel: Vollständige Lehrplan-Abdeckung (AHS/MS 2023) mit pädagogischem Support + Feedback-Loop
+> Stand: v57 | Ziel: Vollständige Lehrplan-Abdeckung (AHS/MS 2023) mit pädagogischem Support + Feedback-Loop
 
 ---
 
-## 📊 Aktueller Stand (v50)
+## 📊 Aktueller Stand (v57)
 
-- **48 Generatoren** in 8 Kategorien (Dreiecke, Vierecke, Kreis, Körper, Oberfläche, Brüche, Prozent, Textaufgaben, Gleichungen/Diagramme)
+- **47 Generatoren in 15 lehrplangetreuen Themen-Modi** (H1–H4/I1–I3):
+  Dreiecke, Vierecke, Winkel, Umfang & Fläche, Kreis, Körper (Volumen), Oberfläche, **Brüche (8 Operationen inkl. gemischte Zahlen & Bruch↔Dezimal)**, Brüche & Prozent, **Prozente & Zinsen (NEU)**, Textaufgaben (inkl. mehrstufig), Alltag in Österreich (inkl. mehrstufig), **Gleichungen & Verhältnisse** (inkl. Proportionalität), **Daten & Diagramme (NEU: Tabellen + Säulendiagramm)**
 - **3 Schwierigkeitsstufen** je Generator (🌱/🎯/🚀) + dynamische Anpassungs-Vorschläge
 - **Pädagogisches Tipp-System**: progressive Offenlegung (Andeuten → Formel/Ansatz) + gezielte Korrekturhinweise bei Fehlern
 - **In-App Feedback-Feature**: 💬-Button (nach 10 s) → Modal → POST an `backend/feedback.php` (Token serverseitig via `GH_FEEDBACK_TOKEN`) → GitHub-Issue mit Label `feedback` (Aufgabe + Feedbacktext + Timestamp)

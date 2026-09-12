@@ -1941,12 +1941,13 @@
     {id:"kreis", label:"⭕ Kreis", pool:["kreisUmfang","kreisFlaeche"]},
     {id:"koerper", label:"📦 Körper (Volumen)", pool:["quaderVolumen","wuerfelVolumen","zylinderVolumen"]},
     {id:"oberflaeche", label:"📊 Oberfläche von Körpern", pool:["quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"]},
-    {id:"bruche", label:"➗ Brüche (alle Operationen)", pool:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision"]},
+    {id:"bruche", label:"➗ Brüche (alle Operationen)", pool:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal"]},
     {id:"bruch-prozent", label:"➗ Brüche & Prozent", pool:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","prozentVonZahl","prozentAnteil"]},
-    {id:"textaufgaben", label:"📖 Textaufgaben", pool:["textaufgabeGarten","textaufgabePizza","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag"]},
-    {id:"alltag", label:"🇦🇹 Alltag in Österreich", pool:["textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag"]},
-    {id:"gleichungen", label:"⚖️ Gleichungen & Tabellen", pool:["gleichungEinfach","tabelleLesen"]},
-    {id:"weiteres", label:"🔢 Weiteres Rechnen", pool:["diagrammBalken","gemischteZahlen","bruchDezimal","zinsrechnung","proportionalitaet","mehrstufig"]}
+    {id:"prozent-zins", label:"💰 Prozente & Zinsen", pool:["prozentVonZahl","prozentAnteil","zinsrechnung"]},
+    {id:"textaufgaben", label:"📖 Textaufgaben", pool:["textaufgabeGarten","textaufgabePizza","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag","mehrstufig"]},
+    {id:"alltag", label:"🇦🇹 Alltag in Österreich", pool:["textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag","mehrstufig"]},
+    {id:"gleichungen", label:"⚖️ Gleichungen & Verhältnisse", pool:["gleichungEinfach","proportionalitaet"]},
+    {id:"daten-diagramme", label:"📊 Daten & Diagramme", pool:["tabelleLesen","diagrammBalken"]}
   ];
 
   /* Schulstufen-Zuordnung je Übungstyp (1.–4. Klasse Mittelschule) */

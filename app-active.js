@@ -105,10 +105,12 @@ var chipsHost = document.getElementById("chips");
 var lastGroup = null;
 MODES.forEach(function(m){
   if(m.group && m.group !== lastGroup){
-    var cap = document.createElement("span");
-    cap.className = "chip-group-label";
-    cap.textContent = m.group;
-    chipsHost.appendChild(cap);
+    if(lastGroup !== null){
+      var sep = document.createElement("span");
+      sep.className = "chip-divider";
+      sep.textContent = "·";
+      chipsHost.appendChild(sep);
+    }
     lastGroup = m.group;
   }
   var btn = document.createElement("button");
@@ -120,10 +122,19 @@ MODES.forEach(function(m){
     Array.prototype.forEach.call(chipsHost.querySelectorAll(".chip"), function(c){ c.classList.remove("active"); });
     btn.classList.add("active");
     saveProgress();
+    scrollActiveChip();
     nextExercise();
   });
   chipsHost.appendChild(btn);
 });
+/* Aktiven Chip horizontal in die Mitte scrollen (block:'nearest' = keine vertikalen Sprünge) */
+function scrollActiveChip(){
+  var active = chipsHost.querySelector(".chip.active");
+  if(active && active.scrollIntoView){
+    active.scrollIntoView({behavior:"smooth", inline:"center", block:"nearest"});
+  }
+}
+scrollActiveChip();
 
 var gradeChipsHost = document.getElementById("gradeChips");
 GRADES.forEach(function(g){

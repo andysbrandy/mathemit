@@ -1,16 +1,23 @@
-  /* ---------- Chips ---------- */
-  .chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px;}
-  .chip-group-label{
-    flex-basis:100%; max-width:100%;
-    font-family:'Fredoka',sans-serif; font-weight:600;
-    font-size:.62rem; letter-spacing:1px; text-transform:uppercase;
-    color:var(--muted); margin-top:2px;
-    border-bottom:1px solid var(--line); padding-bottom:3px;
+  /* ---------- Chips (Slider-Row, mobil & Desktop) ---------- */
+  .chips{
+    display:flex; gap:8px; flex-wrap:nowrap;
+    overflow-x:auto; -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x proximity;
+    scrollbar-width:none; -ms-overflow-style:none;
+    padding:2px 2px 4px; margin-bottom:18px;
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%);
+    mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%);
   }
+  .chips::-webkit-scrollbar{display:none;}
   .chip{
     border:2px solid var(--line); background:var(--panel); color:var(--ink);
     border-radius:999px; padding:8px 15px; font-family:'Fredoka',sans-serif; font-weight:600;
     font-size:.85rem; cursor:pointer; transition:all .15s ease; user-select:none;
+    flex:0 0 auto; scroll-snap-align:start; white-space:nowrap;
+  }
+  .chip-divider{
+    flex:0 0 auto; align-self:center; color:var(--line);
+    font-size:.9rem; user-select:none; pointer-events:none;
   }
   .chip:hover{border-color:var(--violet); transform:translateY(-1px);}
   .chip.active{background:var(--ink); border-color:var(--ink); color:#fff;}

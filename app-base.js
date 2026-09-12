@@ -1933,21 +1933,21 @@
   };
 
   var MODES = [
-    {id:"alles", label:"🎲 Alles gemischt", pool:Object.keys(GEN)},
-    {id:"dreieck", label:"🔺 Dreiecke", pool:["dreieckWinkel","dreieckUmfang","dreieckFlaeche","dreieckErkennen","eigenschaftenDreieck"]},
-    {id:"viereck", label:"◻ Vierecke", pool:["viereckWinkel","viereckUmfang","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","viereckErkennen","eigenschaftenViereck"]},
-    {id:"winkel", label:"📐 Winkel", pool:["dreieckWinkel","viereckWinkel"]},
-    {id:"umfang-flaeche", label:"📏 Umfang & Fläche", pool:["dreieckUmfang","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche"]},
-    {id:"kreis", label:"⭕ Kreis", pool:["kreisUmfang","kreisFlaeche"]},
-    {id:"koerper", label:"📦 Körper (Volumen)", pool:["quaderVolumen","wuerfelVolumen","zylinderVolumen"]},
-    {id:"oberflaeche", label:"📊 Oberfläche von Körpern", pool:["quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"]},
-    {id:"bruche", label:"➗ Brüche (alle Operationen)", pool:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal"]},
-    {id:"bruch-prozent", label:"➗ Brüche & Prozent", pool:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","prozentVonZahl","prozentAnteil"]},
-    {id:"prozent-zins", label:"💰 Prozente & Zinsen", pool:["prozentVonZahl","prozentAnteil","zinsrechnung"]},
-    {id:"textaufgaben", label:"📖 Textaufgaben", pool:["textaufgabeGarten","textaufgabePizza","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag","mehrstufig"]},
-    {id:"alltag", label:"🇦🇹 Alltag in Österreich", pool:["textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag","mehrstufig"]},
-    {id:"gleichungen", label:"⚖️ Gleichungen & Verhältnisse", pool:["gleichungEinfach","proportionalitaet"]},
-    {id:"daten-diagramme", label:"📊 Daten & Diagramme", pool:["tabelleLesen","diagrammBalken"]}
+    {id:"alles", label:"🎲 Alles gemischt", group:null, pool:Object.keys(GEN)},
+    {id:"dreieck", label:"🔺 Dreiecke", group:"Geometrie · H3", pool:["dreieckWinkel","dreieckUmfang","dreieckFlaeche","dreieckErkennen","eigenschaftenDreieck"]},
+    {id:"viereck", label:"◻ Vierecke", group:"Geometrie · H3", pool:["viereckWinkel","viereckUmfang","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","viereckErkennen","eigenschaftenViereck"]},
+    {id:"winkel", label:"📐 Winkel", group:"Geometrie · H3", pool:["dreieckWinkel","viereckWinkel"]},
+    {id:"umfang-flaeche", label:"📏 Umfang & Fläche", group:"Geometrie · H3", pool:["dreieckUmfang","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche"]},
+    {id:"kreis", label:"⭕ Kreis", group:"Geometrie · H3", pool:["kreisUmfang","kreisFlaeche"]},
+    {id:"koerper", label:"📦 Körper (Volumen)", group:"Geometrie · H3", pool:["quaderVolumen","wuerfelVolumen","zylinderVolumen"]},
+    {id:"oberflaeche", label:"📊 Oberfläche von Körpern", group:"Geometrie · H3", pool:["quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"]},
+    {id:"bruche", label:"➗ Brüche (alle Operationen)", group:"Zahlen & Operationen · H1", pool:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal"]},
+    {id:"bruch-prozent", label:"➗ Brüche & Prozent", group:"Zahlen & Operationen · H1", pool:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","prozentVonZahl","prozentAnteil"]},
+    {id:"prozent-zins", label:"💰 Prozente & Zinsen", group:"Zahlen & Operationen · H1", pool:["prozentVonZahl","prozentAnteil","zinsrechnung"]},
+    {id:"textaufgaben", label:"📖 Textaufgaben", group:"Sachrechnen · I1", pool:["textaufgabeGarten","textaufgabePizza","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag","mehrstufig"]},
+    {id:"alltag", label:"🇦🇹 Alltag in Österreich", group:"Sachrechnen · I1", pool:["textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag","mehrstufig"]},
+    {id:"gleichungen", label:"⚖️ Gleichungen & Verhältnisse", group:"Größen & Variablen · H2", pool:["gleichungEinfach","proportionalitaet"]},
+    {id:"daten-diagramme", label:"📊 Daten & Diagramme", group:"Daten & Statistik · H4", pool:["tabelleLesen","diagrammBalken"]}
   ];
 
   /* Schulstufen-Zuordnung je Übungstyp (1.–4. Klasse Mittelschule) */

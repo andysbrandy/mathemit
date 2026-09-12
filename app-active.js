@@ -102,14 +102,22 @@ loadProgress();
 
 /* ============ Rendering ============ */
 var chipsHost = document.getElementById("chips");
+var lastGroup = null;
 MODES.forEach(function(m){
+  if(m.group && m.group !== lastGroup){
+    var cap = document.createElement("span");
+    cap.className = "chip-group-label";
+    cap.textContent = m.group;
+    chipsHost.appendChild(cap);
+    lastGroup = m.group;
+  }
   var btn = document.createElement("button");
   btn.className = "chip" + (m.id===state.mode?" active":"");
   btn.textContent = m.label;
   btn.dataset.mode = m.id;
   btn.addEventListener("click", function(){
     state.mode = m.id;
-    Array.prototype.forEach.call(chipsHost.children, function(c){ c.classList.remove("active"); });
+    Array.prototype.forEach.call(chipsHost.querySelectorAll(".chip"), function(c){ c.classList.remove("active"); });
     btn.classList.add("active");
     saveProgress();
     nextExercise();

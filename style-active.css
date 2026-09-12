@@ -1,5 +1,12 @@
   /* ---------- Chips ---------- */
   .chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px;}
+  .chip-group-label{
+    flex-basis:100%; max-width:100%;
+    font-family:'Fredoka',sans-serif; font-weight:600;
+    font-size:.62rem; letter-spacing:1px; text-transform:uppercase;
+    color:var(--muted); margin-top:2px;
+    border-bottom:1px solid var(--line); padding-bottom:3px;
+  }
   .chip{
     border:2px solid var(--line); background:var(--panel); color:var(--ink);
     border-radius:999px; padding:8px 15px; font-family:'Fredoka',sans-serif; font-weight:600;

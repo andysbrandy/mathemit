@@ -174,6 +174,22 @@ function updateStatsUI(){
   document.getElementById("streakVal").textContent = state.streak;
   var streakPill = document.querySelector(".stat-pill.streak");
   if(streakPill) streakPill.classList.toggle("streak-on", state.streak > 0);
+  /* Flamme antippbar: Pause/Weiter-Animation */
+  var flameEl = document.querySelector(".flame");
+  if(flameEl && !flameEl.dataset.flameBound){
+    flameEl.dataset.flameBound = "1";
+    flameEl.setAttribute("role","button");
+    flameEl.setAttribute("tabindex","0");
+    flameEl.title = "Flamme pausieren / weiterlaufen lassen";
+    function toggleFlame(){
+      var paused = streakPill.classList.toggle("flame-paused");
+      flameEl.setAttribute("aria-pressed", paused ? "true" : "false");
+    }
+    flameEl.addEventListener("click", toggleFlame);
+    flameEl.addEventListener("keydown", function(e){
+      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); toggleFlame(); }
+    });
+  }
   var lvl = currentLevel();
   document.getElementById("levelVal").textContent = lvl.name.split(" ")[0];
   document.getElementById("levelNameSmall").textContent = lvl.name;

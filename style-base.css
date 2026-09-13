@@ -195,12 +195,12 @@
     animation:none;
   }
   .stat-pill.streak.streak-on .flame{
-    animation:flicker 3.2s ease-in-out infinite;
+    animation:flicker 2.4s ease-in-out infinite;
   }
   @keyframes flicker{
-    0%,100%{ transform:rotate(-1.5deg) scale(1);    filter:brightness(1); }
-    35%    { transform:rotate(1.5deg)  scale(1.05); filter:brightness(1.07); }
-    65%    { transform:rotate(-1deg)  scale(1.02); filter:brightness(1.03); }
+    0%,100%{ transform:rotate(-2.5deg) scale(1);    filter:brightness(1); }
+    35%    { transform:rotate(2.5deg)  scale(1.09); filter:brightness(1.12); }
+    65%    { transform:rotate(-2deg)   scale(1.04); filter:brightness(1.05); }
   }
   @media (prefers-reduced-motion:reduce){
     .stat-pill.streak.streak-on .flame{ animation:none; }

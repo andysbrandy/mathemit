@@ -189,6 +189,23 @@
   }
   .stat-pill .lbl{font-family:'Inter',sans-serif; font-weight:600; color:var(--muted); font-size:.7rem; text-transform:uppercase; letter-spacing:.4px;}
   .stat-pill.streak{color:var(--gold);}
+  /* Flammen-Flackern: nur bei aktiver Serie (Klasse streak-on), respektiert prefers-reduced-motion */
+  .flame{
+    display:inline-block; transform-origin:50% 82%;
+    animation:none;
+  }
+  .stat-pill.streak.streak-on .flame{
+    animation:flicker 1.6s ease-in-out infinite;
+  }
+  @keyframes flicker{
+    0%,100%{ transform:rotate(-3deg) scale(1); }
+    25%    { transform:rotate(3deg)  scale(1.09); }
+    50%    { transform:rotate(-2deg) scale(1.02); }
+    75%    { transform:rotate(2deg)  scale(1.07); }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .stat-pill.streak.streak-on .flame{ animation:none; }
+  }
   .stat-pill.points{color:var(--violet);}
   .stat-pill.level{color:var(--viereck);}
 

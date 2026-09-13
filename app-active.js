@@ -172,6 +172,8 @@ DIFFICULTIES.forEach(function(d){
 function updateStatsUI(){
   document.getElementById("pointsVal").textContent = state.points;
   document.getElementById("streakVal").textContent = state.streak;
+  var streakPill = document.querySelector(".stat-pill.streak");
+  if(streakPill) streakPill.classList.toggle("streak-on", state.streak > 0);
   var lvl = currentLevel();
   document.getElementById("levelVal").textContent = lvl.name.split(" ")[0];
   document.getElementById("levelNameSmall").textContent = lvl.name;

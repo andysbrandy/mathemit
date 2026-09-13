@@ -2057,6 +2057,49 @@
     mehrstufig:          {codes:["I1.M1","I2.M1"], kompetenz:"Mehrstufige Sachaufgaben in Teilschritten lösen"}
   };
 
+  /* ============ P4.3: Spaced Repetition ============
+   * Intervall-Leiter: falsch -> 10 Min -> 1 Tag -> 3 Tage -> 7 Tage -> 14 Tage -> gemastert.
+   * Format je Key: [dueEpochSekunden, level 1..5]. Nur eine FAELLIGE richtige Antwort befoerdert. */
+  var SPACED_STEPS = [600, 86400, 259200, 604800, 1209600];
+  function spacedSanitize(spaced){
+    var out = {};
+    if(!spaced || typeof spaced !== "object") return out;
+    var now = Math.floor(Date.now()/1000);
+    for(var k in spaced){
+      if(!Object.prototype.hasOwnProperty.call(spaced, k)) continue;
+      if(!GEN[k]) continue;
+      var e = spaced[k];
+      if(!e || e.length !== 2) continue;
+      var due = parseInt(e[0], 10), level = parseInt(e[1], 10);
+      if(!isFinite(due) || !isFinite(level)) continue;
+      level = Math.max(1, Math.min(SPACED_STEPS.length, level));
+      if(due < now - SPACED_STEPS[SPACED_STEPS.length-1]) continue;
+      out[k] = [due, level];
+    }
+    return out;
+  }
+  function spacedWrong(spaced, key, nowSec){
+    var s = spacedSanitize(spaced);
+    if(GEN[key]) s[key] = [nowSec + SPACED_STEPS[0], 1];
+    return s;
+  }
+  function spacedCorrect(spaced, key, nowSec){
+    var s = spacedSanitize(spaced);
+    var e = s[key];
+    if(!e || e[0] > nowSec) return s;
+    var lvl = e[1] + 1;
+    if(lvl > SPACED_STEPS.length){ delete s[key]; return s; }
+    s[key] = [nowSec + SPACED_STEPS[lvl-1], lvl];
+    return s;
+  }
+  function spacedDueKeys(spaced, nowSec, pool){
+    var s = spacedSanitize(spaced), out = [];
+    for(var k in s){
+      if(s[k][0] <= nowSec && (!pool || pool.indexOf(k) !== -1)) out.push(k);
+    }
+    return out;
+  }
+
   window.MB = {
     rand, randf, choice, shuffle, dist, mid, centroidOf, gcd, lcm, fmt, fmtAT, fmtEUR,
     normalizeAndScale, edgeLabelPos, vertexLabelPos, tickMarks, rightAngleMarker,
@@ -2066,6 +2109,7 @@
     triangleFromSides, isValidTriangle, parallelogramFromSides, baseEx,
     COLORS, AUSTRIA, TRI_TEMPLATES, QUAD_TEMPLATES, QUAD_NAMES,
     TRI_STATEMENTS, QUAD_STATEMENTS, CURRICULUM_MAP, GEN, MODES, GRADES,
-    GRADE_GROUPS, GRADE_TAGS, DIFFICULTIES, TIPP1_BY_TOPIC, deriveTips, bruchWort
+    GRADE_GROUPS, GRADE_TAGS, DIFFICULTIES, TIPP1_BY_TOPIC, deriveTips, bruchWort,
+    SPACED_STEPS, spacedSanitize, spacedWrong, spacedCorrect, spacedDueKeys
   };
 })();

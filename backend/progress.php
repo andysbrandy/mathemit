@@ -41,7 +41,7 @@ try {
 
     if ($method === 'GET') {
         $stmt = $pdo->prepare(
-            'SELECT points, streak, best_streak, solved, correct, badges, mode, grade, updated_at
+            'SELECT points, streak, best_streak, solved, correct, badges, spaced, mode, grade, updated_at
              FROM progress WHERE user_id = ?'
         );
         $stmt->execute([$userId]);
@@ -63,6 +63,9 @@ try {
             if ($progress['badges'] !== null) {
                 $progress['badges'] = json_decode($progress['badges'], true);
             }
+            if (isset($progress['spaced']) && $progress['spaced'] !== null) {
+                $progress['spaced'] = json_decode($progress['spaced'], true);
+            }
         }
 
         http_response_code(200);
@@ -76,7 +79,7 @@ try {
         ]);
 
     } elseif ($method === 'POST') {
-        $input = validate_json_body(1024);
+        $input = validate_json_body(4096);
         if ($input === null) {
             http_response_code(400);
             echo json_encode(['status' => 'error', 'message' => 'Request body required']);
@@ -84,14 +87,14 @@ try {
         }
 
         // Erlaubte Felder (Whitelist)
-        $allowed = ['points', 'streak', 'best_streak', 'solved', 'correct', 'badges', 'mode', 'grade'];
+        $allowed = ['points', 'streak', 'best_streak', 'solved', 'correct', 'badges', 'spaced', 'mode', 'grade'];
         $updates = [];
         $params  = [];
 
         foreach ($allowed as $field) {
             if (array_key_exists($field, $input)) {
                 $updates[] = "$field = ?";
-                if ($field === 'badges' && $input[$field] !== null) {
+                if (($field === 'badges' || $field === 'spaced') && $input[$field] !== null) {
                     $params[] = json_encode($input[$field]);
                 } else {
                     $params[] = $input[$field];

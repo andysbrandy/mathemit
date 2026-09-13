@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS progress (
     user_id INT PRIMARY KEY,
+    spaced TEXT NULL,
     points INT DEFAULT 0,
     streak INT DEFAULT 0,
     best_streak INT DEFAULT 0,

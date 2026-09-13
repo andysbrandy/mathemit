@@ -19,6 +19,10 @@
   var DIFFICULTIES  = MB.DIFFICULTIES;
   var TIPP1_BY_TOPIC = MB.TIPP1_BY_TOPIC;
   var deriveTips   = MB.deriveTips;
+  var spacedSanitize = MB.spacedSanitize;
+  var spacedWrong = MB.spacedWrong;
+  var spacedCorrect = MB.spacedCorrect;
+  var spacedDueKeys = MB.spacedDueKeys;
   // ENCOURAGE_OK / ENCOURAGE_BAD / LEVELS / BADGES sind in dieser Datei lokal definiert.
 
   // ---- Render-Hilfsfunktionen (basieren auf app-base.js) ----
@@ -38,6 +42,7 @@ var state = {
   solved: 0,
   correct: 0,
   current: null,
+  spaced: {}, repeatOnly: false, lastWasRepeat: false, taskCount: 0, currentWasDue: false,
   answered: false,
   badges: []
 };
@@ -71,7 +76,8 @@ function saveProgress(){
     var data = {
       points:state.points, streak:state.streak, bestStreak:state.bestStreak,
       solved:state.solved, correct:state.correct, badges:state.badges,
-      mode:state.mode, grade:state.grade, diff:state.diff
+      mode:state.mode, grade:state.grade, diff:state.diff,
+      spaced:state.spaced
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }catch(e){ /* z. B. Privatmodus ohne Speicherzugriff - Fortschritt bleibt dann nur für diese Sitzung erhalten */ }
@@ -90,10 +96,11 @@ function loadProgress(){
     state.mode = MODES.some(function(m){return m.id===d.mode;}) ? d.mode : "alles";
     state.grade = GRADES.some(function(g){return g.id===d.grade;}) ? d.grade : "all";
     state.diff = (d.diff===1 || d.diff===2 || d.diff===3) ? d.diff : 2;
+    state.spaced = spacedSanitize(d.spaced);
   }catch(e){ /* beschädigter oder fehlender Speicher wird ignoriert, App startet mit Standardwerten */ }
 }
 function resetProgress(){
-  state.points=0; state.streak=0; state.bestStreak=0; state.solved=0; state.correct=0; state.badges=[];
+  state.points=0; state.streak=0; state.bestStreak=0; state.solved=0; state.correct=0; state.badges=[]; state.spaced={}; state.repeatOnly=false; state.taskCount=0;
   try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
   updateStatsUI();
 }
@@ -119,7 +126,7 @@ MODES.forEach(function(m){
   btn.dataset.mode = m.id;
   btn.addEventListener("click", function(){
     state.mode = m.id;
-    Array.prototype.forEach.call(chipsHost.querySelectorAll(".chip"), function(c){ c.classList.remove("active"); });
+    Array.prototype.forEach.call(chipsHost.querySelectorAll(".chip"), function(c){ if(c.id !== "repeatChip"){ c.classList.remove("active"); } });
     btn.classList.add("active");
     saveProgress();
     scrollActiveChip();
@@ -127,6 +134,29 @@ MODES.forEach(function(m){
   });
   chipsHost.appendChild(btn);
 });
+
+/* P4.3: Wiederholungs-Chip (nur Sitzung, nicht persistiert) */
+var repeatChip = document.createElement("button");
+repeatChip.className = "chip";
+repeatChip.id = "repeatChip";
+repeatChip.style.display = "none";
+repeatChip.title = "Nur fällige Wiederholungen üben";
+repeatChip.addEventListener("click", function(){
+  state.repeatOnly = !state.repeatOnly;
+  repeatChip.classList.toggle("active", state.repeatOnly);
+  nextExercise();
+});
+chipsHost.appendChild(repeatChip);
+function updateRepeatChip(){
+  var n = spacedDueKeys(state.spaced, Math.floor(Date.now()/1000), null).length;
+  if(n > 0){
+    repeatChip.style.display = "";
+    repeatChip.textContent = "🔁 Fällig (" + n + ")";
+  } else {
+    repeatChip.style.display = "none";
+    if(state.repeatOnly){ state.repeatOnly = false; repeatChip.classList.remove("active"); }
+  }
+}
 /* Aktiven Chip horizontal in die Mitte scrollen (block:'nearest' = keine vertikalen Sprünge) */
 function scrollActiveChip(){
   var active = chipsHost.querySelector(".chip.active");
@@ -258,7 +288,15 @@ function poolForCurrentFilters(){
 
 function nextExercise(){
   var pool = poolForCurrentFilters();
+  var nowSec = Math.floor(Date.now()/1000);
+  var dueList = spacedDueKeys(state.spaced, nowSec, pool);
+  if(state.repeatOnly && dueList.length === 0){ state.repeatOnly = false; }
+  if(state.repeatOnly && dueList.length){ pool = dueList.slice(); }
+  else if(dueList.length && state.taskCount > 0 && state.taskCount % 3 === 0 && state.lastWasRepeat === false){ pool = dueList.slice(); }
+  state.taskCount = state.taskCount + 1;
   var key = choice(pool);
+  state.currentWasDue = (dueList.indexOf(key) !== -1);
+  state.lastWasRepeat = state.currentWasDue;
   state.currentKey = key;
   var ex = GEN[key](state.diff);
   state.current = ex;
@@ -300,6 +338,7 @@ function nextExercise(){
     answerArea.appendChild(grid);
   }
 
+  updateRepeatChip();
   var fb = document.getElementById("feedback");
   fb.className="feedback"; fb.innerHTML="";
   document.getElementById("checkBtn").style.display = ex.inputType==="number" ? "inline-block":"none";
@@ -343,6 +382,15 @@ function finishRound(isCorrect, explanation){
   }
   /* P3.2: Gezielter Korrektur-Hinweis bei falscher Antwort */
   var extra = "";
+  if(mk && state.currentWasDue && isCorrect){
+    var hadEntry = state.spaced[mk];
+    state.spaced = spacedCorrect(state.spaced, mk, Math.floor(Date.now()/1000));
+    extra = (hadEntry && state.spaced[mk] === undefined) ? extra + "<div style=\"margin-top:6px; font-size:.8rem; font-weight:600;\">🏆 Gemastert – diese Übung kommt nicht mehr automatisch zurück.</div>" : extra + "<div style=\"margin-top:6px; font-size:.8rem; font-weight:600;\">🔁 Wiederholung geschafft – sie kommt später noch einmal.</div>";
+  }
+  if(mk && !isCorrect){
+    state.spaced = spacedWrong(state.spaced, mk, Math.floor(Date.now()/1000));
+    extra = extra + "<div style=\"margin-top:6px; font-size:.8rem; font-weight:600;\">🔁 Diese Übung kommt bald zurück.</div>";
+  }
   if(!isCorrect && state.current){
     var korr = TIPP1_BY_TOPIC[state.current.topic];
     if(korr) extra = '<div style="margin-top:6px; font-size:.8rem; font-weight:600;">🧭 Merke: '+korr+'</div>';
@@ -708,6 +756,7 @@ function loadProgressFromAPI(customToken) {
       state.solved  = d.solved      || 0;
       state.correct = d.correct     || 0;
       state.badges  = d.badges      || state.badges || [];
+      if(d.spaced){ state.spaced = spacedSanitize(d.spaced); }
       state.mode    = (d.mode && MODES.some(function(m){return m.id===d.mode;})) ? d.mode : (state.mode || 'alles');
       state.grade   = (d.grade && GRADES.some(function(g){return g.id===d.grade;})) ? d.grade : (state.grade || 'all');
       console.log('[mathemit] Fortschritt vom Server geladen:', JSON.stringify({p:state.points,s:state.streak,bs:state.bestStreak}));
@@ -727,12 +776,14 @@ function syncProgressToAPI() {
     body: {
       points:      state.points,
       streak:      state.streak,
-      best_streak: state.best_streak,
+      best_streak: state.bestStreak,
       solved:      state.solved,
       correct:     state.correct,
       badges:      state.badges,
       mode:        state.mode,
-      grade:       state.grade
+      grade:       state.grade,
+      diff:        state.diff,
+      spaced:      state.spaced
     }
   }).then(function(data) {
     // Sync-Fehler ignorieren - Fortschritt bleibt lokal gespeichert

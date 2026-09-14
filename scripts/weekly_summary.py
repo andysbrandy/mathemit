@@ -121,7 +121,8 @@ def create_summary_issue(title, body):
         json={'title': title, 'body': body, 'labels': ['wochenbericht'], 'assignees': [owner]}
     )
     r.raise_for_status()
-    return r.json()
+    issue = r.json()
+    return ensure_assignee(issue)
 
 def main():
     today = datetime.date.today()
@@ -145,8 +146,7 @@ def main():
             feedback_texts.append(f"- (rohes Issue) {issue.get('title','')}")
 
     if not feedback_texts:
-        print("Keine Feedback-Issues der letzten Woche - keine Summary erzeugt.")
-        return
+        feedback_texts.append('(kein Feedback diese Woche)')
 
     # 2. EIN verdichteter Prompt an die kostenlose KI
     prompt = f"""Du bist ein pädagogischer Assistent fuer eine Mathe-Lern-App. Erstelle eine Wochen-Zusammenfassung des Nutzer-Feedbacks mit EXAKT diesen vier Abschnitten:
@@ -183,8 +183,24 @@ Anzahl Feedbacks: {len(feedback_texts)}
     # 4. Benachrichtigungs-Issue (GitHub mailt dem Owner automatisch bei Zuweisung)
     issue_body = f"Automatische Wochenauswertung der Feedback-Issues.\n\nDie fertige Zusammenfassung inkl. Entwicklungsprompt liegt in `{out_file}`.\n\n---\n\n{summary[:2000]}"
     issue = create_summary_issue(f"📊 Wochenbericht {week_tag} – Entwicklungsprompt fertig", issue_body)
+    send_email('📊 Wochenbericht ' + week_tag + ' – Entwicklungsprompt fertig', issue_body)
     print(f"Summary geschrieben: {out_file}")
     print(f"Benachrichtigungs-Issue erstellt: #{issue.get('number')}")
 
 if __name__ == '__main__':
     main()
+def send_email(subject, body):
+    key = os.getenv('RESEND_API_KEY')
+    to = os.getenv('MAIL_TO')
+    if not key or not to:
+        print('Mail uebersprungen (RESEND_API_KEY oder MAIL_TO nicht gesetzt).')
+        return
+    r = requests.post('https://api.resend.com/emails', headers={'Authorization': 'Bearer ' + key}, json={'from': 'onboarding@resend.dev', 'to': [to], 'subject': subject, 'text': body})
+    print('Resend-Mail:', r.status_code, str(r.text)[:300])
+
+def ensure_assignee(issue):
+    owner = REPO.split('/')[0]
+    if not issue.get('assignees'):
+        r2 = requests.post('https://api.github.com/repos/' + REPO + '/issues/' + str(issue.get('number')) + '/assignees', headers={'Authorization': 'token ' + GH_TOKEN, 'Accept': 'application/vnd.github+json'}, json={'assignees': [owner]})
+        print('Zuweisung:', r2.status_code, str(r2.json())[:160])
+    return issue

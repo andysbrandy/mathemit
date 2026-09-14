@@ -42,7 +42,7 @@
 | # | Schritt | Status |
 |---|---------|--------|
 | 2.1 | 3 Stufen pro Generator (Einstieg/Training/Anforderung) | ✅ 48/48 (Erkennen/Eigenschaften: template-basiert, stufenunabhängig) |
-| 2.2 | Dynamische Anpassung nach Fehlversuchen | ✅ (2× falsch → 🌱-Vorschlag, 3× richtig → 🚀-Vorschlag) |
+| 2.2 | Dynamische Anpassung (Stufen-Wechsel) | ✅ (2× falsch in Folge → ⬇️-Button, 3× richtig in Folge → ⬆️-Button; ein Klick wechselt direkt die Stufe, beide Richtungen) |
 
 ### P3 — Pädagogischer Support
 
@@ -121,7 +121,7 @@
 
 - 15 Themen-Modi als wischantipbare Leiste; die aktive Auswahl rutscht automatisch in die Mitte, dezente Trennpunkte markieren die Lehrplan-Gruppen (Geometrie · H3, Zahlen & Operationen · H1, Sachrechnen · I1, Größen & Variablen · H2, Daten & Statistik · H4).
 - Schulstufen-Filter (1./2. und 3./4. Klasse) und drei Schwierigkeitsstufen (🌱 Einstieg, 🎯 Training, 🚀 Anforderung) sind kombinierbar.
-- Nach 2 Fehlversuchen erscheint ein 🌱-Vorschlag, nach 3 richtigen Aufgaben in Folge ein 🚀-Vorschlag.
+- Nach 2 Fehlversuchen in Folge erscheint ein Button zum direkten Wechsel der nächsten niedrigeren Stufe (Training → 🌱 Einstieg, Anforderung → 🎯 Training); nach 3 richtigen in Folge zum Aufstieg (Einstieg → 🎯 Training, Training → 🚀 Anforderung).
 
 ### Tipps & Hilfe
 - Der 💡-Button deckt Tipps schrittweise auf: Tipp 1 deutet an, Tipp 2 nennt Formel oder Ansatz.

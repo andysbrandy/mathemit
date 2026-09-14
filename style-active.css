@@ -173,3 +173,8 @@
   .angle-label{font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700;}
   .tick{stroke:var(--ink); stroke-width:2;}
   .right-angle{fill:none; stroke:var(--ink); stroke-width:1.6;}
+
+  /* Stufen-Wechsel-Vorschlag (P2.2) */
+  .step-sug{margin-top:8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; background:var(--gold-soft); border:1px solid var(--gold); border-radius:10px; padding:8px 10px; font-size:.82rem; font-weight:600; color:#8a5c0e;}
+  .step-sug .mini{border:0; background:var(--gold); color:#fff; font-family:'Fredoka',sans-serif; font-weight:600; font-size:.78rem; padding:6px 12px; border-radius:8px; cursor:pointer;}
+  .step-sug .mini:hover{filter:brightness(.95);}

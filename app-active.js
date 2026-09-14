@@ -42,7 +42,7 @@ var state = {
   solved: 0,
   correct: 0,
   current: null,
-  spaced: {}, repeatOnly: false, lastWasRepeat: false, taskCount: 0, currentWasDue: false,
+  spaced: {}, repeatOnly: false, lastWasRepeat: false, taskCount: 0, currentWasDue: false, wrongRow: 0,
   answered: false,
   badges: []
 };
@@ -100,7 +100,7 @@ function loadProgress(){
   }catch(e){ /* beschädigter oder fehlender Speicher wird ignoriert, App startet mit Standardwerten */ }
 }
 function resetProgress(){
-  state.points=0; state.streak=0; state.bestStreak=0; state.solved=0; state.correct=0; state.badges=[]; state.spaced={}; state.repeatOnly=false; state.taskCount=0;
+  state.points=0; state.streak=0; state.bestStreak=0; state.solved=0; state.correct=0; state.badges=[]; state.spaced={}; state.repeatOnly=false; state.taskCount=0; state.wrongRow=0;
   try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
   updateStatsUI();
 }
@@ -348,6 +348,7 @@ function nextExercise(){
 
 function finishRound(isCorrect, explanation){
   state.answered = true;
+  if(isCorrect){ state.wrongRow = 0; } else { state.wrongRow = state.wrongRow + 1; }
   state.solved += 1;
   /* P2.2: Serien je Übungstyp tracken */
   var mk = state.currentKey;
@@ -373,12 +374,13 @@ function finishRound(isCorrect, explanation){
   var msg = isCorrect ? choice(ENCOURAGE_OK) : choice(ENCOURAGE_BAD);
   /* P2.2: Dynamische Anpassungs-Vorschläge (einmalig je Schwelle) */
   var sug = "";
-  if(mk){
-    if(!isCorrect && missByGen[mk]===2 && state.diff>1){
-      sug = '<div style="margin-top:6px; font-size:.8rem; font-weight:600;">💡 Tipp: Wechsle auf 🌱 Einstieg – genau daran üben wir gerade.</div>';
-    } else if(isCorrect && hitByGen[mk]===3 && state.diff<3){
-      sug = '<div style="margin-top:6px; font-size:.8rem; font-weight:600;">🚀 Stark! Probiere die Stufe 🚀 Anforderung.</div>';
-    }
+  var stepTo = 0;
+  if(isCorrect && state.streak === 3 && state.diff < 3){
+    stepTo = state.diff + 1;
+    sug = stepTo === 2 ? "⬆️ Stark! Steig auf 🎯 Training um" : "⬆️ Sehr stark! Steig auf 🚀 Anforderung um";
+  } else if(!isCorrect && state.wrongRow === 2 && state.diff > 1){
+    stepTo = state.diff - 1;
+    sug = stepTo === 1 ? "⬇️ Kein Problem – wechsle auf 🌱 Einstieg" : "⬇️ Kein Problem – wechsle auf 🎯 Training";
   }
   /* P3.2: Gezielter Korrektur-Hinweis bei falscher Antwort */
   var extra = "";
@@ -395,7 +397,26 @@ function finishRound(isCorrect, explanation){
     var korr = TIPP1_BY_TOPIC[state.current.topic];
     if(korr) extra = '<div style="margin-top:6px; font-size:.8rem; font-weight:600;">🧭 Merke: '+korr+'</div>';
   }
-  fb.innerHTML = msg + '<span class="explain">'+explanation+'</span>'+sug+extra;
+  fb.innerHTML = msg + '<span class="explain">'+explanation+'</span>'+extra;
+  if(stepTo){
+    var sugDiv = document.createElement("div");
+    sugDiv.className = "step-sug";
+    var sugSpan = document.createElement("span");
+    sugSpan.textContent = sug;
+    var sugBtn = document.createElement("button");
+    sugBtn.className = "mini";
+    sugBtn.type = "button";
+    sugBtn.textContent = "Jetzt wechseln";
+    sugBtn.addEventListener('click', function(){
+      state.diff = stepTo;
+      Array.prototype.forEach.call(diffChipsHost.children, function(c){ c.classList.toggle('active', Number(c.dataset.diff) === stepTo); });
+      saveProgress();
+      nextExercise();
+    });
+    sugDiv.appendChild(sugSpan);
+    sugDiv.appendChild(sugBtn);
+    fb.appendChild(sugDiv);
+  }
   document.getElementById("tipBtn").style.display = "none";
   document.getElementById("checkBtn").disabled = true;
   document.getElementById("nextBtn").style.display="inline-block";

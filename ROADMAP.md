@@ -10,7 +10,7 @@
   Dreiecke, Vierecke, Winkel, Umfang & Fläche, Kreis, Körper (Volumen), Oberfläche, **Brüche (8 Operationen inkl. gemischte Zahlen & Bruch↔Dezimal)**, Brüche & Prozent, **Prozente & Zinsen (NEU)**, Textaufgaben (inkl. mehrstufig), Alltag in Österreich (inkl. mehrstufig), **Gleichungen & Verhältnisse** (inkl. Proportionalität), **Daten & Diagramme (NEU: Tabellen + Säulendiagramm)**
 - **3 Schwierigkeitsstufen** je Generator (🌱/🎯/🚀) + dynamische Anpassungs-Vorschläge
 - **Pädagogisches Tipp-System**: progressive Offenlegung (Andeuten → Formel/Ansatz) + gezielte Korrekturhinweise bei Fehlern
-- **Spaced Repetition**: falsch gelöste Übungstypen kehren automatisch zurück (10 Min → 1/3/7/14 Tage, 🔁-Chip)
+- **Wiederholungstraining**: falsch gelöste Aufgaben werden exakt gespeichert und über den 🔁-Chip der Reihe nach wiederholt (bis alle geschafft sind)
 - **In-App Feedback-Feature**: 💬-Button (nach 10 s) → Modal → POST an `backend/feedback.php` (Token serverseitig via `GH_FEEDBACK_TOKEN`) → GitHub-Issue mit Label `feedback` (Aufgabe + Feedbacktext + Timestamp)
 - **Automatische KI-Feedback-Analyse** (GitHub Actions, kostenlos):
   - Freitags 11:00 UTC (= 12:00 CET): Wochen-Summary mit **🤖 Entwicklungsprompt** (`scripts/weekly_summary.py`) + Benachrichtigungs-Issue (→ Mail) — die gesamte Woche wird in EINEM KI-Aufruf ausgewertet
@@ -66,7 +66,7 @@
 |---|---------|--------|
 | 4.1 | Kompetenz-Baum (Lehrplan-Codes als Skill-Tree) | ❌ |
 | 4.2 | Wöchentliche Ziele | ❌ |
-| 4.3 | Spaced Repetition (falsche Aufgaben wiederholen) | ✅ (10 Min → 1/3/7/14 Tage, 🔁-Chip, Server-Sync) |
+| 4.3 | Wiederholungstraining (falsch gelöste Aufgaben exakt wiederholen) | ✅ (Instanz-Speicherung lokal + DB, 🔁-Chip, Erfolgsmeldung) |
 
 ### P5 — Österreich-Bezug & Polish
 
@@ -127,11 +127,11 @@
 - Der 💡-Button deckt Tipps schrittweise auf: Tipp 1 deutet an, Tipp 2 nennt Formel oder Ansatz.
 - Bei falscher Antwort erscheint ein 🧭 Merke-Hinweis zur passenden Rechenstrategie.
 
-### Wiederholung (Spaced Repetition)
-- Ein falsch beantworteter Übungstyp kehrt automatisch zurück: nach 10 Minuten, danach nach 1 Tag, 3 Tagen, 7 Tagen und 14 Tagen.
-- Jede richtige Antwort auf eine fällige Wiederholung verlängert das Intervall; nach der 14-Tage-Stufe gilt die Übung als gemastert.
-- Der 🔁-Chip zeigt die Zahl der fälligen Wiederholungen; ein Antippen übt ausschließlich diese.
-- Wiederholungen beachten Modus und Schulstufe; maximal jede dritte Aufgabe ist eine Wiederholung, nie zwei hintereinander.
+### Wiederholungstraining (🔁)
+- Jede falsch beantwortete Aufgabe wird automatisch im Wiederholungstraining gespeichert – genau diese Aufgabe (nicht nur der Aufgabentyp).
+- Der 🔁-Chip zeigt die Anzahl der gespeicherten Wiederholungen; ein Antippen übt genau diese Aufgaben der Reihe nach.
+- Eine korrekt gelöste Wiederholung verlässt die Liste; ist die Liste leer, erscheint die Erfolgsmeldung und die Auswahl kehrt zu den normalen Aufgaben zurück.
+- Bleibt eine Wiederholung falsch, bleibt sie in der Liste und kommt erneut.
 - Funktioniert als Gast (lokal im Browser) und angemeldet (geräteübergreifend synchronisiert).
 
 ### Punkte, Serie & Flamme

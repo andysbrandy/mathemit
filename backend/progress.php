@@ -79,7 +79,7 @@ try {
         ]);
 
     } elseif ($method === 'POST') {
-        $input = validate_json_body(4096);
+        $input = validate_json_body(16384);
         if ($input === null) {
             http_response_code(400);
             echo json_encode(['status' => 'error', 'message' => 'Request body required']);

@@ -42,7 +42,7 @@ var state = {
   solved: 0,
   correct: 0,
   current: null,
-  spaced: {}, repeatOnly: false, lastWasRepeat: false, taskCount: 0, currentWasDue: false, wrongRow: 0,
+  repeatQ: [], repeatIdx: 0, repeatIdxCurrent: 0, currentIsRepeat: false, repeatOnly: false, taskCount: 0, currentWasDue: false, wrongRow: 0,
   answered: false,
   badges: []
 };
@@ -77,7 +77,7 @@ function saveProgress(){
       points:state.points, streak:state.streak, bestStreak:state.bestStreak,
       solved:state.solved, correct:state.correct, badges:state.badges,
       mode:state.mode, grade:state.grade, diff:state.diff,
-      spaced:state.spaced
+      repeatQ:state.repeatQ
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }catch(e){ /* z. B. Privatmodus ohne Speicherzugriff - Fortschritt bleibt dann nur für diese Sitzung erhalten */ }
@@ -96,11 +96,11 @@ function loadProgress(){
     state.mode = MODES.some(function(m){return m.id===d.mode;}) ? d.mode : "alles";
     state.grade = GRADES.some(function(g){return g.id===d.grade;}) ? d.grade : "all";
     state.diff = (d.diff===1 || d.diff===2 || d.diff===3) ? d.diff : 2;
-    state.spaced = spacedSanitize(d.spaced);
+    state.repeatQ = sanitizeRepeatQ(d.repeatQ);
   }catch(e){ /* beschädigter oder fehlender Speicher wird ignoriert, App startet mit Standardwerten */ }
 }
 function resetProgress(){
-  state.points=0; state.streak=0; state.bestStreak=0; state.solved=0; state.correct=0; state.badges=[]; state.spaced={}; state.repeatOnly=false; state.taskCount=0; state.wrongRow=0;
+  state.points=0; state.streak=0; state.bestStreak=0; state.solved=0; state.correct=0; state.badges=[]; state.repeatQ=[]; state.repeatIdx=0; state.repeatOnly=false; state.taskCount=0; state.wrongRow=0;
   try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
   updateStatsUI();
 }
@@ -140,7 +140,7 @@ var repeatChip = document.createElement("button");
 repeatChip.className = "chip";
 repeatChip.id = "repeatChip";
 repeatChip.style.display = "none";
-repeatChip.title = "Nur fällige Wiederholungen üben";
+repeatChip.title = "Falsch gelöste Aufgaben gezielt wiederholen";
 repeatChip.addEventListener("click", function(){
   state.repeatOnly = !state.repeatOnly;
   repeatChip.classList.toggle("active", state.repeatOnly);
@@ -148,10 +148,10 @@ repeatChip.addEventListener("click", function(){
 });
 chipsHost.appendChild(repeatChip);
 function updateRepeatChip(){
-  var n = spacedDueKeys(state.spaced, Math.floor(Date.now()/1000), null).length;
+  var n = state.repeatQ.length;
   if(n > 0){
     repeatChip.style.display = "";
-    repeatChip.textContent = "🔁 Fällig (" + n + ")";
+    repeatChip.textContent = "🔁 Wiederholungstraining (" + n + ")";
   } else {
     repeatChip.style.display = "none";
     if(state.repeatOnly){ state.repeatOnly = false; repeatChip.classList.remove("active"); }
@@ -165,6 +165,37 @@ function scrollActiveChip(){
   }
 }
 scrollActiveChip();
+
+function sanitizeRepeatQ(list){
+  var out = [];
+  if(!Array.isArray(list)){ return out; }
+  for(var i = 0; i < list.length && out.length < 20; i++){
+    var e = list[i];
+    if(e && e.k && GEN[e.k]){ out.push(e); }
+  }
+  return out;
+}
+function repeatSVG(){
+  return "<svg viewBox=\"0 0 320 150\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"22\" y=\"16\" width=\"276\" height=\"118\" rx=\"20\" fill=\"var(--paper)\" stroke=\"var(--line)\" stroke-width=\"2.5\"/><text x=\"160\" y=\"76\" text-anchor=\"middle\" font-size=\"42\">🔁</text><text class=\"dim-label\" x=\"160\" y=\"112\" text-anchor=\"middle\" font-size=\"15\">Wiederholung</text></svg>";
+}
+function storeRepeatInstance(ex){
+  if(!ex || !state.currentKey){ return; }
+  for(var i = 0; i < state.repeatQ.length; i++){ if(state.repeatQ[i].q === ex.question){ return; } }
+  var inst = { k: state.currentKey, q: ex.question, h: ex.hint, a: ex.answer, it: ex.inputType, ch: ex.choices, ci: ex.correctIndex, u: ex.unit, tol: ex.tolerance, ex: ex.explanation, badge: ex.badge, bc: ex.badgeColor, topic: ex.topic, ck: ex.curriculumKey, df: state.diff };
+  if(state.repeatQ.length >= 20){ state.repeatQ.shift(); }
+  state.repeatQ.push(inst);
+}
+function buildRepeatExercise(inst){
+  return {
+    category: "wiederholung", topic: inst.topic, curriculumKey: inst.ck,
+    question: inst.q, hint: inst.h, answer: inst.a, explanation: inst.ex,
+    inputType: inst.it, choices: inst.ch, correctIndex: inst.ci,
+    unit: inst.u, tolerance: inst.tol,
+    badge: "🔁 " + (inst.badge || "Wiederholung"), badgeColor: "#F2A93B",
+    svg: repeatSVG(), diff: inst.df, key: inst.k
+  };
+}
+
 
 var gradeChipsHost = document.getElementById("gradeChips");
 GRADES.forEach(function(g){
@@ -288,17 +319,22 @@ function poolForCurrentFilters(){
 
 function nextExercise(){
   var pool = poolForCurrentFilters();
-  var nowSec = Math.floor(Date.now()/1000);
-  var dueList = spacedDueKeys(state.spaced, nowSec, pool);
-  if(state.repeatOnly && dueList.length === 0){ state.repeatOnly = false; }
-  if(state.repeatOnly && dueList.length){ pool = dueList.slice(); }
-  else if(dueList.length && state.taskCount > 0 && state.taskCount % 3 === 0 && state.lastWasRepeat === false){ pool = dueList.slice(); }
   state.taskCount = state.taskCount + 1;
-  var key = choice(pool);
-  state.currentWasDue = (dueList.indexOf(key) !== -1);
-  state.lastWasRepeat = state.currentWasDue;
+  var key;
+  var ex;
+  state.currentIsRepeat = false;
+  if(state.repeatOnly && state.repeatQ.length > 0){
+    state.currentIsRepeat = true;
+    state.repeatIdxCurrent = state.repeatIdx % state.repeatQ.length;
+    ex = buildRepeatExercise(state.repeatQ[state.repeatIdxCurrent]);
+    key = ex.key;
+    state.repeatIdx = state.repeatIdx + 1;
+  } else {
+    if(state.repeatOnly){ state.repeatOnly = false; repeatChip.classList.remove('active'); }
+    key = choice(pool);
+    ex = GEN[key](state.diff);
+  }
   state.currentKey = key;
-  var ex = GEN[key](state.diff);
   state.current = ex;
   state.answered = false;
 
@@ -384,14 +420,16 @@ function finishRound(isCorrect, explanation){
   }
   /* P3.2: Gezielter Korrektur-Hinweis bei falscher Antwort */
   var extra = "";
-  if(mk && state.currentWasDue && isCorrect){
-    var hadEntry = state.spaced[mk];
-    state.spaced = spacedCorrect(state.spaced, mk, Math.floor(Date.now()/1000));
-    extra = (hadEntry && state.spaced[mk] === undefined) ? extra + "<div style=\"margin-top:6px; font-size:.8rem; font-weight:600;\">🏆 Gemastert – diese Übung kommt nicht mehr automatisch zurück.</div>" : extra + "<div style=\"margin-top:6px; font-size:.8rem; font-weight:600;\">🔁 Wiederholung geschafft – sie kommt später noch einmal.</div>";
-  }
-  if(mk && !isCorrect){
-    state.spaced = spacedWrong(state.spaced, mk, Math.floor(Date.now()/1000));
-    extra = extra + "<div style=\"margin-top:6px; font-size:.8rem; font-weight:600;\">🔁 Diese Übung kommt bald zurück.</div>";
+  if(state.currentIsRepeat && isCorrect){
+    state.repeatQ.splice(state.repeatIdxCurrent, 1);
+    extra = (state.repeatQ.length === 0) ? extra + "<div style=\"margin-top:6px; font-size:.8rem; font-weight:600;\">🏆 Super gemacht! Alle Wiederholungen erfolgreich gelöst – wähle oben nun wieder deine nächsten Aufgaben aus.</div>" : extra + "<div style=\"margin-top:6px; font-size:.8rem; font-weight:600;\">🔁 Geschafft! Noch " + state.repeatQ.length + " Wiederholung(en) offen.</div>";
+  } else if(state.currentIsRepeat && !isCorrect){
+    var again = state.repeatQ.splice(state.repeatIdxCurrent, 1)[0];
+    if(again){ state.repeatQ.push(again); }
+    extra = extra + '<div style="margin-top:6px; font-size:.8rem; font-weight:600;">🔁 Kein Problem – die Aufgabe bleibt im Wiederholungstraining.</div>';
+  } else if(mk && !isCorrect){
+    storeRepeatInstance(state.current);
+    extra = extra + "<div style=\"margin-top:6px; font-size:.8rem; font-weight:600;\">🔁 Diese Aufgabe ist jetzt im Wiederholungstraining.</div>";
   }
   if(!isCorrect && state.current){
     var korr = TIPP1_BY_TOPIC[state.current.topic];
@@ -777,7 +815,7 @@ function loadProgressFromAPI(customToken) {
       state.solved  = d.solved      || 0;
       state.correct = d.correct     || 0;
       state.badges  = d.badges      || state.badges || [];
-      if(d.spaced){ state.spaced = spacedSanitize(d.spaced); }
+      if(d.repeatQ){ state.repeatQ = sanitizeRepeatQ(d.repeatQ); }
       state.mode    = (d.mode && MODES.some(function(m){return m.id===d.mode;})) ? d.mode : (state.mode || 'alles');
       state.grade   = (d.grade && GRADES.some(function(g){return g.id===d.grade;})) ? d.grade : (state.grade || 'all');
       console.log('[mathemit] Fortschritt vom Server geladen:', JSON.stringify({p:state.points,s:state.streak,bs:state.bestStreak}));
@@ -804,7 +842,7 @@ function syncProgressToAPI() {
       mode:        state.mode,
       grade:       state.grade,
       diff:        state.diff,
-      spaced:      state.spaced
+      repeatQ:     state.repeatQ
     }
   }).then(function(data) {
     // Sync-Fehler ignorieren - Fortschritt bleibt lokal gespeichert

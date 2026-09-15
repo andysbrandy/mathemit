@@ -66,7 +66,7 @@
 |---|---------|--------|
 | 4.1 | Kompetenz-Baum (Lehrplan-Codes als Skill-Tree) | ❌ |
 | 4.2 | Wöchentliche Ziele | ❌ |
-| 4.3 | Wiederholungstraining (falsch gelöste Aufgaben exakt wiederholen) | ✅ (Instanz-Speicherung lokal + DB, 🔁-Chip, Erfolgsmeldung) |
+| 4.3 | Wiederholungstraining (falsch gelöste Aufgaben exakt wiederholen) | ✅ (Instanz-Speicherung inkl. Original-Grafik, lokal + DB, 🔁-Chip, Erfolgsmeldung) |
 
 ### P5 — Österreich-Bezug & Polish
 
@@ -128,7 +128,7 @@
 - Bei falscher Antwort erscheint ein 🧭 Merke-Hinweis zur passenden Rechenstrategie.
 
 ### Wiederholungstraining (🔁)
-- Jede falsch beantwortete Aufgabe wird automatisch im Wiederholungstraining gespeichert – genau diese Aufgabe (nicht nur der Aufgabentyp).
+- Jede falsch beantwortete Aufgabe wird automatisch im Wiederholungstraining gespeichert – genau diese Aufgabe inklusive der Original-Grafik (nicht nur der Aufgabentyp).
 - Der 🔁-Chip zeigt die Anzahl der gespeicherten Wiederholungen; ein Antippen übt genau diese Aufgaben der Reihe nach.
 - Eine korrekt gelöste Wiederholung verlässt die Liste; ist die Liste leer, erscheint die Erfolgsmeldung und die Auswahl kehrt zu den normalen Aufgaben zurück.
 - Bleibt eine Wiederholung falsch, bleibt sie in der Liste und kommt erneut.

@@ -169,7 +169,7 @@ scrollActiveChip();
 function sanitizeRepeatQ(list){
   var out = [];
   if(!Array.isArray(list)){ return out; }
-  for(var i = 0; i < list.length && out.length < 20; i++){
+  for(var i = 0; i < list.length && out.length < 15; i++){
     var e = list[i];
     if(e && e.k && GEN[e.k]){ out.push(e); }
   }
@@ -181,8 +181,8 @@ function repeatSVG(){
 function storeRepeatInstance(ex){
   if(!ex || !state.currentKey){ return; }
   for(var i = 0; i < state.repeatQ.length; i++){ if(state.repeatQ[i].q === ex.question){ return; } }
-  var inst = { k: state.currentKey, q: ex.question, h: ex.hint, a: ex.answer, it: ex.inputType, ch: ex.choices, ci: ex.correctIndex, u: ex.unit, tol: ex.tolerance, ex: ex.explanation, badge: ex.badge, bc: ex.badgeColor, topic: ex.topic, ck: ex.curriculumKey, df: state.diff };
-  if(state.repeatQ.length >= 20){ state.repeatQ.shift(); }
+  var inst = { k: state.currentKey, q: ex.question, h: ex.hint, a: ex.answer, it: ex.inputType, ch: ex.choices, ci: ex.correctIndex, u: ex.unit, tol: ex.tolerance, ex: ex.explanation, badge: ex.badge, bc: ex.badgeColor, topic: ex.topic, ck: ex.curriculumKey, df: state.diff, sv: ex.svg };
+  if(state.repeatQ.length >= 15){ state.repeatQ.shift(); }
   state.repeatQ.push(inst);
 }
 function buildRepeatExercise(inst){
@@ -192,7 +192,7 @@ function buildRepeatExercise(inst){
     inputType: inst.it, choices: inst.ch, correctIndex: inst.ci,
     unit: inst.u, tolerance: inst.tol,
     badge: "🔁 " + (inst.badge || "Wiederholung"), badgeColor: "#F2A93B",
-    svg: repeatSVG(), diff: inst.df, key: inst.k
+    svg: inst.sv || repeatSVG(), diff: inst.df, key: inst.k
   };
 }
 

@@ -1,10 +1,10 @@
 # 🗺️ Mathemit — Roadmap zur besten Mathe-Lern-App in Österreich
 
-> Stand: v65 | Ziel: Vollständige Lehrplan-Abdeckung (AHS/MS 2023) mit pädagogischem Support + Feedback-Loop
+> Stand: v69 | Ziel: Vollständige Lehrplan-Abdeckung (AHS/MS 2023) mit pädagogischem Support + Feedback-Loop
 
 ---
 
-## 📊 Aktueller Stand (v65)
+## 📊 Aktueller Stand (v69)
 
 - **47 Generatoren in 15 lehrplangetreuen Themen-Modi** (H1–H4/I1–I3):
   Dreiecke, Vierecke, Winkel, Umfang & Fläche, Kreis, Körper (Volumen), Oberfläche, **Brüche (8 Operationen inkl. gemischte Zahlen & Bruch↔Dezimal)**, Brüche & Prozent, **Prozente & Zinsen (NEU)**, Textaufgaben (inkl. mehrstufig), Alltag in Österreich (inkl. mehrstufig), **Gleichungen & Verhältnisse** (inkl. Proportionalität), **Daten & Diagramme (NEU: Tabellen + Säulendiagramm)**

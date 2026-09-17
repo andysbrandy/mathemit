@@ -258,10 +258,12 @@
   .owl-logo .owl-wing-l{transform-origin:100% 50%;}
   .owl-logo .owl-wing-r{transform-origin:0% 50%;}
   .owl-logo.owl-blink .owl-eye-ring, .owl-logo.owl-blink .owl-pupil{transform:scaleY(.12);}
-  .owl-logo.owl-flap .owl-wing-l{transform:rotate(-26deg);}
-  .owl-logo.owl-flap .owl-wing-r{transform:rotate(26deg);}
+  @keyframes flapL{0%,100%{transform:rotate(0);}25%{transform:rotate(-48deg);}55%{transform:rotate(10deg);}80%{transform:rotate(-42deg);}}
+  @keyframes flapR{0%,100%{transform:rotate(0);}25%{transform:rotate(48deg);}55%{transform:rotate(-10deg);}80%{transform:rotate(42deg);}}
+  .owl-logo.owl-flap .owl-wing-l{animation:flapL .6s ease-in-out 1;}
+  .owl-logo.owl-flap .owl-wing-r{animation:flapR .6s ease-in-out 1;}
   @media (prefers-reduced-motion: reduce){
     .owl-logo .owl-pupil, .owl-logo .owl-eye-ring, .owl-logo .owl-wing{transition:none;}
     .owl-logo.owl-blink .owl-eye-ring, .owl-logo.owl-blink .owl-pupil,
-    .owl-logo.owl-flap .owl-wing{transform:none;}
+    .owl-logo.owl-flap .owl-wing{transform:none; animation:none;}
   }

@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Eulen-Logo">
   <g class="owl">
-    <ellipse class="owl-wing owl-wing-l" cx="22" cy="62" rx="11" ry="19" fill="#1FA294"/>
-    <ellipse class="owl-wing owl-wing-r" cx="78" cy="62" rx="11" ry="19" fill="#1FA294"/>
+    <ellipse class="owl-wing owl-wing-l" cx="17" cy="60" rx="13" ry="21" fill="#1FA294"/>
+    <ellipse class="owl-wing owl-wing-r" cx="83" cy="60" rx="13" ry="21" fill="#1FA294"/>
     <ellipse class="owl-body" cx="50" cy="58" rx="30" ry="35" fill="#FF6B4A"/>
     <ellipse class="owl-belly" cx="50" cy="73" rx="17" ry="14" fill="#FFE3DA"/>
     <path class="owl-ear owl-ear-l" d="M27 34 L34 12 L47 30 Z" fill="#F2A93B"/>
@@ -10,7 +10,7 @@
     <circle class="owl-eye-ring" cx="62" cy="49" r="13.5" fill="#FFFFFF" stroke="#1F2E45" stroke-width="2.5"/>
     <circle class="owl-pupil" cx="38" cy="49" r="5.5" fill="#1F2E45"/>
     <circle class="owl-pupil" cx="62" cy="49" r="5.5" fill="#1F2E45"/>
-    <path class="owl-beak" d="M50 56 L43 65 L57 65 Z" fill="#F2A93B" stroke="#1F2E45" stroke-width="1.5" stroke-linejoin="round"/>
+    <path class="owl-beak" d="M43 56 L57 56 L50 66 Z" fill="#F2A93B" stroke="#1F2E45" stroke-width="1.5" stroke-linejoin="round"/>
     <path class="owl-foot owl-foot-l" d="M40 92 L50 92 L45 99 Z" fill="#F2A93B"/>
     <path class="owl-foot owl-foot-r" d="M50 92 L60 92 L55 99 Z" fill="#F2A93B"/>
   </g>

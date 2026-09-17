@@ -18,6 +18,7 @@
 - **Österreichischer Lehrplan-Mapping** (Codes H1–H3, I1–I3)
 - **4 Level**, Streaks, Basis-Badges, Auth-System
 - **Comic-SVG-Engine** (gerundete Silhouetten, dynamische Skizzen)
+- **Geometrisches Eulen-Logo**: blinkt, die Pupillen folgen dem Cursor, die Flügel wedeln bei richtigen Aufgaben („Bewegung reduzieren" wird respektiert)
 - **9 Alltag-Textaufgaben** mit Österreich-Bezug
 
 ---
@@ -137,6 +138,7 @@
 ### Punkte, Serie & Flamme
 - 10 Punkte pro richtiger Aufgabe plus Serien-Bonus (bis 10 extra).
 - Die 🔥-Flamme flackert sanft, solange die Serie läuft; Antippen pausiert die Animation, erneutes Antippen setzt sie fort (auch mit Enter oder Leertaste). Die Systemeinstellung „Bewegung reduzieren" wird respektiert.
+- Das Eulen-Logo im Header blinkt gelegentlich, die Pupillen folgen dem Cursor und die Flügel wedeln bei jeder richtigen Aufgabe.
 
 ### Feedback
 - Der 💬-Button (erscheint nach 10 Sekunden) sendet Aufgabe und Hinweis als öffentliches GitHub-Issue; bitte keine persönlichen Daten angeben.

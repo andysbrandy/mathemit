@@ -247,3 +247,21 @@
     font-weight:700;
     color:var(--ink);
   }
+
+  /* ---------- Eulen-Logo (geometrische Formen, animierbar) ---------- */
+  .owl-host{display:inline-block; width:46px; height:46px; flex-shrink:0;}
+  .owl-host svg{width:100%; height:100%; display:block;}
+  .owl-logo .owl-pupil, .owl-logo .owl-eye-ring{
+    transform-box:fill-box; transform-origin:50% 50%; transition:transform .18s ease;
+  }
+  .owl-logo .owl-wing{transform-box:fill-box; transition:transform .22s ease;}
+  .owl-logo .owl-wing-l{transform-origin:100% 50%;}
+  .owl-logo .owl-wing-r{transform-origin:0% 50%;}
+  .owl-logo.owl-blink .owl-eye-ring, .owl-logo.owl-blink .owl-pupil{transform:scaleY(.12);}
+  .owl-logo.owl-flap .owl-wing-l{transform:rotate(-26deg);}
+  .owl-logo.owl-flap .owl-wing-r{transform:rotate(26deg);}
+  @media (prefers-reduced-motion: reduce){
+    .owl-logo .owl-pupil, .owl-logo .owl-eye-ring, .owl-logo .owl-wing{transition:none;}
+    .owl-logo.owl-blink .owl-eye-ring, .owl-logo.owl-blink .owl-pupil,
+    .owl-logo.owl-flap .owl-wing{transform:none;}
+  }

@@ -395,6 +395,7 @@ function finishRound(isCorrect, explanation){
   if(isCorrect){
     state.correct += 1;
     state.streak += 1;
+    owlCelebrate();
     state.bestStreak = Math.max(state.bestStreak, state.streak);
     var bonus = Math.min(10, state.streak) ;
     state.points += 10 + bonus;
@@ -988,6 +989,57 @@ var token = getToken();
 if (token) {
   loadProgressFromAPI();
 }
+
+  /* ============ Eulen-Logo: laden + animieren ============ */
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var owlSvg = document.querySelector(".owl-host");
+  function owlCelebrate(){
+    if(!owlSvg || reduceMotion){ return; }
+    var svg = owlSvg.querySelector("svg");
+    if(!svg){ return; }
+    svg.classList.add("owl-flap");
+    setTimeout(function(){ svg.classList.remove("owl-flap"); }, 700);
+  }
+  (function initOwlLogo(){
+    if(!owlSvg){ return; }
+    fetch("logo.svg", {credentials:"same-origin"}).then(function(r){
+      if(!r.ok){ throw new Error("HTTP " + r.status); }
+      return r.text();
+    }).then(function(svgText){
+      owlSvg.innerHTML = svgText;
+      var svg = owlSvg.querySelector("svg");
+      if(svg){ svg.classList.add("owl-logo"); }
+      if(reduceMotion){ return; }
+      (function scheduleBlink(){
+        setTimeout(function(){
+          var s = owlSvg.querySelector("svg");
+          if(s){
+            s.classList.add("owl-blink");
+            setTimeout(function(){ s.classList.remove("owl-blink"); }, 150);
+          }
+          scheduleBlink();
+        }, 3000 + Math.floor(Math.random() * 4000));
+      })();
+      var lastMove = 0;
+      document.addEventListener("mousemove", function(e){
+        var t2 = Date.now();
+        if(t2 - lastMove < 80){ return; }
+        lastMove = t2;
+        var s = owlSvg.querySelector("svg");
+        if(!s){ return; }
+        var r = s.getBoundingClientRect();
+        var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        var dx = e.clientX - cx, dy = e.clientY - cy;
+        var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        var k = Math.min(3.2, dist / 40);
+        var ox = (dx / dist) * k, oy = (dy / dist) * k;
+        var pupils = s.querySelectorAll(".owl-pupil");
+        for(var i = 0; i < pupils.length; i++){
+          pupils[i].setAttribute("transform", "translate(" + ox.toFixed(2) + " " + oy.toFixed(2) + ")");
+        }
+      });
+    }).catch(function(){ /* Logo nicht kritisch */ });
+  })();
 
 updateStatsUI();
 nextExercise();

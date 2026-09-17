@@ -255,11 +255,11 @@
     transform-box:fill-box; transform-origin:50% 50%; transition:transform .18s ease;
   }
   .owl-logo .owl-wing{transform-box:fill-box; transition:transform .22s ease;}
-  .owl-logo .owl-wing-l{transform-origin:100% 50%;}
-  .owl-logo .owl-wing-r{transform-origin:0% 50%;}
+  .owl-logo .owl-wing-l{transform-origin:50% 8%;}
+  .owl-logo .owl-wing-r{transform-origin:50% 8%;}
   .owl-logo.owl-blink .owl-eye-ring, .owl-logo.owl-blink .owl-pupil{transform:scaleY(.12);}
-  @keyframes flapL{0%,100%{transform:rotate(0);}25%{transform:rotate(-48deg);}55%{transform:rotate(10deg);}80%{transform:rotate(-42deg);}}
-  @keyframes flapR{0%,100%{transform:rotate(0);}25%{transform:rotate(48deg);}55%{transform:rotate(-10deg);}80%{transform:rotate(42deg);}}
+  @keyframes flapL{0%,100%{transform:rotate(4deg);}25%{transform:rotate(46deg);}55%{transform:rotate(2deg);}80%{transform:rotate(40deg);}}
+  @keyframes flapR{0%,100%{transform:rotate(-4deg);}25%{transform:rotate(-46deg);}55%{transform:rotate(-2deg);}80%{transform:rotate(-40deg);}}
   .owl-logo.owl-flap .owl-wing-l{animation:flapL .6s ease-in-out 1;}
   .owl-logo.owl-flap .owl-wing-r{animation:flapR .6s ease-in-out 1;}
   @media (prefers-reduced-motion: reduce){

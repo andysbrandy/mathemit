@@ -104,6 +104,7 @@
 - Tests: Node-Harness (`/tmp/mathemit-*.js`) — min. 200 Läufe, Antwort prüfen
 - Commits: `P1.x: <Thema> — <kurz>` + Version bump via pre-commit hook
 - SVG: dunkelgrau (#444444) für Beschriftungen, Comic-Stil
+- Konsistenzprüfung im Harness: alle Generatoren × 3 Stufen × 25 Läufe gegen Pflichtfelder, Begriffs-Verbote (z. B. „Radi" → „Radieschen") und Diagramm-Label-Abgleich prüfen
 
 ---
 

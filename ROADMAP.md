@@ -104,7 +104,7 @@
 - Tests: Node-Harness (`/tmp/mathemit-*.js`) — min. 200 Läufe, Antwort prüfen
 - Commits: `P1.x: <Thema> — <kurz>` + Version bump via pre-commit hook
 - SVG: dunkelgrau (#444444) für Beschriftungen, Comic-Stil
-- Konsistenzprüfung: `node scripts/konsistenz-check.js` (committeter Harness: alle 47 Generatoren × 3 Stufen × 25 Läufe gegen Pflichtfelder, Begriffs-Verbote (z. B. „Radi" → „Radieschen") und Diagramm-Label-Abgleich)
+- Konsistenzprüfung: `node scripts/konsistenz-check.js` (committeter Harness: alle 47 Generatoren × 3 Stufen × 25 Läufe gegen Pflichtfelder, Begriffs-Verbote (W38: „Radi" → „Radieschen" im Diagramm) und Diagramm-Label-Abgleich)
 
 ---
 

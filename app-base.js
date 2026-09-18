@@ -1401,7 +1401,7 @@
   // Säulendiagramm lesen (I3.M1): Balken auswerten
   function genDiagrammBalken(diff){
     diff = diff || 2;
-    var labels = choice([["Apfel","Birne","Kirsche","Pflaume"],["Hund","Katze","Vogel","Fisch"],["Radieschen","Bus","Auto","Zug"]]);
+    var labels = choice([["Apfel","Birne","Kirsche","Pflaume"],["Hund","Katze","Vogel","Fisch"],["Rad","Bus","Auto","Zug"]]);
     var n = diff===1 ? 3 : 4;
     var values = [], yMax = 0;
     for(var i=0;i<n;i++){

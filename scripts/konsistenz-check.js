@@ -20,7 +20,7 @@ function fail(m){ errors.push(m); }
 
 // Begriffs-Verbote (Feedback W38): Muster -> Hinweis.
 var BANNED = [
-  {re:/\bRadi\b(?!\w)/, fix:'"Radi" -> "Radieschen" (Kategorie im Diagramm)'}
+  {re:/\bRadi\b(?!\w)/, fix:'"Radi" -> "Radieschen" (Kategorie im Diagramm, Ausnahme: Radius)'}
 ];
 function checkBanned(side, text, key, diff, i){
   if(!text) return;

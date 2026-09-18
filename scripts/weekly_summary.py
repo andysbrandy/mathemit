@@ -187,8 +187,6 @@ Anzahl Feedbacks: {len(feedback_texts)}
     print(f"Summary geschrieben: {out_file}")
     print(f"Benachrichtigungs-Issue erstellt: #{issue.get('number')}")
 
-if __name__ == '__main__':
-    main()
 def send_email(subject, body):
     key = os.getenv('RESEND_API_KEY')
     to = os.getenv('MAIL_TO')
@@ -204,3 +202,6 @@ def ensure_assignee(issue):
         r2 = requests.post('https://api.github.com/repos/' + REPO + '/issues/' + str(issue.get('number')) + '/assignees', headers={'Authorization': 'token ' + GH_TOKEN, 'Accept': 'application/vnd.github+json'}, json={'assignees': [owner]})
         print('Zuweisung:', r2.status_code, str(r2.json())[:160])
     return issue
+if __name__ == '__main__':
+    main()
+

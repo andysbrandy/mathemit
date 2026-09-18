@@ -1803,7 +1803,7 @@
     return ex;
   }
 
-  // Wandertag: Höhenmeter + Distanz + Zeit (gemischte Aufgabe)
+  // Wandertag: Höhenmeter
   function genTextaufgabeWandertag(diff){
     diff = diff || 2;
     var name = choice(AUSTRIA.vornamen);
@@ -1812,17 +1812,14 @@
     var startHoehe = rand(700, 1400);
     var zielHoehe = startHoehe + (diff===1?rand(100,400):(diff===3?rand(500,1200):rand(300,800)));
     var hoehenmeter = zielHoehe - startHoehe;
-    var distanz = rand(4, 12); // km
-    var zeitStunden = rand(2, 5); // h
-    var speed = Math.round((distanz / zeitStunden) * 10) / 10; // km/h
     var ex = baseEx("textaufgabe","textaufgabe");
-    ex.question = name+" und "+name2+" wandern am Wandertag auf den "+berg+". Sie starten auf "+startHoehe+" m Seehöhe und erreichen den Gipfel auf "+zielHoehe+" m Seehöhe. Die Wanderstrecke ist "+distanz+" km und sie benötigen "+zeitStunden+" Stunden. a) Wie viele Höhenmeter überwinden sie? b) Welche Durchschnittsgeschwindigkeit (km/h) legen sie zurück?";
-    ex.hint = "a) Höhenmeter = Gipfelhöhe − Startshöhe. b) Geschwindigkeit = Strecke : Zeit.";
+    ex.question = name+" und "+name2+" wandern am Wandertag auf den "+berg+". Sie starten auf "+startHoehe+" m Seehöhe und erreichen den Gipfel auf "+zielHoehe+" m Seehöhe. Wie viele Höhenmeter überwinden sie?";
+    ex.hint = "Höhenmeter = Gipfelhöhe − Starthöhe.";
     ex.svg=austriaMapSVG({city:"Graz", icon:"🏔️", label:"Wandertag", color:"#F2A93B"});
     ex.badge="Alltag · Wandertag"; ex.badgeColor=COLORS.textaufgabe.main;
     ex.inputType="number"; ex.unit="m"; ex.tolerance=10;
     ex.answer = hoehenmeter;
-    ex.explanation = "a) Höhenmeter = "+zielHoehe+" m − "+startHoehe+" m = "+fmtAT(hoehenmeter)+" m. b) v = "+distanz+" km : "+zeitStunden+" h = "+fmtAT(speed)+" km/h.";
+    ex.explanation = "Höhenmeter = "+zielHoehe+" m − "+startHoehe+" m = "+fmtAT(hoehenmeter)+" m.";
     return ex;
   }
 

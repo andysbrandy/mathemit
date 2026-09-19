@@ -2097,6 +2097,81 @@
     return out;
   }
 
+  /* ============ P6: Eulenhain — endlose Stufen + Eulensammlung ============ */
+
+  var RANG_TITEL = [
+    "Geometrie-Lehrling", "Formen-Geselle", "Vierecks-Profi", "Dreiecks-Meister",
+    "Geometrie-Meister/in", "Muster-Denker/in", "Zahlen-Forscher/in", "Eulen-Freund/in",
+    "Rechen-Ass", "Mathe-Legende"
+  ];
+  function roman(n){
+    var m = [[1000,"M"],[900,"CM"],[500,"D"],[400,"CD"],[100,"C"],[90,"XC"],[50,"L"],
+             [40,"XL"],[10,"X"],[9,"IX"],[5,"V"],[4,"IV"],[1,"I"]];
+    var out = "", i;
+    for(i=0;i<m.length;i++){ while(n>=m[i][0]){ out+=m[i][1]; n-=m[i][0]; } }
+    return out;
+  }
+  /* Stufe n braucht kumulativ 50*(n-1)*n Punkte: Stufe 2=100, 3=300, 4=600, 5=1000, 10=4500 … */
+  function punkteFuerStufe(n){
+    n = Math.max(1, Math.floor(n));
+    return 50*(n-1)*n;
+  }
+  function stufeVonPunkten(p){
+    if(!(p>0)) return 1;
+    return Math.max(1, Math.floor((1 + Math.sqrt(1 + 2*p/25)) / 2));
+  }
+  function rangTitel(stufe){
+    stufe = Math.max(1, Math.floor(stufe));
+    var tier = Math.floor((stufe-1)/5);
+    var extra = Math.max(0, tier - (RANG_TITEL.length-1));
+    var base = RANG_TITEL[Math.min(tier, RANG_TITEL.length-1)];
+    return extra>0 ? base+" "+roman(extra+1) : base;
+  }
+
+  /* Eulen: 12 kuratierte Farbwelten, danach Farbton-Rotation (unendlich viele). */
+  var OWL_FARBEN = ["Rubin","Smaragd","Saphir","Bernstein","Ametyst","Jade","Topas","Mohn","Türkis","Lavendel","Zimt","Pflaume"];
+  var OWL_ANIMS = ["flap","blink","bob","tilt","hop","sleep","spin","fluff"];
+  function owlForLevel(n){
+    n = Math.max(1, Math.floor(n));
+    var idx = n - 1;
+    var iteration = Math.floor(idx / OWL_FARBEN.length);
+    var colorName = OWL_FARBEN[idx % OWL_FARBEN.length];
+    return {
+      stufe: n,
+      name: colorName + "-Eule" + (iteration>0 ? " " + roman(iteration+1) : ""),
+      colorName: colorName,
+      hue: (idx*47 + 268) % 360, /* 268 = Lila-Ton der Logo-Eule */
+      anim: OWL_ANIMS[idx % OWL_ANIMS.length]
+    };
+  }
+  /* Parametrische Eule in der Geometrie des Logos (app-active.js lädt logo.svg für den Header) */
+  function owlSVG(opts){
+    opts = opts || {};
+    var hue = (typeof opts.hue === "number") ? ((opts.hue % 360) + 360) % 360 : 268;
+    var size = (typeof opts.size === "number") ? Math.max(16, opts.size) : 56;
+    var label = String(opts.label || "Eule").replace(/"/g, "");
+    var body = "hsl(" + hue + ",72%,62%)";
+    var wing = "hsl(" + hue + ",66%,50%)";
+    var belly = "hsl(" + hue + ",85%,93%)";
+    var ear = "hsl(" + hue + ",58%,55%)";
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 0 124 100" width="'+size+'" height="'+Math.round(size*100/124)+'" role="img" aria-label="'+label+'">'
+      + '<g class="owl">'
+      + '<ellipse class="owl-wing owl-wing-l" cx="19" cy="64" rx="12.5" ry="20" fill="'+wing+'"/>'
+      + '<ellipse class="owl-wing owl-wing-r" cx="81" cy="64" rx="12.5" ry="20" fill="'+wing+'"/>'
+      + '<ellipse class="owl-body" cx="50" cy="58" rx="30" ry="35" fill="'+body+'"/>'
+      + '<ellipse class="owl-belly" cx="50" cy="73" rx="17" ry="14" fill="'+belly+'"/>'
+      + '<path class="owl-ear owl-ear-l" d="M32 33 L35 22 L42 31 Z" fill="'+ear+'"/>'
+      + '<path class="owl-ear owl-ear-r" d="M68 33 L65 22 L58 31 Z" fill="'+ear+'"/>'
+      + '<circle class="owl-eye-ring" cx="38" cy="49" r="13.5" fill="#FFFFFF" stroke="#1F2E45" stroke-width="2.5"/>'
+      + '<circle class="owl-eye-ring" cx="62" cy="49" r="13.5" fill="#FFFFFF" stroke="#1F2E45" stroke-width="2.5"/>'
+      + '<circle class="owl-pupil" cx="38" cy="49" r="5.5" fill="#1F2E45"/>'
+      + '<circle class="owl-pupil" cx="62" cy="49" r="5.5" fill="#1F2E45"/>'
+      + '<path class="owl-beak" d="M43 56 L57 56 L50 66 Z" fill="#F2A93B" stroke="#1F2E45" stroke-width="1.5" stroke-linejoin="round"/>'
+      + '<path class="owl-foot owl-foot-l" d="M40 92 L50 92 L45 99 Z" fill="#F2A93B"/>'
+      + '<path class="owl-foot owl-foot-r" d="M50 92 L60 92 L55 99 Z" fill="#F2A93B"/>'
+      + '</g></svg>';
+  }
+
   window.MB = {
     rand, randf, choice, shuffle, dist, mid, centroidOf, gcd, lcm, fmt, fmtAT, fmtEUR,
     normalizeAndScale, edgeLabelPos, vertexLabelPos, tickMarks, rightAngleMarker,
@@ -2107,6 +2182,7 @@
     COLORS, AUSTRIA, TRI_TEMPLATES, QUAD_TEMPLATES, QUAD_NAMES,
     TRI_STATEMENTS, QUAD_STATEMENTS, CURRICULUM_MAP, GEN, MODES, GRADES,
     GRADE_GROUPS, GRADE_TAGS, DIFFICULTIES, TIPP1_BY_TOPIC, deriveTips, bruchWort,
-    SPACED_STEPS, spacedSanitize, spacedWrong, spacedCorrect, spacedDueKeys
+    SPACED_STEPS, spacedSanitize, spacedWrong, spacedCorrect, spacedDueKeys,
+    punkteFuerStufe, stufeVonPunkten, rangTitel, owlForLevel, owlSVG, OWL_ANIMS
   };
 })();

@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Migration für bestehende DBs (manuell in phpMyAdmin ausführen):
 -- ALTER TABLE users ADD COLUMN consent_at DATETIME NULL AFTER pin_hash;
+-- ALTER TABLE progress ADD COLUMN owls JSON NULL AFTER badges;
 
 
 CREATE TABLE IF NOT EXISTS progress (
@@ -35,6 +36,7 @@ CREATE TABLE IF NOT EXISTS progress (
     solved INT DEFAULT 0,
     correct INT DEFAULT 0,
     badges JSON,
+    owls JSON NULL,
     mode VARCHAR(50),
     grade VARCHAR(10),
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

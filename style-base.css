@@ -272,3 +272,103 @@
   /* Header neu: Eule groß, Statistiken unter der Überschrift */
   .app-header{display:flex; align-items:center; gap:16px; margin-bottom:16px;}
   .brand .stats{margin-top:8px;}
+
+  /* ============ P6: Eulenhain ============ */
+  .stat-pill.eulenhain{
+    cursor:pointer; border:1px solid var(--line); background:none;
+    font:inherit; color:var(--ink); transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .stat-pill.eulenhain:hover{ transform:translateY(-2px); box-shadow:0 3px 10px rgba(31,46,69,.12); }
+  .eulenhain-content{ max-width:600px; }
+  .eh-intro{ font-size:.85rem; color:var(--muted); margin:4px 0 10px; }
+  .eh-stats{
+    font-size:.85rem; font-weight:600; background:var(--soft, #F4F6FA);
+    border:1px solid var(--line); border-radius:10px; padding:8px 12px; margin-bottom:10px;
+  }
+  .eh-scene{
+    background:linear-gradient(180deg,#E8F3FD 0%, #F6FBF1 100%);
+    border:1px solid var(--line); border-radius:16px;
+    padding:12px 10px 16px; overflow:hidden;
+  }
+  .eh-canopy{
+    height:54px; margin:-4px auto 6px; width:78%;
+    background:radial-gradient(circle at 30% 60%, #7FBF6A 0 34%, transparent 35%),
+               radial-gradient(circle at 62% 40%, #8FCF79 0 40%, transparent 41%),
+               radial-gradient(circle at 82% 66%, #6FAF5C 0 30%, transparent 31%);
+  }
+  .eh-crown{ display:none; }
+  .eh-trunk{ display:none; }
+  .eh-branch{ position:relative; margin:6px 0 10px; }
+  .eh-branch::before{
+    content:""; position:absolute; left:2%; right:2%; bottom:12px; height:10px;
+    border-radius:6px; background:#B07A45; box-shadow:0 2px 0 #8F5F33;
+  }
+  .eh-branch.eh-next::before{ background:#C9A16B; box-shadow:0 2px 0 #A57F4E; }
+  .eh-row{ display:flex; justify-content:space-around; position:relative; z-index:1; }
+  .eh-owl{
+    width:56px; display:flex; flex-direction:column; align-items:center;
+    cursor:pointer; border-radius:10px; padding:2px 0 0;
+    transition:transform .15s ease;
+  }
+  .eh-owl:hover{ transform:translateY(-3px); }
+  .eh-owl:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+  .eh-owl svg{ display:block; }
+  .eh-owl .eh-name{ font-size:.62rem; font-weight:700; color:var(--muted); margin-top:1px; }
+  .eh-owl.eh-mystery{ cursor:default; }
+  .eh-silhouette{ filter:grayscale(1) brightness(1.35); opacity:.42; }
+  .eh-branch.eh-next .eh-name{ font-style:italic; }
+  .eh-caption{
+    margin-top:10px; font-size:.82rem; font-weight:600; color:var(--ink);
+    min-height:1.4em; text-align:center;
+  }
+  .eh-hint{ font-size:.78rem; color:var(--muted); text-align:center; margin-top:4px; }
+  .eh-levelup{
+    margin-top:10px; padding:8px 10px; border-radius:10px;
+    background:#FFF7DE; border:1px solid var(--gold); font-size:.85rem;
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  }
+  .eh-levelup .mini{ margin-left:auto; }
+
+  /* Signature-Animationen der Eulen (einmalig bei Antippen, sanftes Wippen für die neueste Eule) */
+  .eh-owl .owl-wing, .eh-owl .owl-pupil, .eh-owl .owl-eye-ring, .eh-owl .owl{
+    transform-box:fill-box; transform-origin:center;
+  }
+  .eh-owl .owl-wing-l{ transform-origin:50% 6%; }
+  .eh-owl .owl-wing-r{ transform-origin:50% 6%; }
+  .eh-owl .owl{ transform-origin:50% 100%; }
+  @keyframes ehFlapL{0%,100%{transform:rotate(4deg);}25%{transform:rotate(-52deg);}55%{transform:rotate(2deg);}80%{transform:rotate(-46deg);}}
+  @keyframes ehFlapR{0%,100%{transform:rotate(-4deg);}25%{transform:rotate(52deg);}55%{transform:rotate(-2deg);}80%{transform:rotate(46deg);}}
+  @keyframes ehBlink{0%,38%,62%,100%{transform:scaleY(1);}50%{transform:scaleY(.1);}}
+  @keyframes ehBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+  @keyframes ehTilt{0%,100%{transform:rotate(0);}30%{transform:rotate(-10deg);}70%{transform:rotate(10deg);}}
+  @keyframes ehHop{0%,100%{transform:translateY(0) scale(1,1);}25%{transform:translateY(-2px) scale(1.06,.94);}55%{transform:translateY(-12px) scale(.96,1.06);}85%{transform:translateY(0) scale(1.04,.96);}}
+  @keyframes ehSleep{0%,100%{transform:rotate(0);}50%{transform:rotate(6deg);}}
+  @keyframes ehSpin{0%{transform:rotate(0);}100%{transform:rotate(360deg);}}
+  @keyframes ehFluff{0%,100%{transform:scale(1,1);}30%{transform:scale(1.12,.9);}60%{transform:scale(.94,1.08);}}
+  .eh-owl.eh-play[data-anim="flap"] .owl-wing-l{ animation:ehFlapL 1.2s ease-in-out 1; }
+  .eh-owl.eh-play[data-anim="flap"] .owl-wing-r{ animation:ehFlapR 1.2s ease-in-out 1; }
+  .eh-owl.eh-play[data-anim="blink"] .owl-eye-ring,
+  .eh-owl.eh-play[data-anim="blink"] .owl-pupil{ animation:ehBlink 1.1s ease-in-out 2; }
+  .eh-owl.eh-play[data-anim="bob"] .owl{ animation:ehBob .9s ease-in-out 2; }
+  .eh-owl.eh-play[data-anim="tilt"] .owl{ animation:ehTilt 1.1s ease-in-out 1; }
+  .eh-owl.eh-play[data-anim="hop"] .owl{ animation:ehHop 1s ease-in-out 1; }
+  .eh-owl.eh-play[data-anim="sleep"] .owl{ animation:ehSleep 2.2s ease-in-out 1; }
+  .eh-owl.eh-play[data-anim="spin"] .owl{ animation:ehSpin 1s ease-in-out 1; }
+  .eh-owl.eh-play[data-anim="fluff"] .owl{ animation:ehFluff .9s ease-in-out 2; }
+  .eh-owl.eh-idle .owl{ animation:ehBob 2.6s ease-in-out infinite; }
+
+  /* Konfetti beim Stufen-Aufstieg */
+  .eh-confetti{ position:fixed; inset:0; pointer-events:none; z-index:3000; }
+  .eh-confetti span{
+    position:absolute; top:-16px; left:var(--x); font-size:var(--s);
+    animation:ehFall var(--d) ease-in forwards;
+  }
+  @keyframes ehFall{ to{ transform:translateY(108vh) rotate(560deg); opacity:.85; } }
+
+  @media (prefers-reduced-motion: reduce){
+    .stat-pill.eulenhain{ transition:none; }
+    .eh-owl{ transition:none; }
+    .eh-owl.eh-play .owl-wing, .eh-owl.eh-play .owl, .eh-owl.eh-idle .owl,
+    .eh-owl.eh-play .owl-eye-ring, .eh-owl.eh-play .owl-pupil{ animation:none !important; }
+    .eh-confetti span{ animation:none !important; display:none; }
+  }

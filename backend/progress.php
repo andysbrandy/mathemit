@@ -41,7 +41,7 @@ try {
 
     if ($method === 'GET') {
         $stmt = $pdo->prepare(
-            'SELECT points, streak, best_streak, solved, correct, badges, spaced, mode, grade, updated_at
+            'SELECT points, streak, best_streak, solved, correct, badges, spaced, owls, mode, grade, updated_at
              FROM progress WHERE user_id = ?'
         );
         $stmt->execute([$userId]);
@@ -55,6 +55,7 @@ try {
                 'solved'      => 0,
                 'correct'     => 0,
                 'badges'      => null,
+                'owls'        => null,
                 'mode'        => null,
                 'grade'       => null,
                 'updated_at'  => null,
@@ -62,6 +63,9 @@ try {
         } else {
             if ($progress['badges'] !== null) {
                 $progress['badges'] = json_decode($progress['badges'], true);
+            }
+            if (isset($progress['owls']) && $progress['owls'] !== null) {
+                $progress['owls'] = json_decode($progress['owls'], true);
             }
             if (isset($progress['spaced']) && $progress['spaced'] !== null) {
                 $progress['spaced'] = json_decode($progress['spaced'], true);
@@ -87,14 +91,14 @@ try {
         }
 
         // Erlaubte Felder (Whitelist)
-        $allowed = ['points', 'streak', 'best_streak', 'solved', 'correct', 'badges', 'spaced', 'mode', 'grade'];
+        $allowed = ['points', 'streak', 'best_streak', 'solved', 'correct', 'badges', 'spaced', 'owls', 'mode', 'grade'];
         $updates = [];
         $params  = [];
 
         foreach ($allowed as $field) {
             if (array_key_exists($field, $input)) {
                 $updates[] = "$field = ?";
-                if (($field === 'badges' || $field === 'spaced') && $input[$field] !== null) {
+                if (($field === 'badges' || $field === 'spaced' || $field === 'owls') && $input[$field] !== null) {
                     $params[] = json_encode($input[$field]);
                 } else {
                     $params[] = $input[$field];

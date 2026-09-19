@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v83">
+<meta name="app-version" content="v84">
 <title>Die Formen-Werkstatt – Mathe für die Mittelschule</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -88,6 +88,7 @@
       <div class="stat-pill points"><span class="lbl">Punkte</span><span id="pointsVal">0</span></div>
       <div class="stat-pill streak"><span class="lbl"><span class="flame">🔥</span> Serie</span><span id="streakVal">0</span></div>
       <div class="stat-pill level"><span class="lbl">Rang</span><span id="levelVal">Lehrling</span></div>
+      <button class="stat-pill eulenhain" id="eulenhainBtn" type="button" title="Dein Eulenhain – alle gesammelten Eulen"><span class="lbl">🦉</span><span id="owlCountVal">1</span></button>
     </div>
       </div>
     </div>
@@ -151,6 +152,17 @@
     </div>
   </div>
 
+  <!-- Modal für den Eulenhain (gesammelte Eulen, endlose Stufen) -->
+  <div id="eulenhainModal" class="curriculum-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="ehTitle">
+    <div class="curriculum-modal-content eulenhain-content">
+      <button class="curriculum-modal-close" id="eulenhainClose" type="button" aria-label="Schließen">&times;</button>
+      <h3 class="curriculum-modal-title" id="ehTitle">🦉 Eulenhain</h3>
+      <div id="eulenhainBody" class="legal-body legal-scroll">
+        <!-- Inhalt wird per JS eingefügt -->
+      </div>
+    </div>
+  </div>
+
   <div class="session-row">
     <span id="sessionStat">0 Aufgaben gelöst · 0 richtig</span>
     <div class="badges" id="badges"></div>
@@ -165,7 +177,7 @@
 <script src="app-base.js"></script>
 <script src="app-active.js"></script>
 <footer class="app-version">
-  <span class="ver" id="appVersion">v83</span>
+  <span class="ver" id="appVersion">v84</span>
   <span style="margin-left:.6rem; font-size:.75rem; opacity:.75;" class="footer-links">
     <button type="button" class="footer-link" data-legal="datenschutz.html" data-title="Datenschutzerklärung">Datenschutz</button> ·
     <button type="button" class="footer-link" data-legal="impressum.html" data-title="Impressum">Impressum</button> ·

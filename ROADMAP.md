@@ -16,7 +16,8 @@
   - Freitags 11:00 UTC (= 12:00 CET): Wochen-Summary mit **🤖 Entwicklungsprompt** (`scripts/weekly_summary.py`) + Benachrichtigungs-Issue (→ Mail) — die gesamte Woche wird in EINEM KI-Aufruf ausgewertet
   - KI-Kette: GitHub Models → HF-Router (dynamische Modell-Erkennung via `/v1/models`) → Pollinations (keyless)
 - **Österreichischer Lehrplan-Mapping** (Codes H1–H3, I1–I3)
-- **4 Level**, Streaks, Basis-Badges, Auth-System
+- **Endlose Stufen + Eulenhain** (P6): Jede Stufe schaltet eine eigene Eule frei (eigene Farbwelt + eigene kleine Animation) — gesammelt auf einem wachsenden Baum im 🦉-Menü; dauerhaft gespeichert
+- **Streaks, Basis-Badges, Auth-System**
 - **Comic-SVG-Engine** (gerundete Silhouetten, dynamische Skizzen)
 - **Geometrisches Eulen-Logo**: blinkt, die Pupillen folgen dem Cursor, die Flügel wedeln bei richtigen Aufgaben („Bewegung reduzieren" wird respektiert)
 - **9 Alltag-Textaufgaben** mit Österreich-Bezug
@@ -75,6 +76,18 @@
 |---|---------|--------|
 | 5.1 | Mehr Regionen (15+ Alltag-Generatoren) | ❌ |
 | 5.2 | PWA / Offline | ❌ |
+
+### P6 — Eulenhain (endlose Stufen + Eulensammlung)
+
+| # | Schritt | Status |
+|---|---------|--------|
+| 6.1 | Endlose Stufen: Formel `50·(n−1)·n` (Stufe 2=100, 3=300, 10=4500 …) + Rangtitel alle 5 Stufen, danach endlos mit römischer Zählung („Mathe-Legende II") | ✅ |
+| 6.2 | Eulen-Engine: parametrische Eule in Logo-Geometrie, 12 kuratierte Farbwelten → nahtlose Farbton-Rotation (unendlich), 8 Signature-Animationen | ✅ |
+| 6.3 | 🦉-Menü „Eulenhain": Baum-Szene (je Zweig 5 Eulen), Antippen zeigt Signatur-Animation + Namen, nächste Eule als Silhouette mit Punktestand, Stufe-1-Eule ab Start | ✅ |
+| 6.4 | Persistenz: lokal + `progress.owls` (JSON) geräteübergreifend; Migration: bestehende Nutzer erhalten alle Eulen bis zur aktuellen Stufe automatisch | ✅ |
+| 6.5 | Aufstiegs-Feier: Konfetti + Banner mit neuem Eulennamen + Logo-Eule flattert; „Bewegung reduzieren" wird respektiert | ✅ |
+
+> **Live-Migration:** `ALTER TABLE progress ADD COLUMN owls JSON NULL AFTER badges;` in phpMyAdmin ausführen + aktualisierte `backend/progress.php` auf den mapi-Server hochladen.
 
 ---
 
@@ -140,6 +153,14 @@
 - 10 Punkte pro richtiger Aufgabe plus Serien-Bonus (bis 10 extra).
 - Die 🔥-Flamme flackert sanft, solange die Serie läuft; Antippen pausiert die Animation, erneutes Antippen setzt sie fort (auch mit Enter oder Leertaste). Die Systemeinstellung „Bewegung reduzieren" wird respektiert.
 - Das Eulen-Logo im Header blinkt gelegentlich, die Pupillen folgen dem Cursor und die Flügel wedeln bei jeder richtigen Aufgabe.
+
+### Eulenhain (🦉) — Stufen & Eulensammlung
+- Jede gelöste Aufgabe bringt Punkte; die **Stufen sind endlos** (Stufe 2 bei 100 Punkten, Stufe 3 bei 300, danach steigend). Jede Stufe hat einen Rangtitel (Geometrie-Lehrling, Formen-Geselle …), der alle 5 Stufen wechselt und später durchzählt („Mathe-Legende II").
+- **Jede Stufe schaltet eine eigene Eule frei** – ab Stufe 1 gehört dir die erste Eule. Jede Eule hat eine eigene Farbwelt (Rubin, Smaragd, Saphir, Bernstein …) und eine eigene kleine Animation (Flattern, Blinzeln, Wippen, Kopfkippen, Hüpfer, Schlafenszeit, Drehung, Federsträuben).
+- Über die 🦉-Pille neben „Rang" öffnet sich der **Eulenhain**: Die gesammelten Eulen sitzen je zu fünft auf einem Ast – der Baum wächst mit jeder neuen Stufe. Tippe eine Eule an und sie zeigt ihre Show.
+- Die **nächste Eule** wartet als Silhouette am letzten Ast; darunter steht, wie viele Punkte noch fehlen.
+- Beim Stufen-Aufstieg regnet kurz Konfetti und ein Banner verkündet die neue Eule (mit „Bewegung reduzieren" bleibt es ruhig).
+- Der Eulenhain wird dauerhaft gespeichert – als Gast im Browser, angemeldet geräteübergreifend.
 
 ### Feedback
 - Der 💬-Button (erscheint nach 10 Sekunden) sendet Aufgabe und Hinweis als öffentliches GitHub-Issue; bitte keine persönlichen Daten angeben.

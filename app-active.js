@@ -44,26 +44,39 @@ var state = {
   current: null,
   repeatQ: [], repeatIdx: 0, repeatIdxCurrent: 0, currentIsRepeat: false, repeatOnly: false, taskCount: 0, currentWasDue: false, wrongRow: 0,
   answered: false,
-  badges: []
+  badges: [], owls: [1]
 };
 var missByGen = {}, hitByGen = {}; // P2.2: Fehler-/Treffer-Serien je Übungstyp (Session)
 
-var LEVELS = [
-  {name:"Geometrie-Lehrling", min:0},
-  {name:"Formen-Geselle", min:100},
-  {name:"Vierecks-Profi", min:250},
-  {name:"Dreiecks-Meister", min:450},
-  {name:"Geometrie-Meister/in", min:700}
-];
+/* P6: Endlose Stufen — Mathematik & Eulen-Engine liegen in app-base.js (MB.*) */
+var punkteFuerStufe = MB.punkteFuerStufe;
+var stufeVonPunkten = MB.stufeVonPunkten;
+var rangTitel = MB.rangTitel;
+var owlForLevel = MB.owlForLevel;
+var owlSVG = MB.owlSVG;
 function currentLevel(){
-  var lvl = LEVELS[0];
-  for(var i=0;i<LEVELS.length;i++){ if(state.points>=LEVELS[i].min) lvl=LEVELS[i]; }
-  return lvl;
+  var s = stufeVonPunkten(state.points);
+  return { stufe:s, name:rangTitel(s), min:punkteFuerStufe(s) };
 }
 function nextLevel(){
-  var cur = currentLevel();
-  var idx = LEVELS.indexOf(cur);
-  return LEVELS[idx+1] || null;
+  var s = stufeVonPunkten(state.points)+1;
+  return { stufe:s, name:rangTitel(s), min:punkteFuerStufe(s) };
+}
+function sanitizeOwls(list){
+  var out = [];
+  if(Array.isArray(list)){
+    list.forEach(function(v){ v = Number(v); if(v>=1 && v<=5000 && out.indexOf(v)===-1) out.push(v); });
+  }
+  if(out.indexOf(1)===-1) out.push(1); /* Stufe 1 = Start-Eule */
+  out.sort(function(a,b){ return a-b; });
+  return out;
+}
+function ensureOwls(){
+  var s = stufeVonPunkten(state.points);
+  var neu = false;
+  for(var i=1;i<=s;i++){ if(state.owls.indexOf(i)===-1){ state.owls.push(i); neu = true; } }
+  if(neu) state.owls.sort(function(a,b){ return a-b; });
+  return neu;
 }
 
 var ENCOURAGE_OK = ["Super gemacht! 🎉","Genau richtig! 👏","Klasse, weiter so! ✨","Stark! Das sitzt. 💪","Perfekt gelöst! 🌟","Richtig! Du bist auf einem guten Weg. 🚀"];
@@ -77,7 +90,7 @@ function saveProgress(){
       points:state.points, streak:state.streak, bestStreak:state.bestStreak,
       solved:state.solved, correct:state.correct, badges:state.badges,
       mode:state.mode, grade:state.grade, diff:state.diff,
-      repeatQ:state.repeatQ
+      repeatQ:state.repeatQ, owls:state.owls
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }catch(e){ /* z. B. Privatmodus ohne Speicherzugriff - Fortschritt bleibt dann nur für diese Sitzung erhalten */ }
@@ -97,10 +110,12 @@ function loadProgress(){
     state.grade = GRADES.some(function(g){return g.id===d.grade;}) ? d.grade : "all";
     state.diff = (d.diff===1 || d.diff===2 || d.diff===3) ? d.diff : 2;
     state.repeatQ = sanitizeRepeatQ(d.repeatQ);
+    state.owls = sanitizeOwls(d.owls);
+    ensureOwls();
   }catch(e){ /* beschädigter oder fehlender Speicher wird ignoriert, App startet mit Standardwerten */ }
 }
 function resetProgress(){
-  state.points=0; state.streak=0; state.bestStreak=0; state.solved=0; state.correct=0; state.badges=[]; state.repeatQ=[]; state.repeatIdx=0; state.repeatOnly=false; state.taskCount=0; state.wrongRow=0;
+  state.points=0; state.streak=0; state.bestStreak=0; state.solved=0; state.correct=0; state.badges=[]; state.owls=[1]; state.repeatQ=[]; state.repeatIdx=0; state.repeatOnly=false; state.taskCount=0; state.wrongRow=0;
   try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
   updateStatsUI();
 }
@@ -253,20 +268,14 @@ function updateStatsUI(){
   }
   var lvl = currentLevel();
   document.getElementById("levelVal").textContent = lvl.name.split(" ")[0];
-  document.getElementById("levelNameSmall").textContent = lvl.name;
-  var nxt = nextLevel();
-  var fill = document.getElementById("levelFill");
-  var nextEl = document.getElementById("levelNext");
-  if(nxt){
-    var span = nxt.min - lvl.min;
-    var progressed = state.points - lvl.min;
-    var pct = Math.max(0, Math.min(100, (progressed/span)*100));
-    fill.style.width = pct+"%";
-    nextEl.textContent = (nxt.min-state.points)+" Punkte bis „"+nxt.name+"“";
-  } else {
-    fill.style.width = "100%";
-    nextEl.textContent = "Höchster Rang erreicht! 👑";
-  }
+  document.getElementById("levelNameSmall").textContent = "Stufe "+lvl.stufe+" · "+lvl.name;
+  var span = punkteFuerStufe(lvl.stufe+1)-lvl.min;
+  var progressed = state.points - lvl.min;
+  var pct = Math.max(0, Math.min(100, (progressed/span)*100));
+  document.getElementById("levelFill").style.width = pct+"%";
+  document.getElementById("levelNext").textContent = (span-progressed)+" Punkte bis Stufe "+(lvl.stufe+1)+" – neue Eule! 🦉";
+  var owlCountEl = document.getElementById("owlCountVal");
+  if(owlCountEl) owlCountEl.textContent = state.owls.length;
   document.getElementById("sessionStat").textContent = state.solved+" Aufgaben gelöst · "+state.correct+" richtig";
   renderBadges();
 }
@@ -384,6 +393,7 @@ function nextExercise(){
 
 function finishRound(isCorrect, explanation){
   state.answered = true;
+  var lvlBefore = stufeVonPunkten(state.points);
   if(isCorrect){ state.wrongRow = 0; } else { state.wrongRow = state.wrongRow + 1; }
   state.solved += 1;
   /* P2.2: Serien je Übungstyp tracken */
@@ -401,6 +411,16 @@ function finishRound(isCorrect, explanation){
     state.points += 10 + bonus;
   } else {
     state.streak = 0;
+  }
+  /* P6: Stufen-Aufstieg → neue Eule im Eulenhain */
+  var lvlAfter = stufeVonPunkten(state.points);
+  if(lvlAfter > lvlBefore){
+    var neueStufen = [];
+    for(var li=lvlBefore+1; li<=lvlAfter; li++){
+      if(state.owls.indexOf(li)===-1){ state.owls.push(li); neueStufen.push(li); }
+    }
+    state.owls.sort(function(a,b){ return a-b; });
+    if(neueStufen.length){ owlCelebrate(); spawnConfetti(); showLevelUpBanner(neueStufen[0]); }
   }
   checkBadges();
   updateStatsUI();
@@ -558,6 +578,101 @@ function openLegalModal(file, title){
 function closeLegalModal(){ if(legalModalEl) legalModalEl.style.display = "none"; }
 var legalModalCloseEl = document.getElementById("legalModalClose");
 if(legalModalCloseEl){ legalModalCloseEl.addEventListener("click", closeLegalModal); }
+
+/* ---------- P6: Stufen-Aufstiegs-Feier + Eulenhain ---------- */
+var ANIM_NAMES = {flap:"Flattern", blink:"Blinzeln", bob:"Wippen", tilt:"Kopfkippen", hop:"Hüpfer", sleep:"Schlafenszeit", spin:"Drehung", fluff:"Federsträuben"};
+function spawnConfetti(){
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduce) return;
+  var host = document.createElement("div");
+  host.className = "eh-confetti";
+  host.setAttribute("aria-hidden", "true");
+  var parts = ["🎉","✨","⭐","🦉","💜","💚","💙","🧡"];
+  for(var i=0;i<26;i++){
+    var s = document.createElement("span");
+    s.textContent = parts[i % parts.length];
+    s.style.setProperty("--x", (Math.random()*96)+"vw");
+    s.style.setProperty("--d", (1.6+Math.random()*1.6)+"s");
+    s.style.setProperty("--s", (12+Math.random()*14)+"px");
+    s.style.animationDelay = (Math.random()*0.5)+"s";
+    host.appendChild(s);
+  }
+  document.body.appendChild(host);
+  setTimeout(function(){ if(host.parentNode) host.parentNode.removeChild(host); }, 3800);
+}
+function showLevelUpBanner(stufe){
+  var owl = owlForLevel(stufe);
+  var fb = document.getElementById("feedback");
+  if(!fb) return;
+  var div = document.createElement("div");
+  div.className = "eh-levelup";
+  div.innerHTML = "🦉 <strong>Stufe "+stufe+" erreicht!</strong> Neue Eule im Eulenhain: <strong>"+escHtml(owl.name)+"</strong> ";
+  var b = document.createElement("button");
+  b.className = "mini"; b.type = "button"; b.textContent = "Eulenhain ansehen";
+  b.addEventListener("click", openEulenhainModal);
+  div.appendChild(b);
+  fb.appendChild(div);
+}
+var eulenhainModalEl = document.getElementById("eulenhainModal");
+var eulenhainBodyEl = document.getElementById("eulenhainBody");
+function openEulenhainModal(){
+  renderEulenhain();
+  if(eulenhainModalEl) eulenhainModalEl.style.display = "flex";
+}
+function closeEulenhainModal(){ if(eulenhainModalEl) eulenhainModalEl.style.display = "none"; }
+function renderEulenhain(){
+  if(!eulenhainBodyEl) return;
+  var lvl = currentLevel();
+  var rows = [], i;
+  for(i=0;i<state.owls.length;i+=5){ rows.push(state.owls.slice(i,i+5)); }
+  var html = '<p class="eh-intro">Jede Stufe schaltet eine neue Eule frei – dein Baum wächst mit! Tippe eine Eule an, um ihre kleine Show zu sehen.</p>';
+  html += '<div class="eh-stats">Stufe <strong>'+lvl.stufe+'</strong> · '+escHtml(rangTitel(lvl.stufe))+' · <strong>'+state.owls.length+'</strong> Eule(n) gesammelt</div>';
+  html += '<div class="eh-scene"><div class="eh-canopy" aria-hidden="true"></div><div class="eh-crown" aria-hidden="true"></div>';
+  rows.forEach(function(row){
+    html += '<div class="eh-branch"><div class="eh-row">';
+    row.forEach(function(st){
+      var o = owlForLevel(st);
+      html += '<div class="eh-owl'+(st===lvl.stufe?' eh-idle':'')+'" data-anim="'+o.anim+'" data-stufe="'+st+'" role="button" tabindex="0" aria-label="'+escHtml(o.name)+', Stufe '+st+'">'
+            + owlSVG({hue:o.hue, size:52, label:o.name})
+            + '<span class="eh-name">'+st+'</span></div>';
+    });
+    html += '</div></div>';
+  });
+  var nxt = owlForLevel(lvl.stufe+1);
+  var fehl = Math.max(0, punkteFuerStufe(lvl.stufe+1) - state.points);
+  html += '<div class="eh-branch eh-next"><div class="eh-row">'
+        + '<div class="eh-owl eh-mystery"><div class="eh-silhouette">'+owlSVG({hue:nxt.hue, size:52, label:"Neue Eule"})+'</div><span class="eh-name">'+(lvl.stufe+1)+'</span></div>'
+        + '</div></div>';
+  html += '</div>';
+  html += '<div class="eh-caption" id="ehCaption">💡 Tippe eine Eule an!</div>';
+  html += '<div class="eh-hint">🔭 Noch <strong>'+fehl+'</strong> Punkte bis zur nächsten Eule: <strong>'+escHtml(nxt.name)+'</strong> (Stufe '+(lvl.stufe+1)+')</div>';
+  eulenhainBodyEl.innerHTML = html;
+  Array.prototype.forEach.call(eulenhainBodyEl.querySelectorAll(".eh-owl[data-stufe]"), function(el){
+    function play(){
+      var o = owlForLevel(Number(el.dataset.stufe));
+      el.classList.remove("eh-play");
+      void el.offsetWidth; /* laufende Animation neu starten */
+      el.classList.add("eh-play");
+      var cap = document.getElementById("ehCaption");
+      if(cap) cap.textContent = "🦉 "+o.name+" · Stufe "+o.stufe+" — mag es zu „"+ANIM_NAMES[o.anim]+"“";
+      setTimeout(function(){ el.classList.remove("eh-play"); }, 2600);
+    }
+    el.addEventListener("click", play);
+    el.addEventListener("keydown", function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); play(); } });
+  });
+}
+var eulenhainBtnEl = document.getElementById("eulenhainBtn");
+if(eulenhainBtnEl) eulenhainBtnEl.addEventListener("click", openEulenhainModal);
+var eulenhainCloseEl = document.getElementById("eulenhainClose");
+if(eulenhainCloseEl) eulenhainCloseEl.addEventListener("click", closeEulenhainModal);
+if(eulenhainModalEl){
+  eulenhainModalEl.addEventListener("click", function(e){
+    if(e.target === eulenhainModalEl) closeEulenhainModal();
+  });
+}
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape") closeEulenhainModal();
+});
 if(legalModalEl){
   legalModalEl.addEventListener("click", function(e){
     if(e.target === legalModalEl) closeLegalModal();
@@ -817,6 +932,8 @@ function loadProgressFromAPI(customToken) {
       state.correct = d.correct     || 0;
       state.badges  = d.badges      || state.badges || [];
       if(d.repeatQ){ state.repeatQ = sanitizeRepeatQ(d.repeatQ); }
+      if(d.owls){ state.owls = sanitizeOwls(d.owls); }
+      ensureOwls();
       state.mode    = (d.mode && MODES.some(function(m){return m.id===d.mode;})) ? d.mode : (state.mode || 'alles');
       state.grade   = (d.grade && GRADES.some(function(g){return g.id===d.grade;})) ? d.grade : (state.grade || 'all');
       console.log('[mathemit] Fortschritt vom Server geladen:', JSON.stringify({p:state.points,s:state.streak,bs:state.bestStreak}));
@@ -843,7 +960,8 @@ function syncProgressToAPI() {
       mode:        state.mode,
       grade:       state.grade,
       diff:        state.diff,
-      repeatQ:     state.repeatQ
+      repeatQ:     state.repeatQ,
+      owls:        state.owls
     }
   }).then(function(data) {
     // Sync-Fehler ignorieren - Fortschritt bleibt lokal gespeichert

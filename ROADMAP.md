@@ -87,7 +87,7 @@
 | 6.4 | Persistenz: lokal + `progress.owls` (JSON) geräteübergreifend; Migration: bestehende Nutzer erhalten alle Eulen bis zur aktuellen Stufe automatisch | ✅ |
 | 6.5 | Aufstiegs-Feier: Konfetti + Banner mit neuem Eulennamen + Logo-Eule flattert; „Bewegung reduzieren" wird respektiert | ✅ |
 
-> **Live-Migration:** `ALTER TABLE progress ADD COLUMN owls JSON NULL AFTER badges;` in phpMyAdmin ausführen + aktualisierte `backend/progress.php` auf den mapi-Server hochladen.
+> **Live-Migration:** ✅ erledigt — `owls`-Spalte angelegt, `progress.php` deployed; E2E-Test bestätigt (Speichern + Rücklesen von `owls` über die API). Zusätzlich behoben: World4You streicht den `Authorization`-Header → die App sendet nun zusätzlich `X-API-Token`, CORS erlaubt ihn, `backend/.htaccess` reicht Bearer durch (v85).
 
 ---
 

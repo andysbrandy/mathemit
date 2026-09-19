@@ -734,6 +734,9 @@ function apiFetch(endpoint, options) {
   var token = getToken();
   if (token) {
     headers['Authorization'] = 'Bearer ' + token;
+    /* World4You (FastCGI) streicht den Authorization-Header, bevor PHP ihn sieht.
+       Der Custom-Header X-API-Token kommt an und wird von security.php akzeptiert. */
+    headers['X-API-Token'] = token;
   }
   var controller = new AbortController();
   var timeout = setTimeout(function() { controller.abort(); }, 8000);

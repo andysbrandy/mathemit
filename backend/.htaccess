@@ -1,0 +1,9 @@
+# World4You (FastCGI/CGI): Authorization-Header an PHP durchreichen,
+# damit authenticate_token() den Bearer-Token lesen kann.
+# (Primär genutzt wird ohnehin X-API-Token – als Custom-Header nie gestrichen.)
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP:Authorization} .
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>

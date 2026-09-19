@@ -372,3 +372,27 @@
     .eh-owl.eh-play .owl-eye-ring, .eh-owl.eh-play .owl-pupil{ animation:none !important; }
     .eh-confetti span{ animation:none !important; display:none; }
   }
+
+  /* ============ P4.2: Wöchentliche Ziele ============ */
+  .wochenziele{ display:flex; gap:10px; flex-wrap:wrap; align-items:stretch; margin-bottom:16px; }
+  .wz-goal{
+    flex:1; min-width:180px; background:#F7FAF5; border:1px solid var(--line);
+    border-radius:12px; padding:8px 10px;
+  }
+  .wz-goal.fertig{ background:#F2FBF0; border-color:#8FCF79; }
+  .wz-head{
+    display:flex; justify-content:space-between; align-items:center; gap:8px;
+    font-size:.75rem; font-weight:700; color:var(--ink);
+  }
+  .wz-track{ height:8px; border-radius:5px; background:var(--line); margin-top:7px; overflow:hidden; }
+  .wz-fill{
+    height:100%; border-radius:5px; width:0%;
+    background:linear-gradient(90deg, var(--gold), var(--triangle));
+    transition:width .5s cubic-bezier(.4,1.4,.6,1);
+  }
+  .wz-goal.fertig .wz-fill{ background:linear-gradient(90deg, #6FBF5A, #8FCF79); }
+  .wz-bonus{
+    flex-basis:100%; font-size:.72rem; font-weight:600; color:var(--muted);
+    padding:2px 2px 0;
+  }
+  .wz-bonus.fertig{ color:#3F8F3B; font-weight:700; }

@@ -44,7 +44,8 @@ var state = {
   current: null,
   repeatQ: [], repeatIdx: 0, repeatIdxCurrent: 0, currentIsRepeat: false, repeatOnly: false, taskCount: 0, currentWasDue: false, wrongRow: 0,
   answered: false,
-  badges: [], owls: [1]
+  badges: [], owls: [1],
+  weekly: { week:"", points:0, solved:0, repeats:0, done:[], bonusGiven:false }
 };
 var missByGen = {}, hitByGen = {}; // P2.2: Fehler-/Treffer-Serien je Übungstyp (Session)
 
@@ -54,6 +55,8 @@ var stufeVonPunkten = MB.stufeVonPunkten;
 var rangTitel = MB.rangTitel;
 var owlForLevel = MB.owlForLevel;
 var owlSVG = MB.owlSVG;
+var WOCHENZIELE = MB.WOCHENZIELE;
+var wochenSchluessel = MB.wochenSchluessel;
 function currentLevel(){
   var s = stufeVonPunkten(state.points);
   return { stufe:s, name:rangTitel(s), min:punkteFuerStufe(s) };
@@ -78,6 +81,76 @@ function ensureOwls(){
   if(neu) state.owls.sort(function(a,b){ return a-b; });
   return neu;
 }
+/* P4.2: Wöchentliche Ziele */
+function sanitizeWochen(d){
+  var cur = wochenSchluessel();
+  if(!d || typeof d !== "object" || d.week !== cur){
+    return { week:cur, points:0, solved:0, repeats:0, done:[], bonusGiven:false };
+  }
+  var validIds = WOCHENZIELE.map(function(z){ return z.id; });
+  return {
+    week: cur,
+    points: Math.max(0, Math.min(99999, Number(d.points) || 0)),
+    solved: Math.max(0, Math.min(99999, Number(d.solved) || 0)),
+    repeats: Math.max(0, Math.min(99999, Number(d.repeats) || 0)),
+    done: (Array.isArray(d.done) ? d.done : []).filter(function(v){ return validIds.indexOf(v) !== -1; }),
+    bonusGiven: !!d.bonusGiven
+  };
+}
+function ensureWochen(){
+  var cur = wochenSchluessel();
+  if(!state.weekly || state.weekly.week !== cur){
+    state.weekly = sanitizeWochen(state.weekly);
+  }
+}
+function pruefeWochenziele(){
+  ensureWochen();
+  var neu = [];
+  WOCHENZIELE.forEach(function(z){
+    if((state.weekly[z.id] || 0) >= z.ziel && state.weekly.done.indexOf(z.id) === -1){
+      state.weekly.done.push(z.id);
+      neu.push(z);
+    }
+  });
+  var alle = WOCHENZIELE.every(function(z){ return (state.weekly[z.id] || 0) >= z.ziel; });
+  var bonus = false;
+  if(alle && !state.weekly.bonusGiven){
+    state.weekly.bonusGiven = true;
+    state.points += 30; /* Wochen-Bonus → treibt Stufen & Eulen zusätzlich an */
+    bonus = true;
+  }
+  return { neue: neu, bonus: bonus };
+}
+function renderWochenziele(){
+  var host = document.getElementById("wochenziele");
+  if(!host) return;
+  ensureWochen();
+  var html = WOCHENZIELE.map(function(z){
+    var wert = state.weekly[z.id] || 0;
+    var fertig = wert >= z.ziel;
+    var pct = Math.max(0, Math.min(100, (wert / z.ziel) * 100));
+    return '<div class="wz-goal'+(fertig ? ' fertig' : '')+'">'
+      + '<div class="wz-head"><span>'+z.icon+' '+z.label+'</span><span>'+(fertig ? '✅' : Math.min(wert, z.ziel)+'/'+z.ziel)+'</span></div>'
+      + '<div class="wz-track"><div class="wz-fill" style="width:'+pct+'%"></div></div>'
+      + '</div>';
+  }).join("");
+  var alle = WOCHENZIELE.every(function(z){ return (state.weekly[z.id] || 0) >= z.ziel; });
+  html += '<div class="wz-bonus'+(state.weekly.bonusGiven ? ' fertig' : '')+'">'
+    + (state.weekly.bonusGiven ? '🎁 Wochen-Bonus kassiert: +30 Punkte!' : '🎁 Belohnung: alle 3 Ziele = +30 Bonus-Punkte')
+    + '</div>';
+  host.innerHTML = html;
+}
+function showWochenBanner(wz){
+  var fb = document.getElementById("feedback");
+  if(!fb) return;
+  var teile = wz.neue.map(function(z){ return z.icon+" "+z.label; });
+  if(wz.bonus) teile.push("🎁 <strong>+30 Bonus-Punkte!</strong>");
+  if(!teile.length) return;
+  var div = document.createElement("div");
+  div.className = "eh-levelup";
+  div.innerHTML = "🏁 <strong>Wochenziel geschafft:</strong> " + teile.join(" · ");
+  fb.appendChild(div);
+}
 
 var ENCOURAGE_OK = ["Super gemacht! 🎉","Genau richtig! 👏","Klasse, weiter so! ✨","Stark! Das sitzt. 💪","Perfekt gelöst! 🌟","Richtig! Du bist auf einem guten Weg. 🚀"];
 var ENCOURAGE_BAD = ["Nicht ganz – schau dir die Erklärung an. 🧭","Fast! Lies dir die Lösung durch. 📘","Kein Problem, das übst du gleich noch mal. 🔁","Diesmal nicht, aber dranbleiben lohnt sich! 🌱"];
@@ -90,7 +163,7 @@ function saveProgress(){
       points:state.points, streak:state.streak, bestStreak:state.bestStreak,
       solved:state.solved, correct:state.correct, badges:state.badges,
       mode:state.mode, grade:state.grade, diff:state.diff,
-      repeatQ:state.repeatQ, owls:state.owls
+      repeatQ:state.repeatQ, owls:state.owls, weekly:state.weekly
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }catch(e){ /* z. B. Privatmodus ohne Speicherzugriff - Fortschritt bleibt dann nur für diese Sitzung erhalten */ }
@@ -112,10 +185,11 @@ function loadProgress(){
     state.repeatQ = sanitizeRepeatQ(d.repeatQ);
     state.owls = sanitizeOwls(d.owls);
     ensureOwls();
+    state.weekly = sanitizeWochen(d.weekly);
   }catch(e){ /* beschädigter oder fehlender Speicher wird ignoriert, App startet mit Standardwerten */ }
 }
 function resetProgress(){
-  state.points=0; state.streak=0; state.bestStreak=0; state.solved=0; state.correct=0; state.badges=[]; state.owls=[1]; state.repeatQ=[]; state.repeatIdx=0; state.repeatOnly=false; state.taskCount=0; state.wrongRow=0;
+  state.points=0; state.streak=0; state.bestStreak=0; state.solved=0; state.correct=0; state.badges=[]; state.owls=[1]; state.repeatQ=[]; state.repeatIdx=0; state.repeatOnly=false; state.taskCount=0; state.wrongRow=0; state.weekly = sanitizeWochen(null);
   try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
   updateStatsUI();
 }
@@ -277,6 +351,7 @@ function updateStatsUI(){
   var owlCountEl = document.getElementById("owlCountVal");
   if(owlCountEl) owlCountEl.textContent = state.owls.length;
   document.getElementById("sessionStat").textContent = state.solved+" Aufgaben gelöst · "+state.correct+" richtig";
+  renderWochenziele();
   renderBadges();
 }
 
@@ -412,6 +487,12 @@ function finishRound(isCorrect, explanation){
   } else {
     state.streak = 0;
   }
+  /* P4.2: Wöchentliche Ziele tracken (vor der Stufen-Prüfung, damit der Bonus mitzählt) */
+  ensureWochen();
+  state.weekly.solved += 1;
+  if(isCorrect) state.weekly.points += 10 + Math.min(10, state.streak);
+  if(state.currentIsRepeat && isCorrect) state.weekly.repeats += 1;
+  var wz = pruefeWochenziele();
   /* P6: Stufen-Aufstieg → neue Eule im Eulenhain */
   var lvlAfter = stufeVonPunkten(state.points);
   if(lvlAfter > lvlBefore){
@@ -422,6 +503,7 @@ function finishRound(isCorrect, explanation){
     state.owls.sort(function(a,b){ return a-b; });
     if(neueStufen.length){ owlCelebrate(); spawnConfetti(); showLevelUpBanner(neueStufen[0]); }
   }
+  if(wz.neue.length || wz.bonus){ spawnConfetti(); showWochenBanner(wz); }
   checkBadges();
   updateStatsUI();
   saveProgress();
@@ -937,6 +1019,7 @@ function loadProgressFromAPI(customToken) {
       if(d.repeatQ){ state.repeatQ = sanitizeRepeatQ(d.repeatQ); }
       if(d.owls){ state.owls = sanitizeOwls(d.owls); }
       ensureOwls();
+      state.weekly = sanitizeWochen(d.goals);
       state.mode    = (d.mode && MODES.some(function(m){return m.id===d.mode;})) ? d.mode : (state.mode || 'alles');
       state.grade   = (d.grade && GRADES.some(function(g){return g.id===d.grade;})) ? d.grade : (state.grade || 'all');
       console.log('[mathemit] Fortschritt vom Server geladen:', JSON.stringify({p:state.points,s:state.streak,bs:state.bestStreak}));
@@ -964,7 +1047,8 @@ function syncProgressToAPI() {
       grade:       state.grade,
       diff:        state.diff,
       repeatQ:     state.repeatQ,
-      owls:        state.owls
+      owls:        state.owls,
+      goals:       state.weekly
     }
   }).then(function(data) {
     // Sync-Fehler ignorieren - Fortschritt bleibt lokal gespeichert

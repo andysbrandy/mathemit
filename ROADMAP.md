@@ -67,7 +67,7 @@
 | # | Schritt | Status |
 |---|---------|--------|
 | 4.1 | Kompetenz-Baum (Lehrplan-Codes als Skill-Tree) | ❌ |
-| 4.2 | Wöchentliche Ziele | ❌ |
+| 4.2 | Wöchentliche Ziele | ✅ 3 Ziele (🎯 50 Punkte · 📚 20 Aufgaben · 🔁 5 Wiederholungen), ISO-Wochenstart montags, Fortschrittsbalken, +30 Bonus-Punkte bei allen 3 Zielen; gespeichert lokal + DB (`progress.goals`) |
 | 4.3 | Wiederholungstraining (falsch gelöste Aufgaben exakt wiederholen) | ✅ (Instanz-Speicherung inkl. Original-Grafik, lokal + DB, 🔁-Chip, Erfolgsmeldung) |
 
 ### P5 — Österreich-Bezug & Polish
@@ -87,7 +87,7 @@
 | 6.4 | Persistenz: lokal + `progress.owls` (JSON) geräteübergreifend; Migration: bestehende Nutzer erhalten alle Eulen bis zur aktuellen Stufe automatisch | ✅ |
 | 6.5 | Aufstiegs-Feier: Konfetti + Banner mit neuem Eulennamen + Logo-Eule flattert; „Bewegung reduzieren" wird respektiert | ✅ |
 
-> **Live-Migration:** ✅ erledigt — `owls`-Spalte angelegt, `progress.php` deployed; E2E-Test bestätigt (Speichern + Rücklesen von `owls` über die API). Zusätzlich behoben: World4You streicht den `Authorization`-Header → die App sendet nun zusätzlich `X-API-Token`, CORS erlaubt ihn, `backend/.htaccess` reicht Bearer durch (v85).
+> **Live-Migration P4.2:** `ALTER TABLE progress ADD COLUMN goals JSON NULL AFTER owls;` in phpMyAdmin ausführen + aktualisierte `backend/progress.php` auf den mapi-Server hochladen.
 
 ---
 
@@ -153,6 +153,14 @@
 - 10 Punkte pro richtiger Aufgabe plus Serien-Bonus (bis 10 extra).
 - Die 🔥-Flamme flackert sanft, solange die Serie läuft; Antippen pausiert die Animation, erneutes Antippen setzt sie fort (auch mit Enter oder Leertaste). Die Systemeinstellung „Bewegung reduzieren" wird respektiert.
 - Das Eulen-Logo im Header blinkt gelegentlich, die Pupillen folgen dem Cursor und die Flügel wedeln bei jeder richtigen Aufgabe.
+
+### Wöchentliche Ziele (🎯) — P4.2
+- Direkt unter dem Fortschrittsbalken stehen **3 Ziele für diese Woche**: 🎯 Sammle 50 Punkte · 📚 Löse 20 Aufgaben · 🔁 Schaffe 5 Wiederholungen — jeder mit eigenem Fortschrittsbalken.
+- Die Woche startet am **Montag**; alte Zähler werden dann automatisch zurückgesetzt.
+- Ein geschafftes Ziel wird grün mit ✅ markiert; geschaffte Ziele bleiben für die Woche grün.
+- **Alle 3 Ziele geschafft = +30 Bonus-Punkte** (einmal pro Woche) — das beschleunigt Stufen und Eulenhain zusätzlich.
+- Beim Schaffen eines Ziels gibt es Konfetti und einen Banner unter der Aufgabe.
+- Die Ziele werden dauerhaft gespeichert (als Gast im Browser, angemeldet geräteübergreifend).
 
 ### Eulenhain (🦉) — Stufen & Eulensammlung
 - Jede gelöste Aufgabe bringt Punkte; die **Stufen sind endlos** (Stufe 2 bei 100 Punkten, Stufe 3 bei 300, danach steigend). Jede Stufe hat einen Rangtitel (Geometrie-Lehrling, Formen-Geselle …), der alle 5 Stufen wechselt und später durchzählt („Mathe-Legende II").

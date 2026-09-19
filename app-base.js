@@ -2172,6 +2172,26 @@
       + '</g></svg>';
   }
 
+  /* ============ P4.2: Wöchentliche Ziele ============ */
+
+  var WOCHENZIELE = [
+    { id:"points",  icon:"🎯", label:"Sammle 50 Punkte",        ziel:50 },
+    { id:"solved",  icon:"📚", label:"Löse 20 Aufgaben",        ziel:20 },
+    { id:"repeats", icon:"🔁", label:"Schaffe 5 Wiederholungen", ziel:5 }
+  ];
+  /* ISO-Wochenschlüssel "YYYY-Wnn" (Montag = Wochenstart) */
+  function wochenSchluessel(d){
+    d = d || new Date();
+    var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    var tag = (t.getUTCDay() + 6) % 7; /* Mo=0 … So=6 */
+    t.setUTCDate(t.getUTCDate() - tag + 3); /* Donnerstag dieser Woche */
+    var ersterDonnerstag = new Date(Date.UTC(t.getUTCFullYear(), 0, 4));
+    var ftag = (ersterDonnerstag.getUTCDay() + 6) % 7;
+    ersterDonnerstag.setUTCDate(ersterDonnerstag.getUTCDate() - ftag + 3);
+    var woche = 1 + Math.round((t - ersterDonnerstag) / (7*24*3600*1000));
+    return t.getUTCFullYear() + "-W" + (woche < 10 ? "0" : "") + woche;
+  }
+
   window.MB = {
     rand, randf, choice, shuffle, dist, mid, centroidOf, gcd, lcm, fmt, fmtAT, fmtEUR,
     normalizeAndScale, edgeLabelPos, vertexLabelPos, tickMarks, rightAngleMarker,
@@ -2183,6 +2203,7 @@
     TRI_STATEMENTS, QUAD_STATEMENTS, CURRICULUM_MAP, GEN, MODES, GRADES,
     GRADE_GROUPS, GRADE_TAGS, DIFFICULTIES, TIPP1_BY_TOPIC, deriveTips, bruchWort,
     SPACED_STEPS, spacedSanitize, spacedWrong, spacedCorrect, spacedDueKeys,
-    punkteFuerStufe, stufeVonPunkten, rangTitel, owlForLevel, owlSVG, OWL_ANIMS
+    punkteFuerStufe, stufeVonPunkten, rangTitel, owlForLevel, owlSVG, OWL_ANIMS,
+    WOCHENZIELE, wochenSchluessel
   };
 })();

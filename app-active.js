@@ -754,7 +754,7 @@ function renderEulenhain(){
   var crownK = 0.78, crownCy = 250;
   var crownBottom = crownCy + 95 * f;
   var topAstY = crownBottom + 66;
-  var H = topAstY + (astZahl - 1) * spacing + 86 + 84;
+  var H = topAstY + astZahl * spacing + 86 + 84;   /* Astreihen sind 1-basiert (astIdx) – sonst liegt der Ast auf der Wiese */
   var groundY = H - 84;
   var trunkX = 430;
   var trunkTopY = crownCy + 95 * f * 0.5;
@@ -786,34 +786,61 @@ function renderEulenhain(){
   var alle = [];
   for(k = state.owls.length - 1; k >= 0; k--) alle.push({ stufe: state.owls[k], mysterium: false });
   var astIdx = 0;
+  /* Ast-Geometrie: Äste verjüngen sich zur Spitze, Eulen sitzen exakt auf der Astkurve */
+  var OWL_H = 52, OWL_ABSTAND = 54, OWL_START = 68, AST_UEBERSTAND = 40, OWL_SITZ = 1;
+  /* Ast als gefüllte Kontur: dick am Stamm, dünn an der Spitze (sk skaliert die Dicke) */
+  function astPfad(ay, links, len, sk, farbe){
+    sk = sk || 1;
+    var xm = links ? trunkX - len * 0.52 : trunkX + len * 0.52;
+    var xe = links ? trunkX - len : trunkX + len;
+    var ob = 6.5 * sk, un = 7.5 * sk, sp = 3 * sk;
+    return '<path d="M'+trunkX+' '+(ay-5-ob)
+      + ' Q '+xm+' '+(ay+14-ob)+' '+xe+' '+(ay+6-sp)
+      + ' L '+xe+' '+(ay+6+sp)
+      + ' Q '+xm+' '+(ay+14+un)+' '+trunkX+' '+(ay-5+un)+' Z" fill="'+(farbe || "#7A4E26")+'"/>';
+  }
+  /* y der Ast-Mittelkurve an der Stelle x (quadratische Bézier nach t aufgelöst) */
+  function astY(x, ay, links, len){
+    var xm = links ? trunkX - len * 0.52 : trunkX + len * 0.52;
+    var xe = links ? trunkX - len : trunkX + len;
+    var a = trunkX - 2 * xm + xe, b = 2 * (xm - trunkX), c = trunkX - x, t;
+    if(Math.abs(a) < 1e-6){ t = b !== 0 ? -c / b : 0; }
+    else {
+      var w = b * b - 4 * a * c, rt = Math.sqrt(w > 0 ? w : 0);
+      var t1 = (-b + rt) / (2 * a), t2 = (-b - rt) / (2 * a);
+      t = (t1 >= 0 && t1 <= 1) ? t1 : t2;   /* jene Lösung, die auf dem Ast liegt */
+    }
+    t = t < 0 ? 0 : (t > 1 ? 1 : t);
+    var u = 1 - t;
+    return u * u * (ay - 5) + 2 * u * t * (ay + 14) + t * t * (ay + 6);
+  }
+  /* Warteeule: dünner Zweig direkt unter der Krone, auf der rechten Seite */
   (function(){
-    var y = topAstY;
-    var o = owlForLevel(lvl.stufe + 1);
-    var x = trunkX + 64;
-    s += '<path d="M'+trunkX+' '+(y-4)+' Q '+(trunkX+150)+' '+(y+14)+' '+(trunkX+290)+' '+(y+12)+'" stroke="#B98A4E" stroke-width="7" fill="none" stroke-linecap="round"/>';
-    s += '<svg class="eh-owl eh-mystery" data-anim="'+o.anim+'" data-stufe="'+(lvl.stufe+1)+'" x="'+(x-32)+'" y="'+(y-40)+'" width="64" height="52" viewBox="-12 0 124 100" role="button" tabindex="0" aria-label="Noch unbekannte Eule (Stufe '+(lvl.stufe+1)+')">'
+    var y = topAstY, len = 56 + AST_UEBERSTAND;
+    var o = owlForLevel(lvl.stufe + 1), x = trunkX + 56;
+    var cy = astY(x, y, false, len);
+    s += astPfad(y, false, len, 0.55, "#B98A4E");
+    s += '<svg class="eh-owl eh-mystery" data-anim="'+o.anim+'" data-stufe="'+(lvl.stufe+1)+'" x="'+(x-32)+'" y="'+(cy-OWL_SITZ-OWL_H)+'" width="64" height="52" viewBox="-12 0 124 100" role="button" tabindex="0" aria-label="Noch unbekannte Eule (Stufe '+(lvl.stufe+1)+')">'
        + owlInner(o.hue) + '</svg>';
-    s += '<text x="'+x+'" y="'+(y+28)+'" text-anchor="middle" class="ehp-label mystery">'+(lvl.stufe+1)+'</text>';
+    s += '<text x="'+x+'" y="'+(cy+14)+'" text-anchor="middle" class="ehp-label mystery">'+(lvl.stufe+1)+'</text>';
   })();
   for(i = 0; i < alle.length; i += proAst){
     var gruppe = alle.slice(i, i + proAst);
     astIdx++;
     var y = topAstY + astIdx * spacing;
     var links = astIdx % 2 === 1;
-    var len = 306;
-    var xe = links ? trunkX - len : trunkX + len;
-    var xm = links ? trunkX - len * 0.45 : trunkX + len * 0.45;
-    s += '<path d="M'+trunkX+' '+(y-5)+' Q '+xm+' '+(y+15)+' '+xe+' '+(y+12)+'" stroke="#7A4E26" stroke-width="14" fill="none" stroke-linecap="round"/>';
+    var len = OWL_START + (gruppe.length - 1) * OWL_ABSTAND + AST_UEBERSTAND;   /* Ast endet knapp hinter der letzten Eule */
+    s += astPfad(y, links, len, 1);
     for(k = 0; k < gruppe.length; k++){
       var e = gruppe[k];
       var o = owlForLevel(e.stufe);
-      var x = links ? trunkX - 72 - k * 62 : trunkX + 72 + k * 62;
-      var topY = y + 2 + Math.abs(x - trunkX) * 0.013;
+      var x = links ? trunkX - OWL_START - k * OWL_ABSTAND : trunkX + OWL_START + k * OWL_ABSTAND;
+      var cy = astY(x, y, links, len);
       var cls = "eh-owl" + (e.stufe === lvl.stufe ? " eh-idle" : "");
-      s += '<svg class="'+cls+'" data-anim="'+o.anim+'" data-stufe="'+e.stufe+'" x="'+(x-32)+'" y="'+(topY-44)+'" width="64" height="52" viewBox="-12 0 124 100" role="button" tabindex="0" aria-label="'+o.name+', Stufe '+e.stufe+'">'
+      s += '<svg class="'+cls+'" data-anim="'+o.anim+'" data-stufe="'+e.stufe+'" x="'+(x-32)+'" y="'+(cy-OWL_SITZ-OWL_H)+'" width="64" height="52" viewBox="-12 0 124 100" role="button" tabindex="0" aria-label="'+o.name+', Stufe '+e.stufe+'">'
          + owlInner(o.hue)
          + '</svg>';
-      s += '<text x="'+x+'" y="'+(topY + 26)+'" text-anchor="middle" class="ehp-label">'+e.stufe+'</text>';
+      s += '<text x="'+x+'" y="'+(cy+14)+'" text-anchor="middle" class="ehp-label">'+e.stufe+'</text>';
     }
   }
   s += '</svg>';

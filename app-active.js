@@ -759,6 +759,15 @@ function renderEulenhain(){
   var trunkX = 430;
   var trunkTopY = crownCy + 95 * f * 0.5;
   var kronenFarben = ["#6FAF5C", "#7FBF6A", "#8FCF79", "#97CB84", "#A5D98E"];
+  var OWL_H = 52, OWL_ABSTAND = 54, OWL_START = 68, AST_UEBERSTAND = 40, OWL_SITZ = 1;
+  /* Kronenbreite folgt der längsten Astreihe: die grösste Gruppe (max. 5 Eulen) bestimmt die Ausdehnung */
+  var groessteGruppe = state.owls.length > 5 ? 5 : state.owls.length;
+  if(groessteGruppe < 1) groessteGruppe = 1;
+  var maxAstLen = OWL_START + (groessteGruppe - 1) * OWL_ABSTAND + AST_UEBERSTAND;
+  if(56 + AST_UEBERSTAND > maxAstLen) maxAstLen = 56 + AST_UEBERSTAND;
+  var kronenBreite = ((maxAstLen / (crownK * f)) - 32) / 164;   /* Kronenrand liegt an der Astspitze */
+  if(kronenBreite < 1) kronenBreite = 1;
+  var kronenRund = 1 + (kronenBreite - 1) * 0.5;   /* Radien wachsen halb mit -> dichte Krone */
   var s = "", i, k;
   s += '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="display:block;">';
   s += '<defs>'
@@ -780,14 +789,13 @@ function renderEulenhain(){
   var kronen = [[0,0,128],[-105,26,88],[100,20,92],[-52,-58,86],[48,-64,90],[-132,-18,64],[120,-26,66],[0,-98,90],[38,54,66],[-42,60,62],[-10,34,80],[26,-8,96]];
   for(i = 0; i < kronen.length; i++){
     var c = kronen[i];
-    s += '<circle cx="'+(trunkX + c[0]*crownK*f).toFixed(1)+'" cy="'+(crownCy + c[1]*crownK*f).toFixed(1)+'" r="'+(c[2]*crownK*f).toFixed(1)+'" fill="'+kronenFarben[i % kronenFarben.length]+'"/>';
+    s += '<circle cx="'+(trunkX + c[0]*crownK*f*kronenBreite).toFixed(1)+'" cy="'+(crownCy + c[1]*crownK*f).toFixed(1)+'" r="'+(c[2]*crownK*f*kronenRund).toFixed(1)+'" fill="'+kronenFarben[i % kronenFarben.length]+'"/>';
   }
   /* Äste: oben die nächste Eule (dünner Ast), darunter die gesammelten Eulen — neueste oben, älteste unten */
   var alle = [];
   for(k = state.owls.length - 1; k >= 0; k--) alle.push({ stufe: state.owls[k], mysterium: false });
   var astIdx = 0;
   /* Ast-Geometrie: Äste verjüngen sich zur Spitze, Eulen sitzen exakt auf der Astkurve */
-  var OWL_H = 52, OWL_ABSTAND = 54, OWL_START = 68, AST_UEBERSTAND = 40, OWL_SITZ = 1;
   /* Ast als gefüllte Kontur: dick am Stamm, dünn an der Spitze (sk skaliert die Dicke) */
   function astPfad(ay, links, len, sk, farbe){
     sk = sk || 1;

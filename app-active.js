@@ -125,15 +125,31 @@ function pruefeWochenziele(){
   return { neue: neu, bonus: bonus };
 }
 function renderWochenziele(){
-  var row = document.getElementById("weeklyRow");
-  if(!row) return;
+  var host = document.getElementById("wochenziele");
+  if(!host) return;
   ensureWochen();
-  var barsHTML = WOCHENZIELE.map(function(z){
+  var html = WOCHENZIELE.map(function(z){
     var wert = state.weekly[z.id] || 0;
     var fertig = wert >= z.ziel;
     var pct = Math.max(0, Math.min(100, (wert / z.ziel) * 100));
-    return '<div class="weekly-bar'+(fertig ? ' fertig' : '')+'" data-label="'+z.icon+' '+Math.min(wert, z.ziel)+'/'+z.ziel+'" data-goal-id="'+z.id+'" style="background:linear-gradient(90deg, var(--gold) 0%, var(--gold) '+pct+'%, var(--line) '+pct+'%, var(--line) 100%)"></div>';
+    return '<div class="wz-goal'+(fertig ? ' fertig' : '')+'" title="'+z.label+(fertig?' ✅':'')+'">'
+      + '<div class="wz-head"><span class="wz-label">'+z.icon+' '+Math.min(wert, z.ziel)+'/'+z.ziel+'</span><span>'+(fertig ? '✅' : '')+'</span></div>'
+      + '<div class="wz-track"><div class="wz-fill" style="width:'+pct+'%"></div></div>'
+      + '</div>';
   }).join("");
+  html += '<div class="wz-bonus'+(state.weekly.bonusGiven ? ' fertig' : '')+'>'
+    + '<span id="motd-rotator" class="motd-text">' + (state.weekly.bonusGiven ? '🎉 Wochen-Bonus +30 Punkte' : '🎯 Noch ' + (50 - state.weekly.points) + ' Punkte') + '</span>'
+    + '</div>';
+  host.innerHTML = html;
+  /* P4.4: Mikro-Motivation — rotiert durch Mini-Nachrichten alle 5s */
+  var rotEl = document.getElementById("motd-rotator");
+  if(rotEl && !state.weekly.bonusGiven){
+    rotEl.style.fontSize = "0.72rem";
+    rotEl.style.opacity = "0.8";
+    var msgs = ["🎯 Noch " + Math.max(0, 50 - state.weekly.points) + " Punkte", "📚 Noch " + Math.max(0, 20 - state.weekly.solved) + " Aufgaben", "🔁 Noch " + Math.max(0, 5 - state.weekly.repeats) + " Wiederholungen"];
+    var idx = 0;
+    setInterval(function(){ rotEl.textContent = msgs[idx]; idx = (idx+1) % msgs.length; }, 5000);
+  }
   var barsHost = row.querySelector("#weeklyBars");
   barsHost.innerHTML = barsHTML;
   /* Event-Listener programmatisch anhängen — funktioniert im strict Scope */
@@ -586,14 +602,14 @@ function finishRound(isCorrect, explanation){
     state.bestStreak = Math.max(state.bestStreak, state.streak);
     var bonus = Math.min(10, state.streak) ;
     state.points += 10 + bonus;
+    /* P4.2: Nur bei richtig → Punktezähler + Wiederholungen */
+    state.weekly.points += 10 + Math.min(10, state.streak);
+    if(state.currentIsRepeat && isCorrect) state.weekly.repeats += 1;
   } else {
     state.streak = 0;
+    /* P4.2: Bei falsch → "gelöst" (versucht) zählen, kein Punktebonus */
+    state.weekly.solved += 1;
   }
-  /* P4.2: Wöchentliche Ziele tracken (vor der Stufen-Prüfung, damit der Bonus mitzählt) */
-  ensureWochen();
-  state.weekly.solved += 1;
-  if(isCorrect) state.weekly.points += 10 + Math.min(10, state.streak);
-  if(state.currentIsRepeat && isCorrect) state.weekly.repeats += 1;
   var wz = pruefeWochenziele();
   /* P6: Stufen-Aufstieg → neue Eule im Eulenhain */
   var lvlAfter = stufeVonPunkten(state.points);

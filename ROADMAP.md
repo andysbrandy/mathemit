@@ -83,7 +83,7 @@
 |---|---------|--------|
 | 6.1 | Endlose Stufen: Formel `50·(n−1)·n` (Stufe 2=100, 3=300, 10=4500 …) + Rangtitel alle 5 Stufen, danach endlos mit römischer Zählung („Mathe-Legende II") | ✅ |
 | 6.2 | Eulen-Engine: parametrische Eule in Logo-Geometrie, 12 kuratierte Farbwelten → nahtlose Farbton-Rotation (unendlich), 8 Signature-Animationen | ✅ |
-| 6.3 | 🦉-Menü „Eulenhain": Baum-Szene (je Zweig 5 Eulen), Antippen zeigt Signatur-Animation + Namen, nächste Eule als Silhouette mit Punktestand, Stufe-1-Eule ab Start | ✅ |
+| 6.3 | 🦉 **Eulenhain als eigene Seite**: großes SVG-Baum-Panel (Himmel mit Sonne & treibenden Wolken, Schmetterlinge, Hügel, Wiese, Blumen) — ein echter Baum mit Stamm, Wurzeln & flauschiger Krone, der **mit jeder Stufe wächst** (neue Ast-Ebene pro 5 Eulen, breiter werdende Krone); Antippen zeigt Signatur-Animation + Namen, nächste Eule wartet als Silhouette auf dem Tag-Ast direkt unter der Krone | ✅ |
 | 6.4 | Persistenz: lokal + `progress.owls` (JSON) geräteübergreifend; Migration: bestehende Nutzer erhalten alle Eulen bis zur aktuellen Stufe automatisch | ✅ |
 | 6.5 | Aufstiegs-Feier: Konfetti + Banner mit neuem Eulennamen + Logo-Eule flattert; „Bewegung reduzieren" wird respektiert | ✅ |
 
@@ -165,7 +165,8 @@
 ### Eulenhain (🦉) — Stufen & Eulensammlung
 - Jede gelöste Aufgabe bringt Punkte; die **Stufen sind endlos** (Stufe 2 bei 100 Punkten, Stufe 3 bei 300, danach steigend). Jede Stufe hat einen Rangtitel (Geometrie-Lehrling, Formen-Geselle …), der alle 5 Stufen wechselt und später durchzählt („Mathe-Legende II").
 - **Jede Stufe schaltet eine eigene Eule frei** – ab Stufe 1 gehört dir die erste Eule. Jede Eule hat eine eigene Farbwelt (Rubin, Smaragd, Saphir, Bernstein …) und eine eigene kleine Animation (Flattern, Blinzeln, Wippen, Kopfkippen, Hüpfer, Schlafenszeit, Drehung, Federsträuben).
-- Über die 🦉-Pille neben „Rang" öffnet sich der **Eulenhain**: Die gesammelten Eulen sitzen je zu fünft auf einem Ast – der Baum wächst mit jeder neuen Stufe. Tippe eine Eule an und sie zeigt ihre Show.
+- Über die 🦉-Pille neben „Rang" öffnet sich der **Eulenhain als eigene Seite**: ein großer Baum unter Himmel und Sonne — Stamm, Wurzeln, flauschige Krone und geschwungene Äste. Die gesammelten Eulen sitzen je zu fünft auf einem Ast (die älteste unten, die neueste ganz oben); **der Baum wächst mit jeder neuen Stufe** ein Ast-Stück weiter und die Krone wird breiter.
+- **Tippe eine Eule an** und sie zeigt ihre kleine Show (Flattern, Blinzeln, Wippen …) — ihr Name und ihre Stufe erscheinen darunter. Die neueste Eule wippt sanft vor sich hin.
 - Die **nächste Eule** wartet als Silhouette am letzten Ast; darunter steht, wie viele Punkte noch fehlen.
 - Beim Stufen-Aufstieg regnet kurz Konfetti und ein Banner verkündet die neue Eule (mit „Bewegung reduzieren" bleibt es ruhig).
 - Der Eulenhain wird dauerhaft gespeichert – als Gast im Browser, angemeldet geräteübergreifend.

@@ -691,69 +691,157 @@ function showLevelUpBanner(stufe){
   div.innerHTML = "🦉 <strong>Stufe "+stufe+" erreicht!</strong> Neue Eule im Eulenhain: <strong>"+escHtml(owl.name)+"</strong> ";
   var b = document.createElement("button");
   b.className = "mini"; b.type = "button"; b.textContent = "Eulenhain ansehen";
-  b.addEventListener("click", openEulenhainModal);
+  b.addEventListener("click", openEulenhain);
   div.appendChild(b);
   fb.appendChild(div);
+  /* Seite offen? Baum sofort aktualisieren */
+  if(eulenhainViewEl && eulenhainViewEl.style.display !== "none") renderEulenhain();
 }
-var eulenhainModalEl = document.getElementById("eulenhainModal");
-var eulenhainBodyEl = document.getElementById("eulenhainBody");
-function openEulenhainModal(){
+/* ---------- P6: Eulenhain als eigene Seite mit großem, wachsendem Baum ---------- */
+var eulenhainViewEl = document.getElementById("eulenhainView");
+var ehpSceneEl = document.getElementById("ehpScene");
+var ehpStatsEl = document.getElementById("ehpStats");
+var ehHintEl = document.getElementById("ehHint");
+function openEulenhain(){
   renderEulenhain();
-  if(eulenhainModalEl) eulenhainModalEl.style.display = "flex";
+  if(eulenhainViewEl) eulenhainViewEl.style.display = "block";
+  window.scrollTo(0, 0);
 }
-function closeEulenhainModal(){ if(eulenhainModalEl) eulenhainModalEl.style.display = "none"; }
+function closeEulenhain(){ if(eulenhainViewEl) eulenhainViewEl.style.display = "none"; }
+function ehpStrahlen(n, innen, aussen){
+  var s = "", i, a;
+  for(i = 0; i < n; i++){
+    a = i * (360 / n) * Math.PI / 180;
+    s += '<line x1="'+(Math.cos(a)*innen).toFixed(1)+'" y1="'+(Math.sin(a)*innen).toFixed(1)
+       + '" x2="'+(Math.cos(a)*aussen).toFixed(1)+'" y2="'+(Math.sin(a)*aussen).toFixed(1)
+       + '" stroke="#F2B93B" stroke-width="5" stroke-linecap="round"/>';
+  }
+  return s;
+}
+function ehpWolke(x, y, sk, cls){
+  return '<g transform="translate('+x+','+y+') scale('+sk+')"><g class="ehp-cloud '+cls+'">'
+    + '<ellipse cx="0" cy="0" rx="52" ry="20" fill="#FFFFFF" opacity=".92"/>'
+    + '<ellipse cx="-32" cy="6" rx="30" ry="14" fill="#FFFFFF" opacity=".92"/>'
+    + '<ellipse cx="32" cy="6" rx="34" ry="15" fill="#FFFFFF" opacity=".92"/>'
+    + '<ellipse cx="4" cy="-15" rx="30" ry="18" fill="#FFFFFF" opacity=".95"/>'
+    + '</g></g>';
+}
+function ehpBlumen(groundY){
+  var s = "", i, x;
+  var farben = ["#F6A5C0","#FFD75E","#C9A0F0","#F6A5C0","#FFD75E","#C9A0F0"];
+  for(i = 0; i < 6; i++){
+    x = 70 + i * 128 + (i % 2) * 36;
+    s += '<line x1="'+x+'" y1="'+(groundY+26)+'" x2="'+x+'" y2="'+(groundY+8)+'" stroke="#6FAF5C" stroke-width="3" stroke-linecap="round"/>'
+       + '<circle cx="'+x+'" cy="'+(groundY+4)+'" r="6" fill="'+farben[i]+'"/>'
+       + '<circle cx="'+x+'" cy="'+(groundY+4)+'" r="2.5" fill="#FFF3C2"/>';
+  }
+  return s;
+}
 function renderEulenhain(){
-  if(!eulenhainBodyEl) return;
+  if(!ehpSceneEl) return;
   var lvl = currentLevel();
-  var rows = [], i;
-  for(i=0;i<state.owls.length;i+=5){ rows.push(state.owls.slice(i,i+5)); }
-  var html = '<p class="eh-intro">Jede Stufe schaltet eine neue Eule frei – dein Baum wächst mit! Tippe eine Eule an, um ihre kleine Show zu sehen.</p>';
-  html += '<div class="eh-stats">Stufe <strong>'+lvl.stufe+'</strong> · '+escHtml(rangTitel(lvl.stufe))+' · <strong>'+state.owls.length+'</strong> Eule(n) gesammelt</div>';
-  html += '<div class="eh-scene"><div class="eh-canopy" aria-hidden="true"></div><div class="eh-crown" aria-hidden="true"></div>';
-  rows.forEach(function(row){
-    html += '<div class="eh-branch"><div class="eh-row">';
-    row.forEach(function(st){
-      var o = owlForLevel(st);
-      html += '<div class="eh-owl'+(st===lvl.stufe?' eh-idle':'')+'" data-anim="'+o.anim+'" data-stufe="'+st+'" role="button" tabindex="0" aria-label="'+escHtml(o.name)+', Stufe '+st+'">'
-            + owlSVG({hue:o.hue, size:52, label:o.name})
-            + '<span class="eh-name">'+st+'</span></div>';
-    });
-    html += '</div></div>';
-  });
-  var nxt = owlForLevel(lvl.stufe+1);
-  var fehl = Math.max(0, punkteFuerStufe(lvl.stufe+1) - state.points);
-  html += '<div class="eh-branch eh-next"><div class="eh-row">'
-        + '<div class="eh-owl eh-mystery"><div class="eh-silhouette">'+owlSVG({hue:nxt.hue, size:52, label:"Neue Eule"})+'</div><span class="eh-name">'+(lvl.stufe+1)+'</span></div>'
-        + '</div></div>';
-  html += '</div>';
-  html += '<div class="eh-caption" id="ehCaption">💡 Tippe eine Eule an!</div>';
-  html += '<div class="eh-hint">🔭 Noch <strong>'+fehl+'</strong> Punkte bis zur nächsten Eule: <strong>'+escHtml(nxt.name)+'</strong> (Stufe '+(lvl.stufe+1)+')</div>';
-  eulenhainBodyEl.innerHTML = html;
-  Array.prototype.forEach.call(eulenhainBodyEl.querySelectorAll(".eh-owl[data-stufe]"), function(el){
+  if(ehpStatsEl) ehpStatsEl.innerHTML = 'Stufe <strong>'+lvl.stufe+'</strong> · '+escHtml(rangTitel(lvl.stufe))+' · <strong>'+state.owls.length+'</strong> Eule(n) gesammelt';
+  var nxt = owlForLevel(lvl.stufe + 1);
+  var fehl = Math.max(0, punkteFuerStufe(lvl.stufe + 1) - state.points);
+  if(ehHintEl) ehHintEl.innerHTML = '🔭 Noch <strong>'+fehl+'</strong> Punkte bis zur nächsten Eule: <strong>'+escHtml(nxt.name)+'</strong> (Stufe '+(lvl.stufe+1)+')';
+  /* Baum-Geometrie: von der Krone nach unten wachsend — je Ast 5 Eulen, oben wartet die nächste Eule */
+  var proAst = 5;
+  var gesamt = state.owls.length + 1;
+  var astZahl = Math.ceil(gesamt / proAst);
+  var spacing = 92, W = 860;
+  var f = 1 + Math.min(0.6, astZahl * 0.045);
+  var crownK = 0.78, crownCy = 250;
+  var crownBottom = crownCy + 95 * f;
+  var topAstY = crownBottom + 66;
+  var H = topAstY + (astZahl - 1) * spacing + 86 + 84;
+  var groundY = H - 84;
+  var trunkX = 430;
+  var trunkTopY = crownCy + 95 * f * 0.5;
+  var kronenFarben = ["#6FAF5C", "#7FBF6A", "#8FCF79", "#97CB84", "#A5D98E"];
+  var s = "", i, k;
+  s += '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="display:block;">';
+  s += '<defs>'
+    + '<linearGradient id="ehpSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BFE3F7"/><stop offset="1" stop-color="#EFF8EE"/></linearGradient>'
+    + '<linearGradient id="ehpTrunk" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7A4E26"/><stop offset=".55" stop-color="#93613A"/><stop offset="1" stop-color="#6E4423"/></linearGradient>'
+    + '</defs>';
+  s += '<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="url(#ehpSky)"/>';
+  s += '<g transform="translate('+(W-96)+',96)"><g class="ehp-rays">'+ehpStrahlen(10, 48, 74)+'</g>'
+    + '<circle r="40" fill="#FFD75E" stroke="#F2B93B" stroke-width="3"/></g>';
+  s += ehpWolke(140, 92, 1.1, "c1") + ehpWolke(600, 150, 0.85, "c2") + ehpWolke(300, 44, 0.7, "c3");
+  s += '<path d="M0 '+(groundY+10)+' Q 210 '+(groundY-48)+' 430 '+(groundY+4)+' T '+W+' '+(groundY-4)+' L '+W+' '+H+' L 0 '+H+' Z" fill="#A9D89B"/>';
+  s += '<path d="M0 '+(groundY+34)+' Q 260 '+(groundY-2)+' 520 '+(groundY+26)+' T '+W+' '+(groundY+20)+' L '+W+' '+H+' L 0 '+H+' Z" fill="#8FCB7E"/>';
+  s += ehpBlumen(groundY);
+  s += '<path d="M'+(trunkX-30)+' '+(groundY+8)+' C '+(trunkX-24)+' '+(groundY-60)+' '+(trunkX-26)+' '+(trunkTopY+130)+' '+(trunkX-16)+' '+trunkTopY
+     + ' L '+(trunkX+16)+' '+trunkTopY
+     + ' C '+(trunkX+26)+' '+(trunkTopY+130)+' '+(trunkX+24)+' '+(groundY-60)+' '+(trunkX+30)+' '+(groundY+8)+' Z" fill="url(#ehpTrunk)"/>';
+  s += '<path d="M'+(trunkX-28)+' '+(groundY+6)+' q -36 4 -56 20 l 10 4 q 24 -12 48 -14 Z" fill="#6E4423"/>';
+  s += '<path d="M'+(trunkX+28)+' '+(groundY+6)+' q 36 4 56 20 l -10 4 q -24 -12 -48 -14 Z" fill="#6E4423"/>';
+  var kronen = [[0,0,128],[-105,26,88],[100,20,92],[-52,-58,86],[48,-64,90],[-132,-18,64],[120,-26,66],[0,-98,90],[38,54,66],[-42,60,62],[-10,34,80],[26,-8,96]];
+  for(i = 0; i < kronen.length; i++){
+    c = kronen[i];
+    s += '<circle cx="'+(trunkX + c[0]*crownK*f).toFixed(1)+'" cy="'+(crownCy + c[1]*crownK*f).toFixed(1)+'" r="'+(c[2]*crownK*f).toFixed(1)+'" fill="'+kronenFarben[i % kronenFarben.length]+'"/>';
+  }
+  /* Äste: oben die nächste Eule (dünner Ast), darunter die gesammelten Eulen — neueste oben, älteste unten */
+  var alle = [];
+  for(k = state.owls.length - 1; k >= 0; k--) alle.push({ stufe: state.owls[k], mysterium: false });
+  var astIdx = 0;
+  (function(){
+    var y = topAstY;
+    var o = owlForLevel(lvl.stufe + 1);
+    var x = trunkX + 64;
+    s += '<path d="M'+trunkX+' '+(y-4)+' Q '+(trunkX+150)+' '+(y+14)+' '+(trunkX+290)+' '+(y+12)+'" stroke="#B98A4E" stroke-width="7" fill="none" stroke-linecap="round"/>';
+    s += '<svg class="eh-owl eh-mystery" data-anim="'+o.anim+'" data-stufe="'+(lvl.stufe+1)+'" x="'+(x-32)+'" y="'+(y-40)+'" width="64" height="52" viewBox="-12 0 124 100" role="button" tabindex="0" aria-label="Noch unbekannte Eule (Stufe '+(lvl.stufe+1)+')">'
+       + owlInner(o.hue) + '</svg>';
+    s += '<text x="'+x+'" y="'+(y+28)+'" text-anchor="middle" class="ehp-label mystery">'+(lvl.stufe+1)+'</text>';
+  })();
+  for(i = 0; i < alle.length; i += proAst){
+    var gruppe = alle.slice(i, i + proAst);
+    astIdx++;
+    var y = topAstY + astIdx * spacing;
+    var links = astIdx % 2 === 1;
+    var len = 306;
+    var xe = links ? trunkX - len : trunkX + len;
+    var xm = links ? trunkX - len * 0.45 : trunkX + len * 0.45;
+    s += '<path d="M'+trunkX+' '+(y-5)+' Q '+xm+' '+(y+15)+' '+xe+' '+(y+12)+'" stroke="#7A4E26" stroke-width="14" fill="none" stroke-linecap="round"/>';
+    for(k = 0; k < gruppe.length; k++){
+      var e = gruppe[k];
+      var o = owlForLevel(e.stufe);
+      var x = links ? trunkX - 72 - k * 62 : trunkX + 72 + k * 62;
+      var topY = y + 2 + Math.abs(x - trunkX) * 0.013;
+      var cls = "eh-owl" + (e.stufe === lvl.stufe ? " eh-idle" : "");
+      s += '<svg class="'+cls+'" data-anim="'+o.anim+'" data-stufe="'+e.stufe+'" x="'+(x-32)+'" y="'+(topY-44)+'" width="64" height="52" viewBox="-12 0 124 100" role="button" tabindex="0" aria-label="'+o.name+', Stufe '+e.stufe+'">'
+         + owlInner(o.hue)
+         + '</svg>';
+      s += '<text x="'+x+'" y="'+(topY + 26)+'" text-anchor="middle" class="ehp-label">'+e.stufe+'</text>';
+    }
+  }
+  s += '</svg>';
+  ehpSceneEl.innerHTML = '<div class="ehp-stage">' + s
+    + '<span class="ehp-butterfly" style="left:14%;top:20%;" aria-hidden="true">🦋</span>'
+    + '<span class="ehp-butterfly b2" style="left:78%;top:34%;" aria-hidden="true">🦋</span>'
+    + '</div>';
+  var cap = document.getElementById("ehCaption");
+  if(cap) cap.textContent = "💡 Tippe eine Eule an!";
+  Array.prototype.forEach.call(ehpSceneEl.querySelectorAll(".eh-owl[data-stufe]"), function(el){
     function play(){
-      var o = owlForLevel(Number(el.dataset.stufe));
+      var o2 = owlForLevel(Number(el.dataset.stufe));
       el.classList.remove("eh-play");
-      void el.offsetWidth; /* laufende Animation neu starten */
+      void el.getBoundingClientRect(); /* laufende Animation neu starten */
       el.classList.add("eh-play");
-      var cap = document.getElementById("ehCaption");
-      if(cap) cap.textContent = "🦉 "+o.name+" · Stufe "+o.stufe+" — mag es zu „"+ANIM_NAMES[o.anim]+"“";
+      var c = document.getElementById("ehCaption");
+      if(c) c.textContent = "🦉 " + o2.name + " · Stufe " + o2.stufe + " — mag es zu „" + ANIM_NAMES[o2.anim] + "“";
       setTimeout(function(){ el.classList.remove("eh-play"); }, 2600);
     }
     el.addEventListener("click", play);
-    el.addEventListener("keydown", function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); play(); } });
+    el.addEventListener("keydown", function(ev){ if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); play(); } });
   });
 }
 var eulenhainBtnEl = document.getElementById("eulenhainBtn");
-if(eulenhainBtnEl) eulenhainBtnEl.addEventListener("click", openEulenhainModal);
-var eulenhainCloseEl = document.getElementById("eulenhainClose");
-if(eulenhainCloseEl) eulenhainCloseEl.addEventListener("click", closeEulenhainModal);
-if(eulenhainModalEl){
-  eulenhainModalEl.addEventListener("click", function(e){
-    if(e.target === eulenhainModalEl) closeEulenhainModal();
-  });
-}
+if(eulenhainBtnEl) eulenhainBtnEl.addEventListener("click", openEulenhain);
+var eulenhainBackEl = document.getElementById("eulenhainBack");
+if(eulenhainBackEl) eulenhainBackEl.addEventListener("click", closeEulenhain);
 document.addEventListener("keydown", function(e){
-  if(e.key === "Escape") closeEulenhainModal();
+  if(e.key === "Escape") closeEulenhain();
 });
 if(legalModalEl){
   legalModalEl.addEventListener("click", function(e){

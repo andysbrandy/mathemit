@@ -280,31 +280,40 @@
   }
   .stat-pill.eulenhain:hover{ transform:translateY(-2px); box-shadow:0 3px 10px rgba(31,46,69,.12); }
   .eulenhain-content{ max-width:600px; }
-  .eh-intro{ font-size:.85rem; color:var(--muted); margin:4px 0 10px; }
-  .eh-stats{
-    font-size:.85rem; font-weight:600; background:var(--soft, #F4F6FA);
-    border:1px solid var(--line); border-radius:10px; padding:8px 12px; margin-bottom:10px;
+  /* Eigene Eulenhain-Seite: Vollbild mit Himmel, großem Baum und Eulen auf den Ästen */
+  .ehp{
+    position:fixed; inset:0; z-index:1400; overflow-y:auto;
+    background:linear-gradient(180deg,#BFE3F7 0%,#E6F4EC 100%);
+    padding:18px 14px 44px;
   }
-  .eh-scene{
-    background:linear-gradient(180deg,#E8F3FD 0%, #F6FBF1 100%);
-    border:1px solid var(--line); border-radius:16px;
-    padding:12px 10px 16px; overflow:hidden;
+  .ehp-head{ max-width:920px; margin:0 auto 12px; display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+  .ehp-head h2{ margin:0; font-size:1.5rem; font-family:'Fredoka',sans-serif; }
+  .ehp-sub{
+    font-size:.9rem; font-weight:600; color:var(--ink);
+    background:rgba(255,255,255,.78); border:1px solid rgba(31,46,69,.12);
+    border-radius:10px; padding:6px 12px; margin-left:auto;
   }
-  .eh-canopy{
-    height:54px; margin:-4px auto 6px; width:78%;
-    background:radial-gradient(circle at 30% 60%, #7FBF6A 0 34%, transparent 35%),
-               radial-gradient(circle at 62% 40%, #8FCF79 0 40%, transparent 41%),
-               radial-gradient(circle at 82% 66%, #6FAF5C 0 30%, transparent 31%);
+  .ehp-body{ max-width:920px; margin:0 auto; }
+  .ehp-scene{
+    position:relative; border-radius:22px; overflow:hidden;
+    box-shadow:0 18px 50px rgba(31,46,69,.18); border:1px solid rgba(31,46,69,.1);
+    background:#EAF6FB;
   }
-  .eh-crown{ display:none; }
-  .eh-trunk{ display:none; }
-  .eh-branch{ position:relative; margin:6px 0 10px; }
-  .eh-branch::before{
-    content:""; position:absolute; left:2%; right:2%; bottom:12px; height:10px;
-    border-radius:6px; background:#B07A45; box-shadow:0 2px 0 #8F5F33;
-  }
-  .eh-branch.eh-next::before{ background:#C9A16B; box-shadow:0 2px 0 #A57F4E; }
-  .eh-row{ display:flex; justify-content:space-around; position:relative; z-index:1; }
+  .ehp-scene > svg{ display:block; width:100%; height:auto; }
+  .ehp-stage{ position:relative; }
+  .ehp-label{ font-size:13px; font-weight:700; fill:#5F7186; }
+  .ehp-label.mystery{ font-style:italic; fill:#8A97A6; }
+  .ehp-caption-row{ text-align:center; margin-top:10px; }
+  /* Sonne, Wolken, Schmetterlinge */
+  .ehp-rays{ transform-box:fill-box; transform-origin:center; animation:ehpSpin 90s linear infinite; }
+  @keyframes ehpSpin{ to{ transform:rotate(360deg); } }
+  .ehp-cloud{ animation:ehpDrift 26s ease-in-out infinite alternate; }
+  .ehp-cloud.c2{ animation-duration:34s; animation-delay:-9s; }
+  .ehp-cloud.c3{ animation-duration:21s; animation-delay:-4s; }
+  @keyframes ehpDrift{ from{ transform:translateX(-34px); } to{ transform:translateX(34px); } }
+  .ehp-butterfly{ position:absolute; font-size:20px; pointer-events:none; animation:ehpFloat 7s ease-in-out infinite; }
+  .ehp-butterfly.b2{ animation-duration:9s; animation-delay:-3s; font-size:16px; }
+  @keyframes ehpFloat{ 0%,100%{ transform:translate(0,0) rotate(10deg); } 50%{ transform:translate(36px,-26px) rotate(-12deg); } }
   .eh-owl{
     width:56px; display:flex; flex-direction:column; align-items:center;
     cursor:pointer; border-radius:10px; padding:2px 0 0;
@@ -371,6 +380,7 @@
     .eh-owl.eh-play .owl-wing, .eh-owl.eh-play .owl, .eh-owl.eh-idle .owl,
     .eh-owl.eh-play .owl-eye-ring, .eh-owl.eh-play .owl-pupil{ animation:none !important; }
     .eh-confetti span{ animation:none !important; display:none; }
+    .ehp-rays, .ehp-cloud, .ehp-butterfly{ animation:none !important; }
   }
 
   /* ============ P4.2: Wöchentliche Ziele ============ */

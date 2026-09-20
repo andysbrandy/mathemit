@@ -2144,18 +2144,14 @@
       anim: OWL_ANIMS[idx % OWL_ANIMS.length]
     };
   }
-  /* Parametrische Eule in der Geometrie des Logos (app-active.js lädt logo.svg für den Header) */
-  function owlSVG(opts){
-    opts = opts || {};
-    var hue = (typeof opts.hue === "number") ? ((opts.hue % 360) + 360) % 360 : 268;
-    var size = (typeof opts.size === "number") ? Math.max(16, opts.size) : 56;
-    var label = String(opts.label || "Eule").replace(/"/g, "");
+  /* Eulen-Innenteile (ohne <svg>) — für den Baum des Eulenhains */
+  function owlInner(hue){
+    hue = ((hue % 360) + 360) % 360;
     var body = "hsl(" + hue + ",72%,62%)";
     var wing = "hsl(" + hue + ",66%,50%)";
     var belly = "hsl(" + hue + ",85%,93%)";
     var ear = "hsl(" + hue + ",58%,55%)";
-    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 0 124 100" width="'+size+'" height="'+Math.round(size*100/124)+'" role="img" aria-label="'+label+'">'
-      + '<g class="owl">'
+    return '<g class="owl">'
       + '<ellipse class="owl-wing owl-wing-l" cx="19" cy="64" rx="12.5" ry="20" fill="'+wing+'"/>'
       + '<ellipse class="owl-wing owl-wing-r" cx="81" cy="64" rx="12.5" ry="20" fill="'+wing+'"/>'
       + '<ellipse class="owl-body" cx="50" cy="58" rx="30" ry="35" fill="'+body+'"/>'
@@ -2169,7 +2165,17 @@
       + '<path class="owl-beak" d="M43 56 L57 56 L50 66 Z" fill="#F2A93B" stroke="#1F2E45" stroke-width="1.5" stroke-linejoin="round"/>'
       + '<path class="owl-foot owl-foot-l" d="M40 92 L50 92 L45 99 Z" fill="#F2A93B"/>'
       + '<path class="owl-foot owl-foot-r" d="M50 92 L60 92 L55 99 Z" fill="#F2A93B"/>'
-      + '</g></svg>';
+      + '</g>';
+  }
+  /* Parametrische Eule in der Geometrie des Logos (app-active.js lädt logo.svg für den Header) */
+  function owlSVG(opts){
+    opts = opts || {};
+    var hue = (typeof opts.hue === "number") ? opts.hue : 268;
+    var size = (typeof opts.size === "number") ? Math.max(16, opts.size) : 56;
+    var label = String(opts.label || "Eule").replace(/"/g, "");
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 0 124 100" width="'+size+'" height="'+Math.round(size*100/124)+'" role="img" aria-label="'+label+'">'
+      + owlInner(hue)
+      + '</svg>';
   }
 
   /* ============ P4.2: Wöchentliche Ziele ============ */
@@ -2203,7 +2209,7 @@
     TRI_STATEMENTS, QUAD_STATEMENTS, CURRICULUM_MAP, GEN, MODES, GRADES,
     GRADE_GROUPS, GRADE_TAGS, DIFFICULTIES, TIPP1_BY_TOPIC, deriveTips, bruchWort,
     SPACED_STEPS, spacedSanitize, spacedWrong, spacedCorrect, spacedDueKeys,
-    punkteFuerStufe, stufeVonPunkten, rangTitel, owlForLevel, owlSVG, OWL_ANIMS,
+    punkteFuerStufe, stufeVonPunkten, rangTitel, owlForLevel, owlSVG, owlInner, OWL_ANIMS,
     WOCHENZIELE, wochenSchluessel
   };
 })();

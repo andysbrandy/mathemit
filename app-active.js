@@ -276,23 +276,15 @@ MODES.forEach(function(m){
   });
   chipsHost.appendChild(btn);
 });
-/* P4.3: Wissens-Ampel — Dot je Chip: 🔴 fällig | 🟡 in Arbeit | 🟢 neu/alles geschafft */
-var modeAmpelDots = {};
+/* P4.3: Wissens-Ampel — subtiler Hintergrund-Verlauf im Ampelfarbton (kein Dot) */
 function updateModeAmpel(){
   var nowSec = Math.floor(Date.now()/1000);
   MODES.forEach(function(m){
     var a = spacedAmpel(state.spaced, m.pool, nowSec);
-    var dot = modeAmpelDots[m.id];
-    if(!dot){
-      dot = document.createElement("span");
-      dot.className = "ampel-dot";
-      var host = chipsHost.querySelector('[data-mode="'+m.id+'"]');
-      if(host){ host.appendChild(dot); }
-      modeAmpelDots[m.id] = dot;
-    }
-    if(dot){
-      dot.className = "ampel-dot ampel-" + a;
-      dot.textContent = a === "rot" ? "🔴" : (a === "gelb" ? "🟡" : "🟢");
+    var host = chipsHost.querySelector('[data-mode="'+m.id+'"]');
+    if(host){
+      host.classList.remove("ampel-rot", "ampel-gelb", "ampel-gruen");
+      host.classList.add("ampel-" + a);
     }
   });
 }

@@ -19,15 +19,12 @@
     flex:0 0 auto; align-self:center; color:var(--line);
     font-size:.9rem; user-select:none; pointer-events:none;
   }
-  .chip:hover{border-color:var(--violet); transform:translateY(-1px);}
+    .chip:hover{border-color:var(--violet); transform:translateY(-1px);}
   .chip.active{background:var(--ink); border-color:var(--ink); color:#fff;}
-  /* P4.3: Wissens-Ampel — farbiger Dot am Chip-Rand */
-  .chip{position:relative;}
-  .ampel-dot{
-    position:absolute; top:-7px; right:-4px; font-size:.72rem; line-height:1;
-    background:var(--panel); border-radius:999px; padding:1px 2px;
-    box-shadow:0 1px 3px rgba(31,46,69,.25); pointer-events:none;
-  }
+  /* P4.3: Wissens-Ampel — subtiler Hintergrund-Verlauf im Ampelfarbton */
+  .chip.ampel-rot{box-shadow:inset 0 0 0 1000px rgba(220,38,38,.08);}
+  .chip.ampel-gelb{box-shadow:inset 0 0 0 1000px rgba(250,204,21,.08);}
+  .chip.ampel-gruen{box-shadow:inset 0 0 0 1000px rgba(34,197,94,.08);}
 
   /* ---------- Main card ---------- */
   .board{

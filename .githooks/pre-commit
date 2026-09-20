@@ -23,6 +23,7 @@ printf "%s\n" "$NEW" > "$VERSION_FILE"
 # index.html: Version in Footer + meta-Tag setzen (idempotent)
 # 1) <meta name="app-version" content="vX">
 # 2) <span class="ver" id="appVersion">vX</span>
+# 3) Cache-Busting: ?v=X an alle lokalen Assets (CSS/JS)
 TMP=$(mktemp)
 python3 - "$NEW" "$INDEX_FILE" "$TMP" <<'PY'
 import re, sys
@@ -59,6 +60,14 @@ else:
         "</body>",
         f'<footer class="app-version"><span class="ver" id="appVersion">{tag}</span></footer>\n</body>',
         1,
+    )
+
+# Cache-Busting: ?v=X an alle lokalen Assets (idempotent)
+for asset in ("style-base.css", "style-active.css", "app-base.js", "app-active.js"):
+    html = re.sub(
+        rf'({re.escape(asset)})(\?v=\d+)?',
+        rf'\1?v={new_v}',
+        html,
     )
 
 with open(dst, "w", encoding="utf-8") as f:

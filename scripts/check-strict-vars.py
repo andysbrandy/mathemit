@@ -15,6 +15,8 @@ import sys
 IDENT = r'[A-Za-z_$][\w$]*'
 # Zuweisung am Statement-Anfang (Zeilenanfang oder nach ; { } ) , ( )
 RE_ASSIGN = re.compile(r'(?:^|[;{}),])[ \t]*(' + IDENT + r')[ \t]*(\+=|-=|\*=|\/=|=(?![=>]))', re.M)
+# zusätzlich: for(i = 0; ...) / if(x = 1) — Zuweisung direkt nach '('
+RE_ASSIGN_PAREN = re.compile(r'\([ \t]*(' + IDENT + r')[ \t]*(\+=|-=|\*=|\/=|=(?![=>]))', re.M)
 RE_DECL = re.compile(r'\b(?:var|let|const)\s+')
 RE_FUNC = re.compile(r'\bfunction\b\s*(' + IDENT + r')?\s*\(')
 RE_FUNC_EXPR = re.compile(r'\b(' + IDENT + r')\s*=\s*function\s*\(')
@@ -193,10 +195,11 @@ def scan(path):
     while stack:
         sc = stack.pop()
         for a, b in sc.own_ranges():
-            for m in RE_ASSIGN.finditer(src, a, b):
-                if not sc.has(m.group(1)):
-                    line = src[:m.start(1)].count('\n') + 1
-                    hits.add((line, raw_lines[line - 1].strip()[:120]))
+            for rx in (RE_ASSIGN, RE_ASSIGN_PAREN):
+                for m in rx.finditer(src, a, b):
+                    if not sc.has(m.group(1)):
+                        line = src[:m.start(1)].count('\n') + 1
+                        hits.add((line, raw_lines[line - 1].strip()[:120]))
         stack.extend(sc.children)
     return sorted(hits)
 

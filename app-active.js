@@ -55,6 +55,7 @@ var stufeVonPunkten = MB.stufeVonPunkten;
 var rangTitel = MB.rangTitel;
 var owlForLevel = MB.owlForLevel;
 var owlSVG = MB.owlSVG;
+var owlInner = MB.owlInner;
 var WOCHENZIELE = MB.WOCHENZIELE;
 var wochenSchluessel = MB.wochenSchluessel;
 function currentLevel(){

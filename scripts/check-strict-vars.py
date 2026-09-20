@@ -21,6 +21,31 @@ RE_DECL = re.compile(r'\b(?:var|let|const)\s+')
 RE_FUNC = re.compile(r'\bfunction\b\s*(' + IDENT + r')?\s*\(')
 RE_FUNC_EXPR = re.compile(r'\b(' + IDENT + r')\s*=\s*function\s*\(')
 RE_ARROW = re.compile(r'(?:\(([^()]*)\)|(' + IDENT + r'))\s*=>\s*\{')
+RE_IDENT = re.compile(r'\b(' + IDENT + r')\b')
+
+# Bekannte Browser-/Language-Globals (werden nicht als "nicht deklariert" gemeldet)
+GLOBALS = set("""
+window document console Math JSON Date Array Object Number String Boolean Function Error RegExp
+Promise Map Set WeakMap Symbol Proxy Reflect Intl BigInt isNaN isFinite parseInt parseFloat
+encodeURIComponent decodeURIComponent escape unescape eval undefined NaN Infinity
+setTimeout clearTimeout setInterval clearInterval requestAnimationFrame cancelAnimationFrame
+queueMicrotask structuredClone getComputedStyle matchMedia alert confirm prompt
+localStorage sessionStorage navigator location history screen performance crypto
+fetch Headers Request Response URL URLSearchParams XMLHttpRequest FormData Blob File FileReader
+Image Audio AbortController CustomEvent Event KeyboardEvent MouseEvent TouchEvent DOMParser
+Element Node NodeList HTMLElement SVGElement CSS CSSStyleSheet MutationObserver ResizeObserver
+IntersectionObserver ClipboardItem Clipboard btoa atob TextEncoder TextDecoder ReadableStream
+scrollTo scrollBy open close print focus blur self globalThis top parent frames devicePixelRatio
+innerWidth innerHeight outerWidth outerHeight pageXOffset pageYOffset addEventListener
+removeEventListener dispatchEvent getSelection scrollX scrollY matchMedia webkitRequestAnimationFrame
+""".split())
+
+# Sprach-Keywords / -Literale (duerfen nie als Fehler gemeldet werden)
+KEYWORDS = set("""
+var let const function return if else for while do switch case default break continue throw try
+catch finally new delete typeof instanceof in of void this null true false class extends super
+yield await async static get set export import debugger with
+""".split())
 
 
 def strip_strings_and_comments(raw):
@@ -152,6 +177,78 @@ def collect_scopes(src, parent, start, end):
         collect_scopes(src, sc, brace, close)
         pos = close + 1
 
+def mb_exports(base_path):
+    """Namen aus dem 'window.MB = { ... }' Block in app-base.js."""
+    try:
+        src = strip_strings_and_comments(open(base_path, encoding='utf-8').read())
+    except IOError:
+        return set()
+    m = re.search(r'window\.MB\s*=\s*\{', src)
+    if not m:
+        return set()
+    brace = m.end() - 1
+    body = src[brace + 1:match_brace(src, brace)]
+    names = set()
+    for part in re.split(r'[,\n]', body):
+        part = part.strip()
+        mm = re.match(r'(' + IDENT + r')\s*(:|\s*$)', part)
+        if mm:
+            names.add(mm.group(1))
+    return names
+
+
+def scan_reads(path, mb_names):
+    """Meldet Bezeichner, die nur gelesen werden, aber weder deklariert sind
+    noch als MB-Alias angelegt wurden (z. B. vergessenes 'var owlInner = MB.owlInner;')."""
+    raw = open(path, encoding='utf-8').read()
+    src = strip_strings_and_comments(raw)
+    raw_lines = raw.split('\n')
+
+    globals_ = set(GLOBALS)
+    for m in re.finditer(r'window\.(' + IDENT + r')\s*=', src):
+        globals_.add(m.group(1))
+
+    root = Scope(None, -1, len(src))
+    root.body_start = 0
+    collect_scopes(src, root, 0, len(src))
+    stack = [root]
+    while stack:
+        sc = stack.pop()
+        for a, b in sc.own_ranges():
+            for m in RE_DECL.finditer(src, a, b):
+                seg = src[m.end():min(b, m.end() + 400)]
+                cut = re.search(r'[;\n]', seg)
+                if cut:
+                    seg = seg[:cut.start()]
+                sc.declared.update(split_decl_names(seg))
+        stack.extend(sc.children)
+
+    hits = set()
+    stack = [root]
+    while stack:
+        sc = stack.pop()
+        for a, b in sc.own_ranges():
+            for m in RE_IDENT.finditer(src, a, b):
+                name = m.group(1)
+                if name not in mb_names:
+                    continue                      # nur vergessene MB-Aliase melden
+                i = m.start(1)
+                before = src[:i].rstrip()
+                after = src[m.end(1):]
+                if before.endswith('.'):
+                    continue                      # Property-Zugriff
+                nxt = after.lstrip()[:1]
+                if nxt == ':' and not before.endswith('?'):
+                    continue                      # Objekt-Schluessel / Label
+                if before[-6:] == 'function' or before.endswith('function'):
+                    continue                      # Funktionsname
+                if name in KEYWORDS or name in globals_ or sc.has(name):
+                    continue
+                line = src[:i].count('\n') + 1
+                hits.add((line, name, raw_lines[line - 1].strip()[:100]))
+        stack.extend(sc.children)
+    return sorted(hits)
+
 
 
 def split_decl_names(text):
@@ -205,15 +302,19 @@ def scan(path):
 
 
 def main():
+    mb_names = mb_exports('app-base.js')
     total = 0
     for path in sys.argv[1:]:
         hits = scan(path)
+        reads = scan_reads(path, mb_names)
         print('=== %s ===' % path)
-        if not hits:
-            print('  OK - keine nicht deklarierten Zuweisungen')
+        if not hits and not reads:
+            print('  OK - keine nicht deklarierten Zuweisungen, alle MB-Namen erreichbar')
         for line, text in hits:
-            print('  Zeile %d: %s' % (line, text))
-        total += len(hits)
+            print('  [Zuweisung] Zeile %d: %s' % (line, text))
+        for line, name, text in reads:
+            print('  [MB-Alias fehlt] Zeile %d: %s  <-- %s' % (line, name, text))
+        total += len(hits) + len(reads)
     print('--- %d Treffer ---' % total)
     return 1 if total else 0
 

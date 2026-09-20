@@ -113,7 +113,17 @@
         var a = pts[i], b = pts[(i+1)%pts.length];
         var lbl = opts.sideLabels[i];
         if(lbl===undefined || lbl===null) continue;
-        var pos = edgeLabelPos(a,b,centroid, opts.labelOffset||17);
+        var off = opts.labelOffset||17;
+        /* Vertikale/nahezu vertikale Kanten: Label ist horizontal zentriert und
+           würde die Maßstriche (ticks) überdecken -> Extra-Abstand ausserhalb */
+        var ex_ = b.x-a.x, ey_ = b.y-a.y;
+        var el_ = Math.hypot(ex_,ey_) || 1;
+        var vert_ = Math.abs(ex_)/el_;   /* 0 = exakt vertikal */
+        if(vert_ < 0.35){
+          var tickN = (opts.ticks && opts.ticks[i]) ? opts.ticks[i] : 0;
+          off += tickN * 4 + String(lbl).length * 3;
+        }
+        var pos = edgeLabelPos(a,b,centroid, off);
         extras += '<text class="dim-label" x="'+pos.x+'" y="'+pos.y+'" text-anchor="middle" dominant-baseline="middle">'+lbl+'</text>';
       }
     }

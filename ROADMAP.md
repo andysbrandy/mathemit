@@ -87,6 +87,7 @@
 | 6.3 | 🦉 **Eulenhain als eigene Seite**: großes SVG-Baum-Panel (Himmel mit Sonne & treibenden Wolken, Schmetterlinge, Hügel, Wiese, Blumen) — ein echter Baum mit Stamm, Wurzeln & flauschiger Krone, der **mit jeder Stufe wächst** (neue Ast-Ebene pro 5 Eulen, breiter werdende Krone); Antippen zeigt Signatur-Animation + Namen, nächste Eule wartet als Silhouette auf dem Tag-Ast direkt unter der Krone | ✅ |
 | 6.4 | Persistenz: lokal + `progress.owls` (JSON) geräteübergreifend; Migration: bestehende Nutzer erhalten alle Eulen bis zur aktuellen Stufe automatisch | ✅ |
 | 6.5 | Aufstiegs-Feier: Konfetti + Banner mit neuem Eulennamen + Logo-Eule flattert; „Bewegung reduzieren" wird respektiert | ✅ |
+| 6.6 | **Feinschliff Astgeometrie (offen):** linker Sammelast sitzt wieder zu tief/lang, rechter Wartezweig zu lang — Off-by-one prüfen (`H`-Formel vs. 1-basiertes `astIdx`), Astlänge an Eulenzahl koppeln, Eulensitz auf der Astkurve verankern | ⬜ |
 
 > **Live-Migration P4.2:** `ALTER TABLE progress ADD COLUMN goals JSON NULL AFTER owls;` in phpMyAdmin ausführen + aktualisierte `backend/progress.php` auf den mapi-Server hochladen.
 

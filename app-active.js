@@ -132,16 +132,24 @@ function renderWochenziele(){
     var wert = state.weekly[z.id] || 0;
     var fertig = wert >= z.ziel;
     var pct = Math.max(0, Math.min(100, (wert / z.ziel) * 100));
-    return '<div class="wz-goal'+(fertig ? ' fertig' : '')+'">'
-      + '<div class="wz-head"><span>'+z.icon+' '+z.label+'</span><span>'+(fertig ? '✅' : Math.min(wert, z.ziel)+'/'+z.ziel)+'</span></div>'
+    return '<div class="wz-goal'+(fertig ? ' fertig' : '')+'" title="'+z.label+(fertig?' ✅':'')+'">'
+      + '<div class="wz-head"><span class="wz-label">'+z.icon+' '+Math.min(wert, z.ziel)+'/'+z.ziel+'</span><span>'+(fertig ? '✅' : '')+'</span></div>'
       + '<div class="wz-track"><div class="wz-fill" style="width:'+pct+'%"></div></div>'
       + '</div>';
   }).join("");
-  var alle = WOCHENZIELE.every(function(z){ return (state.weekly[z.id] || 0) >= z.ziel; });
-  html += '<div class="wz-bonus'+(state.weekly.bonusGiven ? ' fertig' : '')+'">'
-    + (state.weekly.bonusGiven ? '🎁 Wochen-Bonus kassiert: +30 Punkte!' : '🎁 Belohnung: alle 3 Ziele = +30 Bonus-Punkte')
+  html += '<div class="wz-bonus'+(state.weekly.bonusGiven ? ' fertig' : '')+'>'
+    + '<span id="motd-rotator" class="motd-text">' + (state.weekly.bonusGiven ? '🎉 Wochen-Bonus +30 Punkte' : '🎯 Noch ' + (50 - state.weekly.points) + ' Punkte') + '</span>'
     + '</div>';
   host.innerHTML = html;
+  /* P4.4: Mikro-Motivation — rotiert durch Mini-Nachrichten alle 5 Sekunden */
+  var rotEl = document.getElementById("motd-rotator");
+  if(rotEl && !state.weekly.bonusGiven){
+    rotEl.style.fontSize = "0.72rem";
+    rotEl.style.opacity = "0.8";
+    var msgs = ["🎯 Noch " + Math.max(0, 50 - state.weekly.points) + " Punkte", "📚 Noch " + Math.max(0, 20 - state.weekly.solved) + " Aufgaben", "🔁 Noch " + Math.max(0, 5 - state.weekly.repeats) + " Wiederholungen"];
+    var idx = 0;
+    setInterval(function(){ rotEl.textContent = msgs[idx]; idx = (idx+1) % msgs.length; }, 5000);
+  }
 }
 function showWochenBanner(wz){
   var fb = document.getElementById("feedback");

@@ -401,8 +401,11 @@
     transition:width .5s cubic-bezier(.4,1.4,.6,1);
   }
   .wz-goal.fertig .wz-fill{ background:linear-gradient(90deg, #6FBF5A, #8FCF79); }
-  .wz-bonus{
+    .wz-bonus{
     flex-basis:100%; font-size:.72rem; font-weight:600; color:var(--muted);
     padding:2px 2px 0;
   }
   .wz-bonus.fertig{ color:#3F8F3B; font-weight:700; }
+  /* P4.4: Mikro-Motivation — kompakte Labels + animierter Text */
+  .wz-label{ display:inline-flex; align-items:center; gap:4px; }
+  .motd-text{ display:inline-block; transition:opacity .3s ease; }

@@ -132,25 +132,35 @@ function renderWochenziele(){
     var wert = state.weekly[z.id] || 0;
     var fertig = wert >= z.ziel;
     var pct = Math.max(0, Math.min(100, (wert / z.ziel) * 100));
-    return '<div class="weekly-bar'+(fertig ? ' fertig' : '')+'" data-label="'+z.icon+' '+Math.min(wert, z.ziel)+'/'+z.ziel+'" data-goal-id="'+z.id+'" onclick="toggleWeeklyDetails(this)" style="background:linear-gradient(90deg, var(--gold) 0%, var(--gold) '+pct+'%, var(--line) '+pct+'%, var(--line) 100%)"></div>';
+    return '<div class="weekly-bar'+(fertig ? ' fertig' : '')+'" data-label="'+z.icon+' '+Math.min(wert, z.ziel)+'/'+z.ziel+'" data-goal-id="'+z.id+'" style="background:linear-gradient(90deg, var(--gold) 0%, var(--gold) '+pct+'%, var(--line) '+pct+'%, var(--line) 100%)"></div>';
   }).join("");
-  row.querySelector("#weeklyBars").innerHTML = barsHTML;
+  var barsHost = row.querySelector("#weeklyBars");
+  barsHost.innerHTML = barsHTML;
+  /* Event-Listener programmatisch anhängen — funktioniert im strict Scope */
+  Array.prototype.forEach.call(barsHost.querySelectorAll(".weekly-bar"), function(bar){
+    bar.addEventListener("click", function(){ toggleWeeklyDetails(bar); });
+  });
 }
 function toggleWeeklyDetails(bar){
   var details = document.getElementById("weeklyDetails");
   if(!details) return;
+  /* Alle Balken-aktiv-Klassen zurücksetzen */
+  Array.prototype.forEach.call(bar.parentNode.querySelectorAll(".weekly-bar"), function(b){
+    b.classList.remove("active");
+  });
   var expanded = details.style.display === "block";
   details.style.display = expanded ? "none" : "block";
   if(!expanded){
+    bar.classList.add("active");
     var goalId = bar.dataset.goalId;
     var goal = WOCHENZIELE.filter(function(z){ return z.id === goalId; })[0];
     if(goal){
       var msgs = {
-        points: ["🎯 Sammle 50 Punkte für deinen ersten Wochen-Erfolg! Jede richtige Antwort bringt dich näher!", "💪 30 Punkte und du hast die Hälfte geschafft!"],
-        solved: ["📚 20 Aufgaben in einer Woche — das zeigt echte Disziplin! 4 pro Tag und du bist dran.", "🚀 Jede gelöste Aufgabe zählt — behalte durch!"],
-        repeats: ["🔁 5 Wiederholungen = echtes Verständnis! Wiederhole Schwächen gezielt.", "🧠 Wiederholung ist die Mutter der Weisheit!"]
+        points: ["🎯 Sammle 50 Punkte für deinen ersten Wochen-Erfolg! Jede richtige Antwort bringt dich nah",],
+        solved: ["📚 20 Aufgaben in einer Woche — das zeigt echte Disziplin! 4 pro Tag und du bist dran.",],
+        repeats: ["🔁 5 Wiederholungen = echtes Verständnis! Wiederhole Schwächen gezielt.",]
       };
-      var msg = msgs[goalId] ? choice(msgs[goalId]) : "Du schaffst das!";
+      var msg = (msgs[goalId] && msgs[goalId].length > 0) ? choice(msgs[goalId]) : "Du schaffst das!";
       details.innerHTML = '<strong>'+goal.icon+' '+goal.label+'</strong><br>'+msg+'<br><br>🎯 Schaffe <strong>alle 3 Ziele</strong> = <strong>+30 Bonus-Punkte</strong>!';
     }
   }

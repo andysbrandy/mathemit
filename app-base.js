@@ -1755,10 +1755,11 @@
     var n2 = rand(1, 2);
     var n3 = rand(1, 2);
     var sum = Math.round((p1*n1 + p2*n2 + p3*n3) * 100) / 100;
-    var gegeben = Math.ceil(sum);
+        var gegeben = choice([5, 10, 20]);  // realistische Scheine: 5€, 10€, 20€
     var rueckgeld = Math.round((gegeben - sum) * 100) / 100;
     var ex = baseEx("textaufgabe","textaufgabe");
-    ex.question = name+" ist mit der Familie am Christkindlmarkt. "+name+" kauft "+n1+" Punsch zu je "+fmtEUR(p1)+", "+n2+" Lebkuchen zu je "+fmtEUR(p2)+" und "+n3+" Breze zu je "+fmtEUR(p3)+". "+name+" bezahlt mit einem "+fmtEUR(gegeben)+"-Schein. Wie viel Wechselgeld bekommt "+name+" zurück?";
+    var geldNomen = (gegeben <= 10) ? "Münzen" : "-Schein";
+    ex.question = name+" ist mit der Familie am Christkindlmarkt. "+name+" kauft "+n1+" Punsch zu je "+fmtEUR(p1)+", "+n2+" Lebkuchen zu je "+fmtEUR(p2)+" und "+n3+" Breze zu je "+fmtEUR(p3)+". "+name+" bezahlt mit "+fmtEUR(gegeben)+geldNomen+". Wie viel Wechselgeld bekommt "+name+" zurück?";
     ex.hint = "1) Gesamtkosten berechnen (alle Posten addieren). 2) Wechselgeld = Gegeben − Gesamtkosten.";
     ex.svg=austriaMapSVG({city:"Wien", icon:"🎄", label:"Weihnacht", color:"#D8495A"});
     ex.badge="Alltag · Christkindlmarkt"; ex.badgeColor=COLORS.textaufgabe.main;

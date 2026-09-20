@@ -778,7 +778,7 @@ function renderEulenhain(){
   s += '<path d="M'+(trunkX+28)+' '+(groundY+6)+' q 36 4 56 20 l -10 4 q -24 -12 -48 -14 Z" fill="#6E4423"/>';
   var kronen = [[0,0,128],[-105,26,88],[100,20,92],[-52,-58,86],[48,-64,90],[-132,-18,64],[120,-26,66],[0,-98,90],[38,54,66],[-42,60,62],[-10,34,80],[26,-8,96]];
   for(i = 0; i < kronen.length; i++){
-    c = kronen[i];
+    var c = kronen[i];
     s += '<circle cx="'+(trunkX + c[0]*crownK*f).toFixed(1)+'" cy="'+(crownCy + c[1]*crownK*f).toFixed(1)+'" r="'+(c[2]*crownK*f).toFixed(1)+'" fill="'+kronenFarben[i % kronenFarben.length]+'"/>';
   }
   /* Äste: oben die nächste Eule (dünner Ast), darunter die gesammelten Eulen — neueste oben, älteste unten */

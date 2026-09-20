@@ -7,6 +7,25 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 VERSION_FILE="$REPO_ROOT/VERSION"
 INDEX_FILE="$REPO_ROOT/index.html"
 
+# --- Qualitätscheck: Zuweisungen an nicht deklarierte Variablen ------------
+# app-base.js/app-active.js laufen mit "use strict"; jede Zuweisung an eine
+# nicht deklarierte Variable wirft zur Laufzeit ReferenceError und legt die App
+# lahm. Der Check bricht den Commit ab, bevor so etwas live gehen kann.
+if command -v python3 >/dev/null 2>&1 && [ -f "$REPO_ROOT/scripts/check-strict-vars.py" ]; then
+  CHECK_FILES=""
+  for f in app-base.js app-active.js; do
+    [ -f "$REPO_ROOT/$f" ] && CHECK_FILES="$CHECK_FILES $f"
+  done
+  if [ -n "$CHECK_FILES" ]; then
+    if ! (cd "$REPO_ROOT" && python3 scripts/check-strict-vars.py $CHECK_FILES); then
+      echo "❌ Nicht deklarierte Variable(n) gefunden – Commit abgebrochen."
+      echo "   In strict mode führt das zu 'ReferenceError: Can't find variable: X'."
+      echo "   Fix: var/let/const ergänzen, dann erneut committen."
+      exit 1
+    fi
+  fi
+fi
+
 # Aktuelle Version lesen
 if [ ! -f "$VERSION_FILE" ]; then
   echo "0" > "$VERSION_FILE"

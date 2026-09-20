@@ -26,21 +26,22 @@
   .chip.ampel-gelb{box-shadow:inset 0 0 0 1000px rgba(250,204,21,.08);}
   .chip.ampel-gruen{box-shadow:inset 0 0 0 1000px rgba(34,197,94,.08);}
 
-  /* P4.4: Kompakte Wochenziel-Balken */
-  .weekly-row{ margin:12px 0; font-family:"Fredoka",sans-serif; }
-  .weekly-headline{ font-size:.8rem; font-weight:600; color:var(--muted); display:block; margin-bottom:6px; }
-  .weekly-bars{ display:flex; gap:8px; margin-bottom:4px; }
-    .weekly-bar{
+    /* P4.4: Kompakte Wochenziel-Balken — alles in einer Zeile */
+  .weekly-row{ margin:12px 0; font-family:"Fredoka",sans-serif; display:flex; align-items:flex-end; gap:8px; }
+  .weekly-headline{ font-size:.8rem; font-weight:600; color:var(--muted); white-space:nowrap; flex-shrink:0; }
+  .weekly-bars{ display:flex; gap:6px; align-items:flex-end; flex:1; }
+  .weekly-bar{
     flex:1; height:10px; border-radius:6px; cursor:pointer;
     transition:all .2s ease; position:relative;
     background:var(--line); border:1px solid var(--line);
   }
   .weekly-bar::after{
-    content:attr(data-label); position:absolute; bottom:-18px; left:0;
+    content:attr(data-label); position:absolute; bottom:-16px; left:0;
     font-size:.68rem; color:var(--muted); white-space:nowrap;
+    transform:translateY(-100%);
   }
   .weekly-bar.fertig{ border-color:#8FCF79; }
-  .weekly-bar.active{ background:linear-gradient(90deg, var(--gold), var(--triangle)); }
+  .weekly-bar.active{ box-shadow:0 0 0 2px var(--gold); }
   .weekly-details{
     margin-top:8px; padding:12px; background:#F7FAF5;
     border-radius:12px; font-size:.82rem; border:1px solid var(--line);

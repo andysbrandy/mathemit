@@ -125,30 +125,34 @@ function pruefeWochenziele(){
   return { neue: neu, bonus: bonus };
 }
 function renderWochenziele(){
-  var host = document.getElementById("wochenziele");
-  if(!host) return;
+  var row = document.getElementById("weeklyRow");
+  if(!row) return;
   ensureWochen();
-  var html = WOCHENZIELE.map(function(z){
+  var barsHTML = WOCHENZIELE.map(function(z){
     var wert = state.weekly[z.id] || 0;
     var fertig = wert >= z.ziel;
     var pct = Math.max(0, Math.min(100, (wert / z.ziel) * 100));
-    return '<div class="wz-goal'+(fertig ? ' fertig' : '')+'" title="'+z.label+(fertig?' ✅':'')+'">'
-      + '<div class="wz-head"><span class="wz-label">'+z.icon+' '+Math.min(wert, z.ziel)+'/'+z.ziel+'</span><span>'+(fertig ? '✅' : '')+'</span></div>'
-      + '<div class="wz-track"><div class="wz-fill" style="width:'+pct+'%"></div></div>'
-      + '</div>';
+    return '<div class="weekly-bar'+(fertig ? ' fertig' : '')+'" data-label="'+z.icon+' '+Math.min(wert, z.ziel)+'/'+z.ziel+'" data-goal-id="'+z.id+'" onclick="toggleWeeklyDetails(this)" style="background:linear-gradient(90deg, var(--gold) 0%, var(--gold) '+pct+'%, var(--line) '+pct+'%, var(--line) 100%)"></div>';
   }).join("");
-  html += '<div class="wz-bonus'+(state.weekly.bonusGiven ? ' fertig' : '')+'>'
-    + '<span id="motd-rotator" class="motd-text">' + (state.weekly.bonusGiven ? '🎉 Wochen-Bonus +30 Punkte' : '🎯 Noch ' + (50 - state.weekly.points) + ' Punkte') + '</span>'
-    + '</div>';
-  host.innerHTML = html;
-  /* P4.4: Mikro-Motivation — rotiert durch Mini-Nachrichten alle 5 Sekunden */
-  var rotEl = document.getElementById("motd-rotator");
-  if(rotEl && !state.weekly.bonusGiven){
-    rotEl.style.fontSize = "0.72rem";
-    rotEl.style.opacity = "0.8";
-    var msgs = ["🎯 Noch " + Math.max(0, 50 - state.weekly.points) + " Punkte", "📚 Noch " + Math.max(0, 20 - state.weekly.solved) + " Aufgaben", "🔁 Noch " + Math.max(0, 5 - state.weekly.repeats) + " Wiederholungen"];
-    var idx = 0;
-    setInterval(function(){ rotEl.textContent = msgs[idx]; idx = (idx+1) % msgs.length; }, 5000);
+  row.querySelector("#weeklyBars").innerHTML = barsHTML;
+}
+function toggleWeeklyDetails(bar){
+  var details = document.getElementById("weeklyDetails");
+  if(!details) return;
+  var expanded = details.style.display === "block";
+  details.style.display = expanded ? "none" : "block";
+  if(!expanded){
+    var goalId = bar.dataset.goalId;
+    var goal = WOCHENZIELE.filter(function(z){ return z.id === goalId; })[0];
+    if(goal){
+      var msgs = {
+        points: ["🎯 Sammle 50 Punkte für deinen ersten Wochen-Erfolg! Jede richtige Antwort bringt dich näher!", "💪 30 Punkte und du hast die Hälfte geschafft!"],
+        solved: ["📚 20 Aufgaben in einer Woche — das zeigt echte Disziplin! 4 pro Tag und du bist dran.", "🚀 Jede gelöste Aufgabe zählt — behalte durch!"],
+        repeats: ["🔁 5 Wiederholungen = echtes Verständnis! Wiederhole Schwächen gezielt.", "🧠 Wiederholung ist die Mutter der Weisheit!"]
+      };
+      var msg = msgs[goalId] ? choice(msgs[goalId]) : "Du schaffst das!";
+      details.innerHTML = '<strong>'+goal.icon+' '+goal.label+'</strong><br>'+msg+'<br><br>🎯 Schaffe <strong>alle 3 Ziele</strong> = <strong>+30 Bonus-Punkte</strong>!';
+    }
   }
 }
 function showWochenBanner(wz){

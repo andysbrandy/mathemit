@@ -2106,6 +2106,17 @@
     }
     return out;
   }
+  /* P4.3: Ampel je Übungsmodus — rot: ≥1 Leiter-Eintrag fällig | gelb: Einträge vorhanden, nichts fällig | grün: keine Einträge.
+     Rote Moduse haben Vorrang bei der Aufgabenwahl (Prioritätsrunde). */
+  function spacedAmpel(spaced, pool, nowSec){
+    var s = spacedSanitize(spaced), rot = false, gelb = false;
+    for(var k in s){
+      if(pool && pool.indexOf(k) === -1) continue;
+      if(s[k][0] <= nowSec) rot = true; else gelb = true;
+      if(rot) break;
+    }
+    return rot ? "rot" : (gelb ? "gelb" : "gruen");
+  }
 
   /* ============ P6: Eulenhain — endlose Stufen + Eulensammlung ============ */
 
@@ -2218,7 +2229,7 @@
     COLORS, AUSTRIA, TRI_TEMPLATES, QUAD_TEMPLATES, QUAD_NAMES,
     TRI_STATEMENTS, QUAD_STATEMENTS, CURRICULUM_MAP, GEN, MODES, GRADES,
     GRADE_GROUPS, GRADE_TAGS, DIFFICULTIES, TIPP1_BY_TOPIC, deriveTips, bruchWort,
-    SPACED_STEPS, spacedSanitize, spacedWrong, spacedCorrect, spacedDueKeys,
+    SPACED_STEPS, spacedSanitize, spacedWrong, spacedCorrect, spacedDueKeys, spacedAmpel,
     punkteFuerStufe, stufeVonPunkten, rangTitel, owlForLevel, owlSVG, owlInner, OWL_ANIMS,
     WOCHENZIELE, wochenSchluessel
   };

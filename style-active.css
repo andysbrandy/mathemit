@@ -21,6 +21,13 @@
   }
   .chip:hover{border-color:var(--violet); transform:translateY(-1px);}
   .chip.active{background:var(--ink); border-color:var(--ink); color:#fff;}
+  /* P4.3: Wissens-Ampel — farbiger Dot am Chip-Rand */
+  .chip{position:relative;}
+  .ampel-dot{
+    position:absolute; top:-7px; right:-4px; font-size:.72rem; line-height:1;
+    background:var(--panel); border-radius:999px; padding:1px 2px;
+    box-shadow:0 1px 3px rgba(31,46,69,.25); pointer-events:none;
+  }
 
   /* ---------- Main card ---------- */
   .board{

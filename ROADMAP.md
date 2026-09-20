@@ -17,6 +17,8 @@
   - KI-Kette: GitHub Models → HF-Router (dynamische Modell-Erkennung via `/v1/models`) → Pollinations (keyless)
 - **Österreichischer Lehrplan-Mapping** (Codes H1–H3, I1–I3)
 - **Endlose Stufen + Eulenhain** (P6): Jede Stufe schaltet eine eigene Eule frei (eigene Farbwelt + eigene kleine Animation) — gesammelt auf einem wachsenden Baum im 🦉-Menü; dauerhaft gespeichert
+- **Spaced Repetition (Wissens-Ampel)** — P4.3: Jeder Generator bekommt eine Ampel: 🔴 (≥1 fällige Wiederholung) > 🟡 (Einträge vorhanden) > 🟢 (keine). Rote Modi haben Priorität bei der Aufgabenwahl.
+- **Dynamische Lobsprüche** — P4.4: Serien-Meilensteine, Level-Ehrung und Wiederholungs-Triumph-Feedback via `getMotd()`.
 - **Streaks, Basis-Badges, Auth-System**
 - **Comic-SVG-Engine** (gerundete Silhouetten, dynamische Skizzen)
 - **Geometrisches Eulen-Logo**: blinkt, die Pupillen folgen dem Cursor, die Flügel wedeln bei richtigen Aufgaben („Bewegung reduzieren" wird respektiert)

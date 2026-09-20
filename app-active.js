@@ -23,6 +23,7 @@
   var spacedWrong = MB.spacedWrong;
   var spacedCorrect = MB.spacedCorrect;
   var spacedDueKeys = MB.spacedDueKeys;
+  var spacedAmpel = MB.spacedAmpel;
   // ENCOURAGE_OK / ENCOURAGE_BAD / LEVELS / BADGES sind in dieser Datei lokal definiert.
 
   // ---- Render-Hilfsfunktionen (basieren auf app-base.js) ----
@@ -42,6 +43,7 @@ var state = {
   solved: 0,
   correct: 0,
   current: null,
+  spaced: {},   /* P4.3: Leiter je Generatorkey: {key:[dueEpochSek, level]} */
   repeatQ: [], repeatIdx: 0, repeatIdxCurrent: 0, currentIsRepeat: false, repeatOnly: false, taskCount: 0, currentWasDue: false, wrongRow: 0,
   answered: false,
   badges: [], owls: [1],
@@ -156,6 +158,53 @@ function showWochenBanner(wz){
 var ENCOURAGE_OK = ["Super gemacht! 🎉","Genau richtig! 👏","Klasse, weiter so! ✨","Stark! Das sitzt. 💪","Perfekt gelöst! 🌟","Richtig! Du bist auf einem guten Weg. 🚀"];
 var ENCOURAGE_BAD = ["Nicht ganz – schau dir die Erklärung an. 🧭","Fast! Lies dir die Lösung durch. 📘","Kein Problem, das übst du gleich noch mal. 🔁","Diesmal nicht, aber dranbleiben lohnt sich! 🌱"];
 
+/* ============ P4.4: Motivations-Engine — dynamische Lobsprüche ============ */
+function getMotd(isCorrect, streak, levelAfter, currentWasDue){
+  /* Streak-basierte Triumphe: jede "Meilenstein"-Streak bekommt einen besonderen Spruch */
+  var streakMilestones = {
+    3:  ["🔥 Super Saft! Deine Serie steigt!","🎯 3 in Folge — geht perfekt!","💪 Saft gezogen — weiter so!!"],
+    5:  ["🔥🔥 Fünf in Folge! Du bist unbesiegbar! 🌟","🏆 Super Saft! Deine Mathe-Bahn ist in Fahrt!",""],
+    10: ["🔥🔥🔥 Zehn in Folge! Mathe-Legende in dir!","🧠 Geniesst du das Wort-Spiel? 100% Treffer!","🚀 Rakete ge start — 10 x richtig!"],
+    20: ["🌟 Ewige Bestien! 20 richtig in Folge!","🦸 Superheld! Dein Wissen ist unübertroffen!"]
+  };
+  /* Level-basierte Anerkennung: höhere Stufen verdienen Ehrung */
+  var levelSprueche = {
+    3: ("🥉 Dein Wissen wächst — Stufe " + levelAfter + " erreicht!"),
+    5: ("🥈 Goldrichtig! Stufe " + levelAfter + " — du bist ein echter Mathe-Profi!"),
+    10:("🥇 Aschee, Miese! Stufe " + levelAfter + "! Du bist eine Legende!"),
+    20:("🧠 Mathephänomen Stufe " + levelAfter + "! Die Lehrbücher zittern vor dir!")
+  };
+  /* Wiederholungs-spezifische Erfolgsbotschaften */
+  if(currentWasDue && isCorrect){
+    return choice(["🧠 Hervorragend! Du hast eine alte Schwäche korrigiert.","🔄 Wiederhole und triumphierst — Mathe-Elefant!","💎 Du hast eine Wiederholung gemeistert und befördert!"]);
+  }
+  /* Streak-Meilenstein */
+  if(isCorrect){
+    var m = streakMilestones[streak];
+    if(m && m.length > 0){ return choice(m); }
+    /* Level-Meilenstein */
+    var l = levelSprueche[levelAfter];
+    if(l){ return l; }
+    /* Streak-Warnung (noch kurz vor dem nächsten Milestone) */
+    var nextMilestone = 3;
+    if(streak >= 10){ nextMilestone = 20; }
+    else if(streak >= 5){ nextMilestone = 10; }
+    else if(streak >= 3){ nextMilestone = 5; }
+    if(streak > 0 && streak < nextMilestone){
+      var remaining = nextMilestone - streak;
+      if(remaining <= 2){
+        return "🔥 Noch " + remaining + " richtig für deinen nächsten Lobspruch! ";
+      }
+    }
+    return choice(ENCOURAGE_OK);
+  }
+  /* Falsch: Motivation statt Diskourage */
+  if(streak > 3){
+    return choice(["🔁 Dein Feuer ist nicht erloschen! Versuchs nochmal.","Stärke, die Serie ist lang — du packst das!💪","Ein harter Schnitt? Komm schon, hol dir deine Serie zurück! 🔥"]);
+  }
+  return choice(ENCOURAGE_BAD);
+}
+
 /* ============ Fortschritt speichern (Phase 2) ============ */
 var STORAGE_KEY = "formenwerkstatt_progress_v1";
 function saveProgress(){
@@ -164,7 +213,8 @@ function saveProgress(){
       points:state.points, streak:state.streak, bestStreak:state.bestStreak,
       solved:state.solved, correct:state.correct, badges:state.badges,
       mode:state.mode, grade:state.grade, diff:state.diff,
-      repeatQ:state.repeatQ, owls:state.owls, weekly:state.weekly
+      repeatQ:state.repeatQ, owls:state.owls, weekly:state.weekly,
+    spaced:state.spaced
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }catch(e){ /* z. B. Privatmodus ohne Speicherzugriff - Fortschritt bleibt dann nur für diese Sitzung erhalten */ }
@@ -184,13 +234,14 @@ function loadProgress(){
     state.grade = GRADES.some(function(g){return g.id===d.grade;}) ? d.grade : "all";
     state.diff = (d.diff===1 || d.diff===2 || d.diff===3) ? d.diff : 2;
     state.repeatQ = sanitizeRepeatQ(d.repeatQ);
+    state.spaced = spacedSanitize(d.spaced);
     state.owls = sanitizeOwls(d.owls);
     ensureOwls();
     state.weekly = sanitizeWochen(d.weekly);
   }catch(e){ /* beschädigter oder fehlender Speicher wird ignoriert, App startet mit Standardwerten */ }
 }
 function resetProgress(){
-  state.points=0; state.streak=0; state.bestStreak=0; state.solved=0; state.correct=0; state.badges=[]; state.owls=[1]; state.repeatQ=[]; state.repeatIdx=0; state.repeatOnly=false; state.taskCount=0; state.wrongRow=0; state.weekly = sanitizeWochen(null);
+  state.points=0; state.streak=0; state.bestStreak=0; state.solved=0; state.correct=0; state.badges=[]; state.owls=[1]; state.spaced={}; state.repeatQ=[]; state.repeatIdx=0; state.repeatOnly=false; state.taskCount=0; state.wrongRow=0; state.weekly = sanitizeWochen(null);
   try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
   updateStatsUI();
 }
@@ -212,10 +263,11 @@ MODES.forEach(function(m){
   }
   var btn = document.createElement("button");
   btn.className = "chip" + (m.id===state.mode?" active":"");
+  var modeId = m.id;
   btn.textContent = m.label;
-  btn.dataset.mode = m.id;
+  btn.dataset.mode = modeId;
   btn.addEventListener("click", function(){
-    state.mode = m.id;
+    state.mode = modeId;
     Array.prototype.forEach.call(chipsHost.querySelectorAll(".chip"), function(c){ if(c.id !== "repeatChip"){ c.classList.remove("active"); } });
     btn.classList.add("active");
     saveProgress();
@@ -224,6 +276,26 @@ MODES.forEach(function(m){
   });
   chipsHost.appendChild(btn);
 });
+/* P4.3: Wissens-Ampel — Dot je Chip: 🔴 fällig | 🟡 in Arbeit | 🟢 neu/alles geschafft */
+var modeAmpelDots = {};
+function updateModeAmpel(){
+  var nowSec = Math.floor(Date.now()/1000);
+  MODES.forEach(function(m){
+    var a = spacedAmpel(state.spaced, m.pool, nowSec);
+    var dot = modeAmpelDots[m.id];
+    if(!dot){
+      dot = document.createElement("span");
+      dot.className = "ampel-dot";
+      var host = chipsHost.querySelector('[data-mode="'+m.id+'"]');
+      if(host){ host.appendChild(dot); }
+      modeAmpelDots[m.id] = dot;
+    }
+    if(dot){
+      dot.className = "ampel-dot ampel-" + a;
+      dot.textContent = a === "rot" ? "🔴" : (a === "gelb" ? "🟡" : "🟢");
+    }
+  });
+}
 
 /* P4.3: Wiederholungs-Chip (nur Sitzung, nicht persistiert) */
 var repeatChip = document.createElement("button");
@@ -408,6 +480,7 @@ function nextExercise(){
   var key;
   var ex;
   state.currentIsRepeat = false;
+  state.currentWasDue = false;
   if(state.repeatOnly && state.repeatQ.length > 0){
     state.currentIsRepeat = true;
     state.repeatIdxCurrent = state.repeatIdx % state.repeatQ.length;
@@ -416,7 +489,15 @@ function nextExercise(){
     state.repeatIdx = state.repeatIdx + 1;
   } else {
     if(state.repeatOnly){ state.repeatOnly = false; repeatChip.classList.remove('active'); }
-    key = choice(pool);
+    /* P4.3: Prioritätsrunde — fällige Leiter-Aufgaben zuerst (max. jede 2. Aufgabe) */
+    var nowS = Math.floor(Date.now()/1000);
+    var dueKeys = spacedDueKeys(state.spaced, nowS, pool);
+    if(dueKeys.length > 0 && (state.taskCount % 2 === 0 || pool.length <= 1)){
+      key = choice(dueKeys);
+      state.currentWasDue = true;
+    } else {
+      key = choice(pool);
+    }
     ex = GEN[key](state.diff);
   }
   state.currentKey = key;
@@ -478,6 +559,12 @@ function finishRound(isCorrect, explanation){
     if(isCorrect){ missByGen[mk]=0; hitByGen[mk]=(hitByGen[mk]||0)+1; }
     else { missByGen[mk]=(missByGen[mk]||0)+1; hitByGen[mk]=0; }
   }
+  /* P4.3: Spaced-Repetition-Leiter pflegen (nur echte — keine Session-Repeats) */
+  if(mk && !state.currentIsRepeat){
+    var nowSec = Math.floor(Date.now()/1000);
+    if(isCorrect){ state.spaced = spacedCorrect(state.spaced, mk, nowSec); }
+    else { state.spaced = spacedWrong(state.spaced, mk, nowSec); }
+  }
   if(isCorrect){
     state.correct += 1;
     state.streak += 1;
@@ -507,11 +594,12 @@ function finishRound(isCorrect, explanation){
   if(wz.neue.length || wz.bonus){ spawnConfetti(); showWochenBanner(wz); }
   checkBadges();
   updateStatsUI();
+  updateModeAmpel();
   saveProgress();
 
   var fb = document.getElementById("feedback");
   fb.className = "feedback show " + (isCorrect?"ok":"bad");
-  var msg = isCorrect ? choice(ENCOURAGE_OK) : choice(ENCOURAGE_BAD);
+    var msg = getMotd(isCorrect, state.streak, lvlAfter, state.currentWasDue);
   /* P2.2: Dynamische Anpassungs-Vorschläge (einmalig je Schwelle) */
   var sug = "";
   var stepTo = 0;
@@ -534,6 +622,10 @@ function finishRound(isCorrect, explanation){
   } else if(mk && !isCorrect){
     storeRepeatInstance(state.current);
     extra = extra + "<div style=\"margin-top:6px; font-size:.8rem; font-weight:600;\">🔁 Diese Aufgabe ist jetzt im Wiederholungstraining.</div>";
+  }
+  /* P4.3: Fällige Leiter-Aufgabe gemeistert → Leiter-Feedback */
+  if(state.currentWasDue && isCorrect){
+    extra = extra + "<div style=\"margin-top:6px; font-size:.8rem; font-weight:600;\">🧠 Stark — diese Wiederholung sitzt wieder! Die nächste kommt später dran.</div>";
   }
   if(!isCorrect && state.current){
     var korr = TIPP1_BY_TOPIC[state.current.topic];
@@ -1142,12 +1234,14 @@ function loadProgressFromAPI(customToken) {
       state.badges  = d.badges      || state.badges || [];
       if(d.repeatQ){ state.repeatQ = sanitizeRepeatQ(d.repeatQ); }
       if(d.owls){ state.owls = sanitizeOwls(d.owls); }
+      if(d.spaced){ state.spaced = spacedSanitize(d.spaced); }
       ensureOwls();
       state.weekly = sanitizeWochen(d.goals);
       state.mode    = (d.mode && MODES.some(function(m){return m.id===d.mode;})) ? d.mode : (state.mode || 'alles');
       state.grade   = (d.grade && GRADES.some(function(g){return g.id===d.grade;})) ? d.grade : (state.grade || 'all');
       console.log('[mathemit] Fortschritt vom Server geladen:', JSON.stringify({p:state.points,s:state.streak,bs:state.bestStreak}));
       updateStatsUI();
+      updateModeAmpel();
       syncProgressToAPI();
     }
   }, function(err) {
@@ -1172,6 +1266,7 @@ function syncProgressToAPI() {
       diff:        state.diff,
       repeatQ:     state.repeatQ,
       owls:        state.owls,
+      spaced:      state.spaced,
       goals:       state.weekly
     }
   }).then(function(data) {
@@ -1371,5 +1466,6 @@ if (token) {
   })();
 
 updateStatsUI();
+updateModeAmpel();
 nextExercise();
 })();

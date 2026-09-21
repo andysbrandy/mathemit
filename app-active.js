@@ -1074,7 +1074,7 @@ function openWissenswald(){
 function closeWissenswald(){ if(wwpViewEl) wwpViewEl.style.display = "none"; }
 function wwpTuffPosis(n){
   var out = [[0, 0]], i;
-  var r1 = 34, r2 = 58, ring1 = 5, ring2 = 8;
+  var r1 = 27, r2 = 44, ring1 = 5, ring2 = 8;
   for(i = 1; i < n; i++){
     if(i <= ring1){
       var a = (i - 1) * (2 * Math.PI / ring1) - Math.PI / 2;
@@ -1135,8 +1135,8 @@ function renderWissenswald(){
   });
   waldLetzterStatus = wald.baeume.map(function(b){ return b.status; });
   if(neueGold.length){ spawnConfetti(); showWaldBanner(neueGold); }
-  /* --- Szene: Himmel, Sonne, Wolken, Hügel, Blumen, Hintergrund-Tannen --- */
-  var W = 860, H = 640, groundY = H - 110;
+  /* --- Szene: Himmel, Sonne, Wolken, Wiese — 6 Bäume je auf eigenem Hügel --- */
+  var W = 1000, H = 540, groundY = H - 70;
   var s = "", i, j;
   s += '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" style="display:block;">';
   s += '<defs>'
@@ -1144,52 +1144,60 @@ function renderWissenswald(){
     + '<linearGradient id="wwpTrunk" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7A4E26"/><stop offset=".55" stop-color="#93613A"/><stop offset="1" stop-color="#6E4423"/></linearGradient>'
     + '</defs>';
   s += '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="url(#wwpSky)"/>';
-  s += '<g transform="translate(' + (W - 96) + ',96)"><g class="ehp-rays">' + ehpStrahlen(10, 48, 74) + '</g><circle r="40" fill="#FFD75E" stroke="#F2B93B" stroke-width="3"/></g>';
-  s += ehpWolke(140, 92, 1.1, "c1") + ehpWolke(600, 150, 0.85, "c2") + ehpWolke(300, 44, 0.7, "c3");
-  s += '<path d="M0 ' + (groundY + 10) + ' Q 210 ' + (groundY - 48) + ' 430 ' + (groundY + 4) + ' T ' + W + ' ' + (groundY - 4) + ' L ' + W + ' ' + H + ' L 0 ' + H + ' Z" fill="#A9D89B"/>';
-  s += '<path d="M0 ' + (groundY + 34) + ' Q 260 ' + (groundY - 2) + ' 520 ' + (groundY + 26) + ' T ' + W + ' ' + (groundY + 20) + ' L ' + W + ' ' + H + ' L 0 ' + H + ' Z" fill="#8FCB7E"/>';
-  s += ehpBlumen(groundY);
-  var tannen = [[60, groundY - 6, 0.9], [230, groundY - 26, 0.7], [330, groundY - 2, 0.8], [560, groundY - 22, 0.72], [820, groundY - 4, 0.9]];
-  tannen.forEach(function(t){
-    s += '<g transform="translate(' + t[0] + ',' + t[1] + ') scale(' + t[2] + ')" opacity=".5">'
-      + '<polygon points="0,-64 20,-26 -20,-26" fill="#4E7F42"/>'
-      + '<polygon points="0,-46 24,-4 -24,-4" fill="#4E7F42"/>'
-      + '<rect x="-3" y="-4" width="6" height="12" fill="#6E4423"/></g>';
+  s += '<g transform="translate(' + (W - 110) + ',104)"><g class="ehp-rays">' + ehpStrahlen(10, 46, 70) + '</g><circle r="40" fill="#FFD75E" stroke="#F2B93B" stroke-width="3"/></g>';
+  s += ehpWolke(150, 82, 1.05, "c1") + ehpWolke(560, 118, 0.8, "c2") + ehpWolke(330, 50, 0.65, "c3");
+  /* Wiese: zwei sanfte Bodenwellen */
+  s += '<path d="M0 ' + (groundY + 8) + ' Q 250 ' + (groundY - 40) + ' 500 ' + (groundY + 2) + ' T ' + W + ' ' + (groundY - 6) + ' L ' + W + ' ' + H + ' L 0 ' + H + ' Z" fill="#A9D89B"/>';
+  s += '<path d="M0 ' + (groundY + 26) + ' Q 260 ' + (groundY - 4) + ' 520 ' + (groundY + 20) + ' T ' + W + ' ' + (groundY + 14) + ' L ' + W + ' ' + H + ' L 0 ' + H + ' Z" fill="#8FCB7E"/>';
+  s += ehpBlumen(groundY - 8);
+  /* Büsche als Grünflicken zwischen den Baum-Hügeln */
+  var buschX = [[168, groundY + 16, 1], [482, groundY + 8, 0.82], [798, groundY + 18, 1]];
+  buschX.forEach(function(bu){
+    s += '<g transform="translate(' + bu[0] + ',' + bu[1] + ') scale(' + bu[2] + ')" opacity=".92">'
+      + '<ellipse cx="-11" cy="0" rx="14" ry="9" fill="#7FB56F"/>'
+      + '<ellipse cx="9" cy="-2" rx="16" ry="10" fill="#8FC178"/>'
+      + '<ellipse cx="0" cy="4" rx="18" ry="8" fill="#79A968"/></g>';
   });
-  /* 6 Bäume: hinten (0,2,4) kleiner, vorne (1,3,5) größer — Wissenswald-Perspektive */
-  var hintenX = [170, 430, 690], vorneX = [105, 430, 755];
+  /* 6 Bäume in einer Reihe (Abstand 155 → keine Überlappung), jeder auf eigenem Hügel */
+  var BAUM_X = [95, 250, 405, 560, 715, 870];
   wald.baeume.forEach(function(b, idx){
     var hinten = (idx % 2 === 0);
-    var x = hinten ? hintenX[Math.floor(idx / 2)] : vorneX[Math.floor(idx / 2)];
-    var sk = hinten ? 0.78 : 1.0;
-    var y0 = hinten ? groundY - 46 : groundY + 34;
+    var x = BAUM_X[idx];
+    var sk = hinten ? 0.9 : 1.0;
+    var hy = hinten ? groundY - 10 : groundY + 16;   /* Hügelkuppe */
+    var y0 = hy - 4;
     var stammH = 44 + b.pct * 0.62;
-    var cx = 0, cy = -(stammH + 30);
+    var cy = -(stammH + 28);
     var posis = wwpTuffPosis(b.total);
+    s += '<ellipse cx="' + x + '" cy="' + hy + '" rx="80" ry="17" fill="' + (hinten ? "#9BD489" : "#96CE83") + '"/>';
     s += '<g class="wwp-tree" transform="translate(' + x + ',' + y0 + ') scale(' + sk + ')">';
-    s += '<path d="M-11 0 C -9 -' + (stammH * 0.5).toFixed(0) + ' -8 -' + (stammH * 0.8).toFixed(0) + ' -4 -' + stammH.toFixed(0) + ' L 4 -' + stammH.toFixed(0) + ' C 8 -' + (stammH * 0.8).toFixed(0) + ' 9 -' + (stammH * 0.5).toFixed(0) + ' 11 0 Z" fill="url(#wwpTrunk)"/>';
-    s += '<path d="M-10 0 q -26 3 -40 15 l 8 3 q 17 -10 34 -11 Z" fill="#6E4423"/>';
-    s += '<path d="M10 0 q 26 3 40 15 l -8 3 q -17 -10 -34 -11 Z" fill="#6E4423"/>';
-    s += '<circle cx="' + cx + '" cy="' + cy + '" r="62" fill="#5E9E4E" opacity=".55"/>';
-    s += '<circle cx="' + (cx - 34) + '" cy="' + (cy + 10) + '" r="44" fill="#5E9E4E" opacity=".5"/>';
-    s += '<circle cx="' + (cx + 34) + '" cy="' + (cy + 8) + '" r="46" fill="#5E9E4E" opacity=".5"/>';
+    /* Wurzeln: fassen den Stammfuß und laufen in den Erdwall */
+    s += '<path d="M-11 -2 C -18 4 -25 7 -33 10 L -25 13 C -18 10 -11 7 -5 5 Z" fill="#6E4423"/>';
+    s += '<path d="M11 -2 C 18 4 25 7 33 10 L 25 13 C 18 10 11 7 5 5 Z" fill="#6E4423"/>';
+    s += '<ellipse cx="0" cy="5" rx="26" ry="7" fill="#79B26A"/>';
+    /* Stamm (endet genau am Erdwall) */
+    s += '<path d="M-11 -4 C -9 -' + (stammH * 0.5).toFixed(0) + ' -8 -' + (stammH * 0.8).toFixed(0) + ' -4 -' + stammH.toFixed(0) + ' L 4 -' + stammH.toFixed(0) + ' C 8 -' + (stammH * 0.8).toFixed(0) + ' 9 -' + (stammH * 0.5).toFixed(0) + ' 11 -4 Z" fill="url(#wwpTrunk)"/>';
+    /* Kronen-Grundvolumen */
+    s += '<circle cx="0" cy="' + cy + '" r="48" fill="#5E9E4E" opacity=".55"/>';
+    s += '<circle cx="-27" cy="' + (cy + 9) + '" r="36" fill="#5E9E4E" opacity=".5"/>';
+    s += '<circle cx="27" cy="' + (cy + 7) + '" r="38" fill="#5E9E4E" opacity=".5"/>';
     posis.forEach(function(p, ti){
       var t = b.tuffs[ti];
       var col = WWP_TUFF_FARBEN[t.status] || WWP_TUFF_FARBEN.neu;
       var cls = "wwp-tuff" + (t.status === "meister" ? " wwp-gold" : "");
-      s += '<circle class="' + cls + '" data-key="' + t.key + '" cx="' + (cx + p[0]).toFixed(1) + '" cy="' + (cy + p[1]).toFixed(1) + '" r="13" fill="' + col + '" stroke="#3F6B37" stroke-width="' + (t.status === "neu" ? 1 : 2) + '" opacity="' + (t.status === "neu" ? 0.75 : 1) + '" role="button" tabindex="0" aria-label="' + escHtml(t.name) + '"/>';
+      s += '<circle class="' + cls + '" data-key="' + t.key + '" cx="' + (p[0]).toFixed(1) + '" cy="' + (cy + p[1]).toFixed(1) + '" r="12" fill="' + col + '" stroke="#3F6B37" stroke-width="' + (t.status === "neu" ? 1 : 2) + '" opacity="' + (t.status === "neu" ? 0.75 : 1) + '" role="button" tabindex="0" aria-label="' + escHtml(t.name) + '"/>';
       if(t.status === "meister"){
-        s += '<text class="wwp-sparkle" x="' + (cx + p[0]).toFixed(1) + '" y="' + (cy + p[1] + 4.5).toFixed(1) + '" text-anchor="middle" font-size="12">✨</text>';
+        s += '<text class="wwp-sparkle" x="' + (p[0]).toFixed(1) + '" y="' + (cy + p[1] + 4).toFixed(1) + '" text-anchor="middle" font-size="11">✨</text>';
       }
       if(t.due){
-        s += '<text class="wwp-due" x="' + (cx + p[0]).toFixed(1) + '" y="' + (cy + p[1] + 22).toFixed(1) + '" text-anchor="middle" font-size="10">⏰</text>';
+        s += '<text class="wwp-due" x="' + (p[0]).toFixed(1) + '" y="' + (cy + p[1] + 21).toFixed(1) + '" text-anchor="middle" font-size="9">⏰</text>';
       }
     });
     if(b.status === "gold"){
-      s += '<text class="wwp-animal" x="' + cx + '" y="' + (cy - 78) + '" text-anchor="middle" font-size="20">' + WWP_TIERE[idx % WWP_TIERE.length] + '</text>';
+      s += '<text class="wwp-animal" x="0" y="' + (cy - 66) + '" text-anchor="middle" font-size="19">' + WWP_TIERE[idx % WWP_TIERE.length] + '</text>';
     }
     s += '</g>';
-    var labelY = y0 + (hinten ? 6 : 18);
+    var labelY = y0 + 22;
     s += '<text class="wwp-label" x="' + x + '" y="' + labelY + '" text-anchor="middle">' + b.icon + ' ' + escHtml(b.name) + '</text>';
     var sub = b.pct + '% · ' + (b.status === "gold" ? "🏆 golden" : (b.status === "rot" ? "⏰ " + b.dueCount + " fällig" : (b.status === "neu" ? "🌱 unberührt" : "🌿 " + b.geuebt + "/" + b.total + " im Wuchs")));
     s += '<text class="wwp-labelsub" x="' + x + '" y="' + (labelY + 14) + '" text-anchor="middle">' + sub + '</text>';

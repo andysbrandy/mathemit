@@ -409,3 +409,32 @@
   /* P4.4: Mikro-Motivation — kompakte Labels + animierter Text */
   .wz-label{ display:inline-flex; align-items:center; gap:4px; }
   .motd-text{ display:inline-block; transition:opacity .3s ease; }
+
+  /* ---------- P4.1: Wissenswald (eigene Seite, wie der Eulenhain) ---------- */
+  .wwp{ position:fixed; inset:0; z-index:60; background:#F6FAF4; overflow-y:auto; padding:14px 16px 40px; }
+  .wwp-head{ max-width:960px; margin:0 auto 12px; display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+  .wwp-head h2{ margin:0; font-size:1.5rem; font-family:'Fredoka',sans-serif; }
+  .wwp-pill{ background:#fff; border:1px solid var(--line); border-radius:999px; padding:6px 14px; font-size:.85rem; font-weight:600; color:var(--muted); }
+  .wwp-body{ max-width:960px; margin:0 auto; }
+  .wwp-scene{ background:#fff; border:1px solid var(--line); border-radius:18px; padding:10px; box-shadow:0 8px 0 var(--line); }
+  .wwp-scene > svg{ display:block; width:100%; height:auto; }
+  .wwp-label{ font-size:13px; font-weight:700; fill:#5F7186; font-family:'Fredoka',sans-serif; }
+  .wwp-labelsub{ font-size:11px; fill:#8A97A6; font-weight:600; }
+  .wwp-tuff{ cursor:pointer; transition:transform .15s ease, opacity .15s ease; transform-box:fill-box; transform-origin:center; }
+  .wwp-tuff:hover{ transform:scale(1.3); }
+  .wwp-tuff:focus-visible{ outline:2px solid var(--gold); outline-offset:1px; }
+  .wwp-tree{ transform-box:fill-box; transform-origin:50% 100%; }
+  .wwp-tree:hover{ animation:wwpSway 1.6s ease-in-out infinite; }
+  @keyframes wwpSway{ 0%,100%{ transform:rotate(-1.1deg); } 50%{ transform:rotate(1.1deg); } }
+  .wwp-animal{ animation:wwpFloat 3.5s ease-in-out infinite; }
+  @keyframes wwpFloat{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-5px); } }
+  .wwp-sparkle{ animation:wwpTwinkle 1.8s ease-in-out infinite; }
+  @keyframes wwpTwinkle{ 0%,100%{ opacity:.3; } 50%{ opacity:1; } }
+  .ww-caption{ text-align:center; margin-top:10px; font-size:.88rem; min-height:46px; }
+  .wwp-codes{ font-size:.7rem; color:var(--muted); }
+  .wwp-ueben{ margin-left:6px; }
+  .ww-hint{ text-align:center; margin-top:6px; font-size:.78rem; color:var(--muted); }
+  .stat-pill.wald{ cursor:pointer; }
+  @media (prefers-reduced-motion: reduce){
+    .wwp-tree:hover, .wwp-animal, .wwp-sparkle{ animation:none; }
+  }

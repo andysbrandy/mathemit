@@ -44,7 +44,7 @@ var state = {
   correct: 0,
   current: null,
   spaced: {},   /* P4.3: Leiter je Generatorkey: {key:[dueEpochSek, level]} */
-  repeatQ: [], repeatIdx: 0, repeatIdxCurrent: 0, currentIsRepeat: false, repeatOnly: false, taskCount: 0, currentWasDue: false, wrongRow: 0,
+  repeatQ: [], repeatIdx: 0, repeatIdxCurrent: 0, currentIsRepeat: false, repeatOnly: false, taskCount: 0, currentWasDue: false, wrongRow: 0, focusKey: null,
   answered: false,
   badges: [], owls: [1],
   weekly: { week:"", points:0, solved:0, repeats:0, done:[], bonusGiven:false }
@@ -60,6 +60,10 @@ var owlSVG = MB.owlSVG;
 var owlInner = MB.owlInner;
 var WOCHENZIELE = MB.WOCHENZIELE;
 var wochenSchluessel = MB.wochenSchluessel;
+var CURRICULUM_MAP = MB.CURRICULUM_MAP;
+var WALD_BEREICHE = MB.WALD_BEREICHE;
+var waldStatus = MB.waldStatus;
+var bereichFuerKey = MB.bereichFuerKey;
 function currentLevel(){
   var s = stufeVonPunkten(state.points);
   return { stufe:s, name:rangTitel(s), min:punkteFuerStufe(s) };
@@ -296,7 +300,7 @@ function loadProgress(){
   }catch(e){ /* beschädigter oder fehlender Speicher wird ignoriert, App startet mit Standardwerten */ }
 }
 function resetProgress(){
-  state.points=0; state.streak=0; state.bestStreak=0; state.solved=0; state.correct=0; state.badges=[]; state.owls=[1]; state.spaced={}; state.repeatQ=[]; state.repeatIdx=0; state.repeatOnly=false; state.taskCount=0; state.wrongRow=0; state.weekly = sanitizeWochen(null);
+  state.points=0; state.streak=0; state.bestStreak=0; state.solved=0; state.correct=0; state.badges=[]; state.owls=[1]; state.spaced={}; state.repeatQ=[]; state.repeatIdx=0; state.repeatOnly=false; state.taskCount=0; state.wrongRow=0; state.focusKey=null; state.weekly = sanitizeWochen(null);
   try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
   updateStatsUI();
 }
@@ -323,6 +327,7 @@ MODES.forEach(function(m){
   btn.dataset.mode = modeId;
   btn.addEventListener("click", function(){
     state.mode = modeId;
+    setFocusKey(null);
     Array.prototype.forEach.call(chipsHost.querySelectorAll(".chip"), function(c){ if(c.id !== "repeatChip"){ c.classList.remove("active"); } });
     btn.classList.add("active");
     saveProgress();
@@ -356,6 +361,30 @@ repeatChip.addEventListener("click", function(){
   nextExercise();
 });
 chipsHost.appendChild(repeatChip);
+/* P4.1: Fokus-Chip — gezieltes Üben EINES Generators (aus dem Wissenswald) */
+var focusChip = document.createElement("button");
+focusChip.className = "chip";
+focusChip.id = "focusChip";
+focusChip.style.display = "none";
+focusChip.title = "Fokus beenden — wieder alle Aufgaben des Modus üben";
+focusChip.addEventListener("click", function(){
+  setFocusKey(null);
+  nextExercise();
+});
+chipsHost.appendChild(focusChip);
+function updateFocusChip(){
+  if(state.focusKey && GEN[state.focusKey]){
+    var cm = CURRICULUM_MAP[state.focusKey];
+    focusChip.textContent = "🎯 Fokus: " + (cm ? cm.kompetenz : state.focusKey) + " ✕";
+    focusChip.style.display = "";
+  } else {
+    focusChip.style.display = "none";
+  }
+}
+function setFocusKey(key){
+  state.focusKey = (key && GEN[key]) ? key : null;
+  updateFocusChip();
+}
 function updateRepeatChip(){
   var n = state.repeatQ.length;
   if(n > 0){
@@ -472,6 +501,8 @@ function updateStatsUI(){
   if(owlCountEl) owlCountEl.textContent = state.owls.length;
   document.getElementById("sessionStat").textContent = state.solved+" Aufgaben gelöst · "+state.correct+" richtig";
   renderWochenziele();
+  /* P4.1: Wald-Fortschritt in der Baum-Pill */
+  if(waldPctValEl){ waldPctValEl.textContent = waldStatus(state.spaced, Math.floor(Date.now()/1000)).pct + "%"; }
   renderBadges();
 }
 
@@ -506,6 +537,8 @@ var eyebrowMap = {
 };
 
 function poolForCurrentFilters(){
+  /* P4.1: Fokus aus dem Wissenswald — gezielt EINEN Generator üben */
+  if(state.focusKey && GEN[state.focusKey]){ return [state.focusKey]; }
   var mode = MODES.filter(function(m){return m.id===state.mode;})[0];
   var pool = mode.pool;
   if(state.grade && state.grade!=="all"){
@@ -644,6 +677,8 @@ function finishRound(isCorrect, explanation){
   checkBadges();
   updateStatsUI();
   updateModeAmpel();
+  /* P4.1: Wissenswald offen? Baeume sofort aktualisieren (Gold-Feier inklusive) */
+  if(wwpViewEl && wwpViewEl.style.display !== "none") renderWissenswald();
   saveProgress();
 
   var fb = document.getElementById("feedback");
@@ -1020,6 +1055,161 @@ if(eulenhainBackEl) eulenhainBackEl.addEventListener("click", closeEulenhain);
 document.addEventListener("keydown", function(e){
   if(e.key === "Escape") closeEulenhain();
 });
+/* ---------- P4.1: Wissenswald — 6 Kompetenz-Bäume (eigene Seite, wie der Eulenhain) ---------- */
+var wwpViewEl = document.getElementById("wissenswaldView");
+var wwpSceneEl = document.getElementById("wwpScene");
+var wwpStatsEl = document.getElementById("wwpStats");
+var wwHintEl = document.getElementById("wwHint");
+var wwCaptionEl = document.getElementById("wwCaption");
+var waldBtnEl = document.getElementById("waldBtn");
+var waldPctValEl = document.getElementById("waldPctVal");
+var waldLetzterStatus = null;
+var WWP_TIERE = ["🐿️","🦜","🐝","🦔","🦋","🐞"];
+var WWP_TUFF_FARBEN = { neu:"#C7D4C0", bau:"#F2C14E", due:"#E15759", sicher:"#6FAF5C", meister:"#F2B93B" };
+function openWissenswald(){
+  renderWissenswald();
+  if(wwpViewEl) wwpViewEl.style.display = "block";
+  window.scrollTo(0, 0);
+}
+function closeWissenswald(){ if(wwpViewEl) wwpViewEl.style.display = "none"; }
+function wwpTuffPosis(n){
+  var out = [[0, 0]], i;
+  var r1 = 34, r2 = 58, ring1 = 5, ring2 = 8;
+  for(i = 1; i < n; i++){
+    if(i <= ring1){
+      var a = (i - 1) * (2 * Math.PI / ring1) - Math.PI / 2;
+      out.push([Math.cos(a) * r1, Math.sin(a) * r1 * 0.86]);
+    } else if(i <= ring1 + ring2){
+      var a2 = (i - 1 - ring1) * (2 * Math.PI / ring2) - Math.PI / 2 + 0.3;
+      out.push([Math.cos(a2) * r2, Math.sin(a2) * r2 * 0.86]);
+    } else {
+      var a3 = (i - 1 - ring1 - ring2) * (2 * Math.PI / 8) - Math.PI / 2 + 0.15;
+      out.push([Math.cos(a3) * (r2 + 20), Math.sin(a3) * (r2 + 20) * 0.86]);
+    }
+  }
+  return out;
+}
+function showWaldBanner(baeume){
+  var fb = document.getElementById("feedback");
+  if(!fb) return;
+  var div = document.createElement("div");
+  div.className = "eh-levelup";
+  var namen = baeume.map(function(b){ return b.icon + " " + b.name; }).join(" · ");
+  div.innerHTML = "🌳 <strong>Baum golden geworden:</strong> " + escHtml(namen) + " — deine Eulen haben Grund zu feiern! 🎉";
+  fb.appendChild(div);
+}
+function wwZeigeTuff(key){
+  if(!wwCaptionEl) return;
+  var cm = CURRICULUM_MAP[key];
+  var nowSec = Math.floor(Date.now() / 1000);
+  var s = spacedSanitize(state.spaced);
+  var e = s[key];
+  var lvl = e ? e[1] : 0;
+  var faellig = !!(e && e[0] <= nowSec);
+  var statusTxt = !e ? "🌱 Noch nicht geübt — hier wartet der erste Keim!"
+    : (faellig ? "⏰ Fällig zur Wiederholung — zeig, dass es sitzt!"
+    : (lvl >= 5 ? "🏆 Gemeistert! Es bleibt in der 14-Tage-Runde." : "🧠 Leiter-Stufe " + lvl + "/5 — gut im Wuchs!"));
+  wwCaptionEl.innerHTML = '<strong>' + escHtml(cm ? cm.kompetenz : key) + '</strong>'
+    + ' <span class="wwp-codes">(' + escHtml(cm ? cm.codes.join(" · ") : "") + ')</span><br>'
+    + statusTxt
+    + ' <button class="mini wwp-ueben" data-key="' + key + '" type="button">🌿 Jetzt üben</button>';
+  var b = wwCaptionEl.querySelector(".wwp-ueben");
+  if(b) b.addEventListener("click", function(){
+    setFocusKey(key);
+    closeWissenswald();
+    nextExercise();
+  });
+}
+function renderWissenswald(){
+  if(!wwpSceneEl) return;
+  var nowSec = Math.floor(Date.now() / 1000);
+  var wald = waldStatus(state.spaced, nowSec);
+  if(wwpStatsEl) wwpStatsEl.innerHTML = '<strong>' + wald.pct + '%</strong> gewachsen · <strong>' + wald.goldene + '/' + wald.total + '</strong> Bäume golden';
+  if(wwHintEl) wwHintEl.innerHTML = wald.goldene === wald.total
+    ? '🏆 Fantastisch! Dein ganzer Wissenswald ist golden — deine Eulen wohnen im schönsten Hain!'
+    : '🌳 Tippe ein Blatt an, um genau diese Kompetenz zu üben · ⏰ rote Blätter warten auf Wiederholung';
+  /* Gold-Feier: nur beim Übergang (nicht beim ersten Öffnen) */
+  var neueGold = [];
+  wald.baeume.forEach(function(b, i){
+    if(b.status === "gold" && waldLetzterStatus && waldLetzterStatus[i] !== "gold") neueGold.push(b);
+  });
+  waldLetzterStatus = wald.baeume.map(function(b){ return b.status; });
+  if(neueGold.length){ spawnConfetti(); showWaldBanner(neueGold); }
+  /* --- Szene: Himmel, Sonne, Wolken, Hügel, Blumen, Hintergrund-Tannen --- */
+  var W = 860, H = 640, groundY = H - 110;
+  var s = "", i, j;
+  s += '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" style="display:block;">';
+  s += '<defs>'
+    + '<linearGradient id="wwpSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BFE3F7"/><stop offset="1" stop-color="#EFF8EE"/></linearGradient>'
+    + '<linearGradient id="wwpTrunk" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7A4E26"/><stop offset=".55" stop-color="#93613A"/><stop offset="1" stop-color="#6E4423"/></linearGradient>'
+    + '</defs>';
+  s += '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="url(#wwpSky)"/>';
+  s += '<g transform="translate(' + (W - 96) + ',96)"><g class="ehp-rays">' + ehpStrahlen(10, 48, 74) + '</g><circle r="40" fill="#FFD75E" stroke="#F2B93B" stroke-width="3"/></g>';
+  s += ehpWolke(140, 92, 1.1, "c1") + ehpWolke(600, 150, 0.85, "c2") + ehpWolke(300, 44, 0.7, "c3");
+  s += '<path d="M0 ' + (groundY + 10) + ' Q 210 ' + (groundY - 48) + ' 430 ' + (groundY + 4) + ' T ' + W + ' ' + (groundY - 4) + ' L ' + W + ' ' + H + ' L 0 ' + H + ' Z" fill="#A9D89B"/>';
+  s += '<path d="M0 ' + (groundY + 34) + ' Q 260 ' + (groundY - 2) + ' 520 ' + (groundY + 26) + ' T ' + W + ' ' + (groundY + 20) + ' L ' + W + ' ' + H + ' L 0 ' + H + ' Z" fill="#8FCB7E"/>';
+  s += ehpBlumen(groundY);
+  var tannen = [[60, groundY - 6, 0.9], [230, groundY - 26, 0.7], [330, groundY - 2, 0.8], [560, groundY - 22, 0.72], [820, groundY - 4, 0.9]];
+  tannen.forEach(function(t){
+    s += '<g transform="translate(' + t[0] + ',' + t[1] + ') scale(' + t[2] + ')" opacity=".5">'
+      + '<polygon points="0,-64 20,-26 -20,-26" fill="#4E7F42"/>'
+      + '<polygon points="0,-46 24,-4 -24,-4" fill="#4E7F42"/>'
+      + '<rect x="-3" y="-4" width="6" height="12" fill="#6E4423"/></g>';
+  });
+  /* 6 Bäume: hinten (0,2,4) kleiner, vorne (1,3,5) größer — Wissenswald-Perspektive */
+  var hintenX = [170, 430, 690], vorneX = [105, 430, 755];
+  wald.baeume.forEach(function(b, idx){
+    var hinten = (idx % 2 === 0);
+    var x = hinten ? hintenX[Math.floor(idx / 2)] : vorneX[Math.floor(idx / 2)];
+    var sk = hinten ? 0.78 : 1.0;
+    var y0 = hinten ? groundY - 46 : groundY + 34;
+    var stammH = 44 + b.pct * 0.62;
+    var cx = 0, cy = -(stammH + 30);
+    var posis = wwpTuffPosis(b.total);
+    s += '<g class="wwp-tree" transform="translate(' + x + ',' + y0 + ') scale(' + sk + ')">';
+    s += '<path d="M-11 0 C -9 -' + (stammH * 0.5).toFixed(0) + ' -8 -' + (stammH * 0.8).toFixed(0) + ' -4 -' + stammH.toFixed(0) + ' L 4 -' + stammH.toFixed(0) + ' C 8 -' + (stammH * 0.8).toFixed(0) + ' 9 -' + (stammH * 0.5).toFixed(0) + ' 11 0 Z" fill="url(#wwpTrunk)"/>';
+    s += '<path d="M-10 0 q -26 3 -40 15 l 8 3 q 17 -10 34 -11 Z" fill="#6E4423"/>';
+    s += '<path d="M10 0 q 26 3 40 15 l -8 3 q -17 -10 -34 -11 Z" fill="#6E4423"/>';
+    s += '<circle cx="' + cx + '" cy="' + cy + '" r="62" fill="#5E9E4E" opacity=".55"/>';
+    s += '<circle cx="' + (cx - 34) + '" cy="' + (cy + 10) + '" r="44" fill="#5E9E4E" opacity=".5"/>';
+    s += '<circle cx="' + (cx + 34) + '" cy="' + (cy + 8) + '" r="46" fill="#5E9E4E" opacity=".5"/>';
+    posis.forEach(function(p, ti){
+      var t = b.tuffs[ti];
+      var col = WWP_TUFF_FARBEN[t.status] || WWP_TUFF_FARBEN.neu;
+      var cls = "wwp-tuff" + (t.status === "meister" ? " wwp-gold" : "");
+      s += '<circle class="' + cls + '" data-key="' + t.key + '" cx="' + (cx + p[0]).toFixed(1) + '" cy="' + (cy + p[1]).toFixed(1) + '" r="13" fill="' + col + '" stroke="#3F6B37" stroke-width="' + (t.status === "neu" ? 1 : 2) + '" opacity="' + (t.status === "neu" ? 0.75 : 1) + '" role="button" tabindex="0" aria-label="' + escHtml(t.name) + '"/>';
+      if(t.status === "meister"){
+        s += '<text class="wwp-sparkle" x="' + (cx + p[0]).toFixed(1) + '" y="' + (cy + p[1] + 4.5).toFixed(1) + '" text-anchor="middle" font-size="12">✨</text>';
+      }
+      if(t.due){
+        s += '<text class="wwp-due" x="' + (cx + p[0]).toFixed(1) + '" y="' + (cy + p[1] + 22).toFixed(1) + '" text-anchor="middle" font-size="10">⏰</text>';
+      }
+    });
+    if(b.status === "gold"){
+      s += '<text class="wwp-animal" x="' + cx + '" y="' + (cy - 78) + '" text-anchor="middle" font-size="20">' + WWP_TIERE[idx % WWP_TIERE.length] + '</text>';
+    }
+    s += '</g>';
+    var labelY = y0 + (hinten ? 6 : 18);
+    s += '<text class="wwp-label" x="' + x + '" y="' + labelY + '" text-anchor="middle">' + b.icon + ' ' + escHtml(b.name) + '</text>';
+    var sub = b.pct + '% · ' + (b.status === "gold" ? "🏆 golden" : (b.status === "rot" ? "⏰ " + b.dueCount + " fällig" : (b.status === "neu" ? "🌱 unberührt" : "🌿 " + b.geuebt + "/" + b.total + " im Wuchs")));
+    s += '<text class="wwp-labelsub" x="' + x + '" y="' + (labelY + 14) + '" text-anchor="middle">' + sub + '</text>';
+  });
+  s += '</svg>';
+  wwpSceneEl.innerHTML = s;
+  Array.prototype.forEach.call(wwpSceneEl.querySelectorAll(".wwp-tuff"), function(el){
+    el.addEventListener("click", function(){ wwZeigeTuff(el.getAttribute("data-key")); });
+    el.addEventListener("keydown", function(ev){
+      if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); wwZeigeTuff(el.getAttribute("data-key")); }
+    });
+  });
+}
+if(waldBtnEl) waldBtnEl.addEventListener("click", openWissenswald);
+var waldBackEl = document.getElementById("waldBack");
+if(waldBackEl) waldBackEl.addEventListener("click", closeWissenswald);
+document.addEventListener("keydown", function(ev){
+  if(ev.key === "Escape" && wwpViewEl && wwpViewEl.style.display !== "none") closeWissenswald();
+});
+
 if(legalModalEl){
   legalModalEl.addEventListener("click", function(e){
     if(e.target === legalModalEl) closeLegalModal();

@@ -2221,6 +2221,58 @@
     return t.getUTCFullYear() + "-W" + (woche < 10 ? "0" : "") + woche;
   }
 
+  /* ============ P4.1: Wissenswald — 6 Kompetenz-Bäume je Lehrplanbereich ============
+   * Jeder Baum bündelt Generatoren zu einem Themenbereich. Die Färbung kommt aus der
+   * Spaced-Repetition-Leiter (state.spaced): Level 0 = unberührt, 1-2 = im Bau,
+   * 3-4 = sicher, 5 = gemeistert (golden), fällig = rot. Keine neuen Persistenzfelder. */
+  var WALD_BEREICHE = [
+    { id:"brueche",  icon:"🌰", name:"Bruch-Baum",    untertitel:"Zahlen & Brüche (H1.I1)",  generatoren:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal"] },
+    { id:"prozente", icon:"🪙", name:"Prozent-Baum",  untertitel:"Prozente & Verhältnisse (H1.I2, H2.I2)", generatoren:["prozentVonZahl","prozentAnteil","zinsrechnung","proportionalitaet"] },
+    { id:"formen",   icon:"📐", name:"Formen-Baum",   untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck"] },
+    { id:"messen",   icon:"📏", name:"Mess-Baum",     untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },
+    { id:"alltag",   icon:"🧺", name:"Alltags-Baum",  untertitel:"Sachaufgaben aus dem Alltag (I1.M1)", generatoren:["textaufgabeGarten","textaufgabePizza","textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSkikurs","textaufgabeWandertag","textaufgabeSchulheft","textaufgabeEiscafe","mehrstufig"] },
+    { id:"struktur", icon:"🔗", name:"Struktur-Baum", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","tabelleLesen","diagrammBalken"] }
+  ];
+  function bereichFuerKey(key){
+    var i;
+    for(i = 0; i < WALD_BEREICHE.length; i++){
+      if(WALD_BEREICHE[i].generatoren.indexOf(key) !== -1) return WALD_BEREICHE[i];
+    }
+    return null;
+  }
+  function waldStatus(spaced, nowSec){
+    var s = spacedSanitize(spaced || {});
+    var baeume = WALD_BEREICHE.map(function(b){
+      var tuffs = b.generatoren.map(function(k){
+        var e = s[k];
+        var cm = CURRICULUM_MAP[k];
+        if(!e) return { key:k, name:(cm ? cm.kompetenz : k), status:"neu", level:0, due:false };
+        var lvl = e[1];
+        var due = e[0] <= nowSec;
+        var st = due ? "due" : (lvl >= 5 ? "meister" : (lvl >= 3 ? "sicher" : "bau"));
+        return { key:k, name:(cm ? cm.kompetenz : k), status:st, level:lvl, due:due };
+      });
+      var dueCount = 0, meister = 0, geuebt = 0, levelSum = 0;
+      tuffs.forEach(function(t){
+        if(t.due) dueCount++;
+        if(t.status === "meister") meister++;
+        if(t.level > 0) geuebt++;
+        levelSum += Math.min(t.level, 5);
+      });
+      var pct = Math.round(100 * levelSum / (5 * tuffs.length));
+      var status;
+      if(meister === tuffs.length) status = "gold";
+      else if(dueCount > 0) status = "rot";
+      else if(geuebt === 0) status = "neu";
+      else if(geuebt === tuffs.length && tuffs.every(function(t){ return t.level >= 3; })) status = "gruen";
+      else status = "gelb";
+      return { id:b.id, icon:b.icon, name:b.name, untertitel:b.untertitel, tuffs:tuffs, total:tuffs.length, dueCount:dueCount, meister:meister, geuebt:geuebt, pct:pct, status:status };
+    });
+    var pct = Math.round(baeume.reduce(function(a, b){ return a + b.pct; }, 0) / baeume.length);
+    var goldene = baeume.filter(function(b){ return b.status === "gold"; }).length;
+    return { baeume:baeume, pct:pct, goldene:goldene, total:baeume.length };
+  }
+
   window.MB = {
     rand, randf, choice, shuffle, dist, mid, centroidOf, gcd, lcm, fmt, fmtAT, fmtEUR,
     normalizeAndScale, edgeLabelPos, vertexLabelPos, tickMarks, rightAngleMarker,
@@ -2233,6 +2285,6 @@
     GRADE_GROUPS, GRADE_TAGS, DIFFICULTIES, TIPP1_BY_TOPIC, deriveTips, bruchWort,
     SPACED_STEPS, spacedSanitize, spacedWrong, spacedCorrect, spacedDueKeys, spacedAmpel,
     punkteFuerStufe, stufeVonPunkten, rangTitel, owlForLevel, owlSVG, owlInner, OWL_ANIMS,
-    WOCHENZIELE, wochenSchluessel
+    WOCHENZIELE, wochenSchluessel, WALD_BEREICHE, waldStatus, bereichFuerKey
   };
 })();

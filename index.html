@@ -7,13 +7,13 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v109">
+<meta name="app-version" content="v110">
 <title>Die Formen-Werkstatt – Mathe für die Mittelschule</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style-base.css?v=109">
-<link rel="stylesheet" href="style-active.css?v=109">
+<link rel="stylesheet" href="style-base.css?v=110">
+<link rel="stylesheet" href="style-active.css?v=110">
 </head>
 <body>
   <!-- Auth Overlay (Login/Register) -->
@@ -89,6 +89,7 @@
       <div class="stat-pill streak"><span class="lbl"><span class="flame">🔥</span> Serie</span><span id="streakVal">0</span></div>
       <div class="stat-pill level"><span class="lbl">Rang</span><span id="levelVal">Lehrling</span></div>
       <button class="stat-pill eulenhain" id="eulenhainBtn" type="button" title="Dein Eulenhain – alle gesammelten Eulen"><span class="lbl">🦉</span><span id="owlCountVal">1</span></button>
+      <button class="stat-pill wald" id="waldBtn" type="button" title="Dein Wissenswald – Kompetenzen je Lehrplanbereich"><span class="lbl">🌳</span><span id="waldPctVal">0%</span></button>
     </div>
       </div>
     </div>
@@ -173,6 +174,20 @@
     </div>
   </div>
 
+  <!-- Wissenswald: eigene Seite mit Kompetenz-Bäumen (P4.1) -->
+  <div id="wissenswaldView" class="wwp" style="display:none;" role="dialog" aria-modal="true" aria-label="Wissenswald">
+    <div class="wwp-head">
+      <button class="btn" id="waldBack" type="button">← Zurück</button>
+      <h2>🌳 Wissenswald</h2>
+      <div class="wwp-pill" id="wwpStats"></div>
+    </div>
+    <div class="wwp-body">
+      <div id="wwpScene" class="wwp-scene"></div>
+      <div class="ww-caption" id="wwCaption">💡 Tippe ein Blatt an, um genau diese Kompetenz zu üben!</div>
+      <div class="ww-hint" id="wwHint"></div>
+    </div>
+  </div>
+
   <div class="session-row">
     <span id="sessionStat">0 Aufgaben gelöst · 0 richtig</span>
     <div class="badges" id="badges"></div>
@@ -184,10 +199,10 @@
 
 </div>
 
-<script src="app-base.js?v=109"></script>
-<script src="app-active.js?v=109"></script>
+<script src="app-base.js?v=110"></script>
+<script src="app-active.js?v=110"></script>
 <footer class="app-version">
-  <span class="ver" id="appVersion">v109</span>
+  <span class="ver" id="appVersion">v110</span>
   <span style="margin-left:.6rem; font-size:.75rem; opacity:.75;" class="footer-links">
     <button type="button" class="footer-link" data-legal="datenschutz.html" data-title="Datenschutzerklärung">Datenschutz</button> ·
     <button type="button" class="footer-link" data-legal="impressum.html" data-title="Impressum">Impressum</button> ·

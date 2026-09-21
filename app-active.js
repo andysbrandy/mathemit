@@ -1074,7 +1074,7 @@ function openWissenswald(){
 function closeWissenswald(){ if(wwpViewEl) wwpViewEl.style.display = "none"; }
 function wwpTuffPosis(n){
   var out = [[0, 0]], i;
-  var r1 = 27, r2 = 44, ring1 = 5, ring2 = 8;
+  var r1 = 34, r2 = 55, ring1 = 5, ring2 = 8;
   for(i = 1; i < n; i++){
     if(i <= ring1){
       var a = (i - 1) * (2 * Math.PI / ring1) - Math.PI / 2;
@@ -1084,7 +1084,7 @@ function wwpTuffPosis(n){
       out.push([Math.cos(a2) * r2, Math.sin(a2) * r2 * 0.86]);
     } else {
       var a3 = (i - 1 - ring1 - ring2) * (2 * Math.PI / 8) - Math.PI / 2 + 0.15;
-      out.push([Math.cos(a3) * (r2 + 20), Math.sin(a3) * (r2 + 20) * 0.86]);
+      out.push([Math.cos(a3) * (r2 + 11), Math.sin(a3) * (r2 + 11) * 0.86]);
     }
   }
   return out;
@@ -1120,6 +1120,21 @@ function wwZeigeTuff(key){
     nextExercise();
   });
 }
+function wwpSchild(x, hy, b, idx){
+  var neig = (idx % 2 === 0) ? -2.5 : 2.5;
+  var sub = b.pct + "% · " + (b.status === "gold" ? "🏆 golden" : (b.status === "rot" ? "⏰ " + b.dueCount + " fällig" : (b.status === "neu" ? "🌱 unberührt" : "🌿 " + b.geuebt + "/" + b.total + " im Wuchs")));
+  var top = hy - 42;
+  var s = "";
+  s += '<rect x="' + (x - 3) + '" y="' + (top + 12) + '" width="6" height="' + (hy - top + 6) + '" rx="2" fill="#8A5A2B"/>';
+  s += '<g transform="rotate(' + neig + ' ' + x + ' ' + (top + 17) + ')">';
+  s += '<rect x="' + (x - 67) + '" y="' + top + '" width="134" height="34" rx="9" fill="#D2A56E" stroke="#8A5A2B" stroke-width="2.5"/>';
+  s += '<circle cx="' + (x - 58) + '" cy="' + (top + 17) + '" r="2.2" fill="#8A5A2B"/>';
+  s += '<circle cx="' + (x + 58) + '" cy="' + (top + 17) + '" r="2.2" fill="#8A5A2B"/>';
+  s += '<text class="wwp-boardtext" x="' + x + '" y="' + (top + 15) + '" text-anchor="middle">' + b.icon + ' ' + escHtml(b.name) + '</text>';
+  s += '<text class="wwp-boardsub" x="' + x + '" y="' + (top + 29) + '" text-anchor="middle">' + escHtml(sub) + '</text>';
+  s += '</g>';
+  return s;
+}
 function renderWissenswald(){
   if(!wwpSceneEl) return;
   var nowSec = Math.floor(Date.now() / 1000);
@@ -1136,7 +1151,7 @@ function renderWissenswald(){
   waldLetzterStatus = wald.baeume.map(function(b){ return b.status; });
   if(neueGold.length){ spawnConfetti(); showWaldBanner(neueGold); }
   /* --- Szene: Himmel, Sonne, Wolken, Wiese — 6 Bäume je auf eigenem Hügel --- */
-  var W = 1000, H = 540, groundY = H - 70;
+  var W = 1000, H = 560, groundY = H - 64;
   var s = "", i, j;
   s += '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" style="display:block;">';
   s += '<defs>'
@@ -1145,7 +1160,11 @@ function renderWissenswald(){
     + '</defs>';
   s += '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="url(#wwpSky)"/>';
   s += '<g transform="translate(' + (W - 110) + ',104)"><g class="ehp-rays">' + ehpStrahlen(10, 46, 70) + '</g><circle r="40" fill="#FFD75E" stroke="#F2B93B" stroke-width="3"/></g>';
-  s += ehpWolke(150, 82, 1.05, "c1") + ehpWolke(560, 118, 0.8, "c2") + ehpWolke(330, 50, 0.65, "c3");
+  s += ehpWolke(150, 60, 1.05, "c1") + ehpWolke(560, 104, 0.8, "c2") + ehpWolke(330, 150, 0.65, "c3");
+  /* statische Vögel füllen die Mittelluft (keine Animation → kein Flackern) */
+  s += '<path d="M240 178 q 6 -7 12 0 q 6 -7 12 0" stroke="#5F7186" fill="none" stroke-width="2.5" stroke-linecap="round"/>';
+  s += '<path d="M660 148 q 5 -6 10 0 q 5 -6 10 0" stroke="#5F7186" fill="none" stroke-width="2.2" stroke-linecap="round"/>';
+  s += '<path d="M430 84 q 4 -5 8 0 q 4 -5 8 0" stroke="#5F7186" fill="none" stroke-width="2" stroke-linecap="round"/>';
   /* Wiese: zwei sanfte Bodenwellen */
   s += '<path d="M0 ' + (groundY + 8) + ' Q 250 ' + (groundY - 40) + ' 500 ' + (groundY + 2) + ' T ' + W + ' ' + (groundY - 6) + ' L ' + W + ' ' + H + ' L 0 ' + H + ' Z" fill="#A9D89B"/>';
   s += '<path d="M0 ' + (groundY + 26) + ' Q 260 ' + (groundY - 4) + ' 520 ' + (groundY + 20) + ' T ' + W + ' ' + (groundY + 14) + ' L ' + W + ' ' + H + ' L 0 ' + H + ' Z" fill="#8FCB7E"/>';
@@ -1164,10 +1183,10 @@ function renderWissenswald(){
     var hinten = (idx % 2 === 0);
     var x = BAUM_X[idx];
     var sk = hinten ? 0.9 : 1.0;
-    var hy = hinten ? groundY - 10 : groundY + 16;   /* Hügelkuppe */
+    var hy = hinten ? groundY - 14 : groundY + 12;   /* Hügelkuppe */
     var y0 = hy - 4;
-    var stammH = 44 + b.pct * 0.62;
-    var cy = -(stammH + 28);
+    var stammH = 90 + b.pct * 0.9;
+    var cy = -(stammH + 30);
     var posis = wwpTuffPosis(b.total);
     s += '<ellipse cx="' + x + '" cy="' + hy + '" rx="80" ry="17" fill="' + (hinten ? "#9BD489" : "#96CE83") + '"/>';
     s += '<g class="wwp-tree" transform="translate(' + x + ',' + y0 + ') scale(' + sk + ')">';
@@ -1178,14 +1197,14 @@ function renderWissenswald(){
     /* Stamm (endet genau am Erdwall) */
     s += '<path d="M-11 -4 C -9 -' + (stammH * 0.5).toFixed(0) + ' -8 -' + (stammH * 0.8).toFixed(0) + ' -4 -' + stammH.toFixed(0) + ' L 4 -' + stammH.toFixed(0) + ' C 8 -' + (stammH * 0.8).toFixed(0) + ' 9 -' + (stammH * 0.5).toFixed(0) + ' 11 -4 Z" fill="url(#wwpTrunk)"/>';
     /* Kronen-Grundvolumen */
-    s += '<circle cx="0" cy="' + cy + '" r="48" fill="#5E9E4E" opacity=".55"/>';
-    s += '<circle cx="-27" cy="' + (cy + 9) + '" r="36" fill="#5E9E4E" opacity=".5"/>';
-    s += '<circle cx="27" cy="' + (cy + 7) + '" r="38" fill="#5E9E4E" opacity=".5"/>';
+    s += '<circle cx="0" cy="' + cy + '" r="56" fill="#5E9E4E" opacity=".55"/>';
+    s += '<circle cx="-29" cy="' + (cy + 9) + '" r="42" fill="#5E9E4E" opacity=".5"/>';
+    s += '<circle cx="29" cy="' + (cy + 7) + '" r="44" fill="#5E9E4E" opacity=".5"/>';
     posis.forEach(function(p, ti){
       var t = b.tuffs[ti];
       var col = WWP_TUFF_FARBEN[t.status] || WWP_TUFF_FARBEN.neu;
       var cls = "wwp-tuff" + (t.status === "meister" ? " wwp-gold" : "");
-      s += '<circle class="' + cls + '" data-key="' + t.key + '" cx="' + (p[0]).toFixed(1) + '" cy="' + (cy + p[1]).toFixed(1) + '" r="12" fill="' + col + '" stroke="#3F6B37" stroke-width="' + (t.status === "neu" ? 1 : 2) + '" opacity="' + (t.status === "neu" ? 0.75 : 1) + '" role="button" tabindex="0" aria-label="' + escHtml(t.name) + '"/>';
+      s += '<circle class="' + cls + '" data-key="' + t.key + '" cx="' + (p[0]).toFixed(1) + '" cy="' + (cy + p[1]).toFixed(1) + '" r="13" fill="' + col + '" stroke="#3F6B37" stroke-width="' + (t.status === "neu" ? 1 : 2) + '" opacity="' + (t.status === "neu" ? 0.75 : 1) + '" role="button" tabindex="0" aria-label="' + escHtml(t.name) + '"/>';
       if(t.status === "meister"){
         s += '<text class="wwp-sparkle" x="' + (p[0]).toFixed(1) + '" y="' + (cy + p[1] + 4).toFixed(1) + '" text-anchor="middle" font-size="11">✨</text>';
       }
@@ -1197,10 +1216,7 @@ function renderWissenswald(){
       s += '<text class="wwp-animal" x="0" y="' + (cy - 66) + '" text-anchor="middle" font-size="19">' + WWP_TIERE[idx % WWP_TIERE.length] + '</text>';
     }
     s += '</g>';
-    var labelY = y0 + 22;
-    s += '<text class="wwp-label" x="' + x + '" y="' + labelY + '" text-anchor="middle">' + b.icon + ' ' + escHtml(b.name) + '</text>';
-    var sub = b.pct + '% · ' + (b.status === "gold" ? "🏆 golden" : (b.status === "rot" ? "⏰ " + b.dueCount + " fällig" : (b.status === "neu" ? "🌱 unberührt" : "🌿 " + b.geuebt + "/" + b.total + " im Wuchs")));
-    s += '<text class="wwp-labelsub" x="' + x + '" y="' + (labelY + 14) + '" text-anchor="middle">' + sub + '</text>';
+    s += wwpSchild(x, hy, b, idx);
   });
   s += '</svg>';
   wwpSceneEl.innerHTML = s;

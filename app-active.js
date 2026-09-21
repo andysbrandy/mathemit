@@ -1235,11 +1235,10 @@ function renderWissenswald(){
     var posis = wwpTuffPosis(b.total, R, WWP_FORM_ASPECT[form] || 0.95);
     s += '<ellipse cx="' + x + '" cy="' + hy + '" rx="82" ry="17" fill="' + (hinten ? "#9BD489" : "#96CE83") + '"/>';
     s += '<g class="wwp-tree" transform="translate(' + x + ',' + y0 + ') scale(' + sk + ')">';
-    /* Wurzeln: fassen den Stammfuß und laufen in den Erdwall */
+    /* Wurzeln: fassen den Stammfuß und laufen flach in den Boden aus */
     s += '<path d="M-11 -2 C -18 4 -25 7 -33 10 L -25 13 C -18 10 -11 7 -5 5 Z" fill="#6E4423"/>';
     s += '<path d="M11 -2 C 18 4 25 7 33 10 L 25 13 C 18 10 11 7 5 5 Z" fill="#6E4423"/>';
-    s += '<ellipse cx="0" cy="5" rx="26" ry="7" fill="#79B26A"/>';
-    /* Stamm (endet genau am Erdwall) */
+    /* Stamm (endet am Stammfuß) */
     s += '<path d="M-11 -4 C -9 -' + (stammH * 0.5).toFixed(0) + ' -8 -' + (stammH * 0.8).toFixed(0) + ' -4 -' + stammH.toFixed(0) + ' L 4 -' + stammH.toFixed(0) + ' C 8 -' + (stammH * 0.8).toFixed(0) + ' 9 -' + (stammH * 0.5).toFixed(0) + ' 11 -4 Z" fill="url(#wwpTrunk)"/>';
     /* Seitenäste: bleiben unterhalb der Krone sichtbar → echter Baum statt Lutscher */
     var bh = stammH * 0.46, bl = stammH * 0.20;

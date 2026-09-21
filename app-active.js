@@ -903,11 +903,11 @@ function ehpWolke(x, y, sk, cls){
     + '<ellipse cx="4" cy="-15" rx="30" ry="18" fill="#FFFFFF" opacity=".95"/>'
     + '</g></g>';
 }
-function ehpBlumen(groundY){
+function ehpBlumen(groundY, w){
   var s = "", i, x;
   var farben = ["#F6A5C0","#FFD75E","#C9A0F0","#F6A5C0","#FFD75E","#C9A0F0"];
   for(i = 0; i < 6; i++){
-    x = 70 + i * 128 + (i % 2) * 36;
+    x = w ? (80 + i * ((w - 160) / 5) + (i % 2) * ((w - 160) / 22)) : (70 + i * 128 + (i % 2) * 36);
     s += '<line x1="'+x+'" y1="'+(groundY+26)+'" x2="'+x+'" y2="'+(groundY+8)+'" stroke="#6FAF5C" stroke-width="3" stroke-linecap="round"/>'
        + '<circle cx="'+x+'" cy="'+(groundY+4)+'" r="6" fill="'+farben[i]+'"/>'
        + '<circle cx="'+x+'" cy="'+(groundY+4)+'" r="2.5" fill="#FFF3C2"/>';
@@ -1065,27 +1065,55 @@ var waldBtnEl = document.getElementById("waldBtn");
 var waldPctValEl = document.getElementById("waldPctVal");
 var waldLetzterStatus = null;
 var WWP_TIERE = ["🐿️","🦜","🐝","🦔","🦋","🐞"];
-var WWP_TUFF_FARBEN = { neu:"#C7D4C0", bau:"#F2C14E", due:"#E15759", sicher:"#6FAF5C", meister:"#F2B93B" };
+var WWP_TUFF_FARBEN = { neu:"#A8CBA0", bau:"#F0A03C", due:"#E15759", sicher:"#74C95E", meister:"#FFD54A" };
 function openWissenswald(){
   renderWissenswald();
   if(wwpViewEl) wwpViewEl.style.display = "block";
   window.scrollTo(0, 0);
 }
 function closeWissenswald(){ if(wwpViewEl) wwpViewEl.style.display = "none"; }
-function wwpTuffPosis(n){
-  var out = [[0, 0]], i;
-  var r1 = 34, r2 = 55, ring1 = 5, ring2 = 8;
-  for(i = 1; i < n; i++){
-    if(i <= ring1){
-      var a = (i - 1) * (2 * Math.PI / ring1) - Math.PI / 2;
-      out.push([Math.cos(a) * r1, Math.sin(a) * r1 * 0.86]);
-    } else if(i <= ring1 + ring2){
-      var a2 = (i - 1 - ring1) * (2 * Math.PI / ring2) - Math.PI / 2 + 0.3;
-      out.push([Math.cos(a2) * r2, Math.sin(a2) * r2 * 0.86]);
-    } else {
-      var a3 = (i - 1 - ring1 - ring2) * (2 * Math.PI / 8) - Math.PI / 2 + 0.15;
-      out.push([Math.cos(a3) * (r2 + 11), Math.sin(a3) * (r2 + 11) * 0.86]);
-    }
+/* P4.1: Baum-Formen je Wissensbereich — die Krone wächst mit der Zahl der Kompetenzen.
+   f = Größenfaktor · form = Kronen-Silhouette · WWP_FORM_HW = Halbbreite (× rM) ·
+   WWP_FORM_ASPECT = Höhe/Breite der Frucht-Verteilung */
+var WWP_BAUM_FORM = {
+  struktur:{ f:0.72, form:"kugel" }, prozente:{ f:0.80, form:"hoch"  },
+  formen:  { f:0.88, form:"kegel" }, brueche: { f:0.95, form:"rund"  },
+  alltag:  { f:1.05, form:"busch" }, messen:   { f:1.15, form:"flach" }
+};
+var WWP_FORM_HW     = { kugel:1.06, hoch:0.72, kegel:0.78, rund:1.17, busch:1.18, flach:1.17 };
+var WWP_FORM_ASPECT = { kugel:0.95, hoch:1.55, kegel:1.42, rund:0.95, busch:0.92, flach:0.74 };
+/* Kronen-Oberkante je Form (× rM) — für die Tier-Position oberhalb der Krone */
+var WWP_FORM_TOP    = { kugel:0.90, hoch:1.13, kegel:1.04, rund:1.00, busch:0.83, flach:0.87 };
+var WWP_FORM_SET = {
+  kugel: [[0,-0.10,0.80],[-0.42,0.12,0.62],[0.42,0.10,0.64],[0,0.34,0.55]],
+  hoch:  [[0,-0.55,0.58],[0,0,0.72],[0,0.55,0.62]],
+  kegel: [[0,-0.70,0.34],[0,-0.34,0.46],[0,0.02,0.58],[0,0.38,0.70],[0,0.68,0.78]],
+  rund:  [[0,0,1.0],[-0.45,0.16,0.72],[0.45,0.13,0.74]],
+  busch: [[0,0.05,0.88],[-0.50,0.14,0.66],[0.50,0.12,0.68],[-0.28,-0.30,0.50],[0.30,-0.28,0.52]],
+  flach: [[0,0.05,0.92],[-0.55,0.10,0.60],[0.55,0.08,0.62]]
+};
+/* Solide Krone (kein Transparenz-Schaum): Silhouette + Schattenband + Lichtreflex */
+function wwpKrone(form, rM, cy){
+  var set = WWP_FORM_SET[form] || WWP_FORM_SET.rund;
+  var out = "", i, c;
+  for(i = 0; i < set.length; i++){
+    c = set[i];
+    out += '<circle cx="' + (c[0] * rM).toFixed(1) + '" cy="' + (cy + c[1] * rM).toFixed(1)
+         + '" r="' + (c[2] * rM).toFixed(1) + '" fill="#4E8F42"/>';
+  }
+  out += '<ellipse cx="0" cy="' + (cy + rM * 0.58).toFixed(1) + '" rx="' + (rM * 0.62).toFixed(1)
+       + '" ry="' + (rM * 0.26).toFixed(1) + '" fill="#3E7534" opacity=".5"/>';
+  out += '<ellipse cx="' + (-rM * 0.26).toFixed(1) + '" cy="' + (cy - rM * 0.42).toFixed(1)
+       + '" rx="' + (rM * 0.36).toFixed(1) + '" ry="' + (rM * 0.22).toFixed(1) + '" fill="#69A85A" opacity=".45"/>';
+  return out;
+}
+/* Früchte (Kompetenzen) gleichmäßig im Kronen-Oval verteilen (Sonnenblumen-Muster) */
+function wwpTuffPosis(n, R, aspect){
+  var out = [], i, a, rr, ga = 2.39996323;
+  for(i = 0; i < n; i++){
+    a = i * ga;
+    rr = R * Math.sqrt((i + 0.5) / n);
+    out.push([Math.cos(a) * rr, Math.sin(a) * rr * (aspect || 0.95)]);
   }
   return out;
 }
@@ -1120,16 +1148,19 @@ function wwZeigeTuff(key){
     nextExercise();
   });
 }
-function wwpSchild(x, hy, b, idx){
-  var neig = (idx % 2 === 0) ? -2.5 : 2.5;
+function wwpSchild(x, top, b, idx){
+  var neig = (idx % 2 === 0) ? -1.5 : 1.5;
   var sub = b.pct + "% · " + (b.status === "gold" ? "🏆 golden" : (b.status === "rot" ? "⏰ " + b.dueCount + " fällig" : (b.status === "neu" ? "🌱 unberührt" : "🌿 " + b.geuebt + "/" + b.total + " im Wuchs")));
-  var top = hy - 42;
   var s = "";
-  s += '<rect x="' + (x - 3) + '" y="' + (top + 12) + '" width="6" height="' + (hy - top + 6) + '" rx="2" fill="#8A5A2B"/>';
+  /* Bodenschatten: verankert das Schild auf der Wiese */
+  s += '<ellipse cx="' + x + '" cy="' + (top + 46) + '" rx="64" ry="6" fill="#7BAF6B" opacity=".5"/>';
+  /* zwei Pfosten (liegen hinter dem Brett, reichen in die Wiese) */
+  s += '<rect x="' + (x - 48) + '" y="' + (top + 10) + '" width="6" height="36" rx="2" fill="#7A4E26"/>';
+  s += '<rect x="' + (x + 42) + '" y="' + (top + 10) + '" width="6" height="36" rx="2" fill="#7A4E26"/>';
   s += '<g transform="rotate(' + neig + ' ' + x + ' ' + (top + 17) + ')">';
-  s += '<rect x="' + (x - 67) + '" y="' + top + '" width="134" height="34" rx="9" fill="#D2A56E" stroke="#8A5A2B" stroke-width="2.5"/>';
-  s += '<circle cx="' + (x - 58) + '" cy="' + (top + 17) + '" r="2.2" fill="#8A5A2B"/>';
-  s += '<circle cx="' + (x + 58) + '" cy="' + (top + 17) + '" r="2.2" fill="#8A5A2B"/>';
+  s += '<rect x="' + (x - 70) + '" y="' + top + '" width="140" height="34" rx="9" fill="#D2A56E" stroke="#8A5A2B" stroke-width="2.5"/>';
+  s += '<circle cx="' + (x - 60) + '" cy="' + (top + 17) + '" r="2.2" fill="#8A5A2B"/>';
+  s += '<circle cx="' + (x + 60) + '" cy="' + (top + 17) + '" r="2.2" fill="#8A5A2B"/>';
   s += '<text class="wwp-boardtext" x="' + x + '" y="' + (top + 15) + '" text-anchor="middle">' + b.icon + ' ' + escHtml(b.name) + '</text>';
   s += '<text class="wwp-boardsub" x="' + x + '" y="' + (top + 29) + '" text-anchor="middle">' + escHtml(sub) + '</text>';
   s += '</g>';
@@ -1151,7 +1182,7 @@ function renderWissenswald(){
   waldLetzterStatus = wald.baeume.map(function(b){ return b.status; });
   if(neueGold.length){ spawnConfetti(); showWaldBanner(neueGold); }
   /* --- Szene: Himmel, Sonne, Wolken, Wiese — 6 Bäume je auf eigenem Hügel --- */
-  var W = 1000, H = 560, groundY = H - 64;
+  var W = 1000, H = 534, groundY = H - 66;
   var s = "", i, j;
   s += '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" style="display:block;">';
   s += '<defs>'
@@ -1159,36 +1190,50 @@ function renderWissenswald(){
     + '<linearGradient id="wwpTrunk" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7A4E26"/><stop offset=".55" stop-color="#93613A"/><stop offset="1" stop-color="#6E4423"/></linearGradient>'
     + '</defs>';
   s += '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="url(#wwpSky)"/>';
-  s += '<g transform="translate(' + (W - 110) + ',104)"><g class="ehp-rays">' + ehpStrahlen(10, 46, 70) + '</g><circle r="40" fill="#FFD75E" stroke="#F2B93B" stroke-width="3"/></g>';
+  s += '<g transform="translate(' + (W - 110) + ',84)"><g class="ehp-rays">' + ehpStrahlen(10, 46, 70) + '</g><circle r="40" fill="#FFD75E" stroke="#F2B93B" stroke-width="3"/></g>';
   s += ehpWolke(150, 60, 1.05, "c1") + ehpWolke(560, 104, 0.8, "c2") + ehpWolke(330, 150, 0.65, "c3");
-  /* statische Vögel füllen die Mittelluft (keine Animation → kein Flackern) */
-  s += '<path d="M240 178 q 6 -7 12 0 q 6 -7 12 0" stroke="#5F7186" fill="none" stroke-width="2.5" stroke-linecap="round"/>';
-  s += '<path d="M660 148 q 5 -6 10 0 q 5 -6 10 0" stroke="#5F7186" fill="none" stroke-width="2.2" stroke-linecap="round"/>';
-  s += '<path d="M430 84 q 4 -5 8 0 q 4 -5 8 0" stroke="#5F7186" fill="none" stroke-width="2" stroke-linecap="round"/>';
+  /* Ferne Hügelketten + Tannen-Silhouette: füllen das mittlere Band und geben Tiefe */
+  s += '<path d="M0 ' + (groundY - 190) + ' Q 170 ' + (groundY - 260) + ' 350 ' + (groundY - 196) + ' T 700 ' + (groundY - 204) + ' T ' + W + ' ' + (groundY - 192) + ' L ' + W + ' ' + H + ' L 0 ' + H + ' Z" fill="#DBEFD2"/>';
+  s += '<path d="M0 ' + (groundY - 138) + ' Q 200 ' + (groundY - 200) + ' 420 ' + (groundY - 146) + ' T 760 ' + (groundY - 154) + ' T ' + W + ' ' + (groundY - 140) + ' L ' + W + ' ' + H + ' L 0 ' + H + ' Z" fill="#C9E8BB"/>';
+  (function(){
+    var tx, tb = groundY - 152, th;
+    for(tx = 26; tx < W - 10; tx += 46){
+      th = 22 + ((tx * 7) % 17);
+      s += '<path d="M' + tx + ' ' + (tb - th) + ' L ' + (tx - 10) + ' ' + tb + ' L ' + (tx + 10) + ' ' + tb + ' Z" fill="#AFD8A3"/>';
+    }
+  })();
   /* Wiese: zwei sanfte Bodenwellen */
   s += '<path d="M0 ' + (groundY + 8) + ' Q 250 ' + (groundY - 40) + ' 500 ' + (groundY + 2) + ' T ' + W + ' ' + (groundY - 6) + ' L ' + W + ' ' + H + ' L 0 ' + H + ' Z" fill="#A9D89B"/>';
   s += '<path d="M0 ' + (groundY + 26) + ' Q 260 ' + (groundY - 4) + ' 520 ' + (groundY + 20) + ' T ' + W + ' ' + (groundY + 14) + ' L ' + W + ' ' + H + ' L 0 ' + H + ' Z" fill="#8FCB7E"/>';
-  s += ehpBlumen(groundY - 8);
-  /* Büsche als Grünflicken zwischen den Baum-Hügeln */
-  var buschX = [[168, groundY + 16, 1], [482, groundY + 8, 0.82], [798, groundY + 18, 1]];
+  s += ehpBlumen(groundY - 6, W);
+  /* Büsche im Mittelgrund: kleine Sträucher auf der Wiese → Tiefenwirkung */
+  var buschX = [[120, groundY - 52, 0.72], [285, groundY - 60, 0.6], [447, groundY - 50, 0.7], [609, groundY - 60, 0.62], [771, groundY - 52, 0.72], [933, groundY - 58, 0.6]];
   buschX.forEach(function(bu){
     s += '<g transform="translate(' + bu[0] + ',' + bu[1] + ') scale(' + bu[2] + ')" opacity=".92">'
       + '<ellipse cx="-11" cy="0" rx="14" ry="9" fill="#7FB56F"/>'
       + '<ellipse cx="9" cy="-2" rx="16" ry="10" fill="#8FC178"/>'
       + '<ellipse cx="0" cy="4" rx="18" ry="8" fill="#79A968"/></g>';
   });
-  /* 6 Bäume in einer Reihe (Abstand 155 → keine Überlappung), jeder auf eigenem Hügel */
-  var BAUM_X = [95, 250, 405, 560, 715, 870];
+  /* 6 Bäume in einer Reihe (Abstand 162 → keine Überlappung), jeder auf eigenem Hügel.
+     Größe & Kronenform je Wissensbereich → jeder Baum ist sofort erkennbar. */
+  var BAUM_X = [78, 240, 402, 564, 726, 888];
+  var wwSignTop = groundY + 16;                     /* Schilder als Tafelreihe unterhalb der Bäume */
   wald.baeume.forEach(function(b, idx){
     var hinten = (idx % 2 === 0);
     var x = BAUM_X[idx];
     var sk = hinten ? 0.9 : 1.0;
-    var hy = hinten ? groundY - 14 : groundY + 12;   /* Hügelkuppe */
+    var hy = hinten ? groundY - 26 : groundY - 12;  /* Hügelkuppe */
     var y0 = hy - 4;
-    var stammH = 90 + b.pct * 0.9;
-    var cy = -(stammH + 30);
-    var posis = wwpTuffPosis(b.total);
-    s += '<ellipse cx="' + x + '" cy="' + hy + '" rx="80" ry="17" fill="' + (hinten ? "#9BD489" : "#96CE83") + '"/>';
+    var fo = WWP_BAUM_FORM[b.id] || { f:1, form:"rund" };
+    var form = fo.form, rM = 64 * fo.f;
+    /* Stammhöhe wächst MIT der Krone → ausgewogenes Verhältnis, kein Lutscher-Look */
+    var stammH = rM * 1.7 + b.pct * 0.8;
+    var cy = -(stammH + rM * 0.62);
+    var tR = b.total <= 6 ? 15 : (b.total <= 10 ? 13.5 : (b.total <= 12 ? 12 : 11));
+    var hw = (WWP_FORM_HW[form] || 1.15) * rM;
+    var R = Math.max(hw - tR - 2, rM * 0.3);
+    var posis = wwpTuffPosis(b.total, R, WWP_FORM_ASPECT[form] || 0.95);
+    s += '<ellipse cx="' + x + '" cy="' + hy + '" rx="82" ry="17" fill="' + (hinten ? "#9BD489" : "#96CE83") + '"/>';
     s += '<g class="wwp-tree" transform="translate(' + x + ',' + y0 + ') scale(' + sk + ')">';
     /* Wurzeln: fassen den Stammfuß und laufen in den Erdwall */
     s += '<path d="M-11 -2 C -18 4 -25 7 -33 10 L -25 13 C -18 10 -11 7 -5 5 Z" fill="#6E4423"/>';
@@ -1196,27 +1241,29 @@ function renderWissenswald(){
     s += '<ellipse cx="0" cy="5" rx="26" ry="7" fill="#79B26A"/>';
     /* Stamm (endet genau am Erdwall) */
     s += '<path d="M-11 -4 C -9 -' + (stammH * 0.5).toFixed(0) + ' -8 -' + (stammH * 0.8).toFixed(0) + ' -4 -' + stammH.toFixed(0) + ' L 4 -' + stammH.toFixed(0) + ' C 8 -' + (stammH * 0.8).toFixed(0) + ' 9 -' + (stammH * 0.5).toFixed(0) + ' 11 -4 Z" fill="url(#wwpTrunk)"/>';
-    /* Kronen-Grundvolumen */
-    s += '<circle cx="0" cy="' + cy + '" r="56" fill="#5E9E4E" opacity=".55"/>';
-    s += '<circle cx="-29" cy="' + (cy + 9) + '" r="42" fill="#5E9E4E" opacity=".5"/>';
-    s += '<circle cx="29" cy="' + (cy + 7) + '" r="44" fill="#5E9E4E" opacity=".5"/>';
+    /* Seitenäste: bleiben unterhalb der Krone sichtbar → echter Baum statt Lutscher */
+    var bh = stammH * 0.46, bl = stammH * 0.20;
+    s += '<path d="M-8 ' + (-bh).toFixed(0) + ' Q -24 ' + (-(bh + bl * 0.45)).toFixed(0) + ' -34 ' + (-(bh + bl)).toFixed(0) + '" stroke="#7A4E26" stroke-width="6" fill="none" stroke-linecap="round"/>';
+    s += '<path d="M8 ' + (-(bh + stammH * 0.10)).toFixed(0) + ' Q 24 ' + (-(bh + stammH * 0.10 + bl * 0.45)).toFixed(0) + ' 32 ' + (-(bh + stammH * 0.10 + bl)).toFixed(0) + '" stroke="#8A5A2B" stroke-width="6" fill="none" stroke-linecap="round"/>';
+    /* Krone: solide Silhouette (kein Transparenz-Schaum) */
+    s += wwpKrone(form, rM, cy);
     posis.forEach(function(p, ti){
       var t = b.tuffs[ti];
       var col = WWP_TUFF_FARBEN[t.status] || WWP_TUFF_FARBEN.neu;
       var cls = "wwp-tuff" + (t.status === "meister" ? " wwp-gold" : "");
-      s += '<circle class="' + cls + '" data-key="' + t.key + '" cx="' + (p[0]).toFixed(1) + '" cy="' + (cy + p[1]).toFixed(1) + '" r="13" fill="' + col + '" stroke="#3F6B37" stroke-width="' + (t.status === "neu" ? 1 : 2) + '" opacity="' + (t.status === "neu" ? 0.75 : 1) + '" role="button" tabindex="0" aria-label="' + escHtml(t.name) + '"/>';
+      s += '<circle class="' + cls + '" data-key="' + t.key + '" cx="' + (p[0]).toFixed(1) + '" cy="' + (cy + p[1]).toFixed(1) + '" r="' + tR + '" fill="' + col + '" stroke="#3F6B37" stroke-width="' + (t.status === "neu" ? 1.2 : 2) + '" opacity="' + (t.status === "neu" ? 0.85 : 1) + '" role="button" tabindex="0" aria-label="' + escHtml(t.name) + '"/>';
       if(t.status === "meister"){
         s += '<text class="wwp-sparkle" x="' + (p[0]).toFixed(1) + '" y="' + (cy + p[1] + 4).toFixed(1) + '" text-anchor="middle" font-size="11">✨</text>';
       }
       if(t.due){
-        s += '<text class="wwp-due" x="' + (p[0]).toFixed(1) + '" y="' + (cy + p[1] + 21).toFixed(1) + '" text-anchor="middle" font-size="9">⏰</text>';
+        s += '<text class="wwp-due" x="' + (p[0]).toFixed(1) + '" y="' + (cy + p[1] + tR + 5).toFixed(1) + '" text-anchor="middle" font-size="9">⏰</text>';
       }
     });
     if(b.status === "gold"){
-      s += '<text class="wwp-animal" x="0" y="' + (cy - 66) + '" text-anchor="middle" font-size="19">' + WWP_TIERE[idx % WWP_TIERE.length] + '</text>';
+      s += '<text class="wwp-animal" x="0" y="' + (cy - rM * (WWP_FORM_TOP[form] || 1.0) - 6).toFixed(0) + '" text-anchor="middle" font-size="19">' + WWP_TIERE[idx % WWP_TIERE.length] + '</text>';
     }
     s += '</g>';
-    s += wwpSchild(x, hy, b, idx);
+    s += wwpSchild(x, wwSignTop, b, idx);
   });
   s += '</svg>';
   wwpSceneEl.innerHTML = s;

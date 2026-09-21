@@ -88,7 +88,7 @@ function ensureOwls(){
 function sanitizeWochen(d){
   var cur = wochenSchluessel();
   if(!d || typeof d !== "object" || d.week !== cur){
-    return { week:cur, points:0, solved:0, repeats:0, done:[], bonusGiven:false };
+    return { week:cur, points:0, solved:0, repeats:0, repeatsNew:0, done:[], bonusGiven:false };
   }
   var validIds = WOCHENZIELE.map(function(z){ return z.id; });
   return {
@@ -96,6 +96,7 @@ function sanitizeWochen(d){
     points: Math.max(0, Math.min(99999, Number(d.points) || 0)),
     solved: Math.max(0, Math.min(99999, Number(d.solved) || 0)),
     repeats: Math.max(0, Math.min(99999, Number(d.repeats) || 0)),
+    repeatsNew: Math.max(0, Math.min(9999, Number(d.repeatsNew) || 0)),
     done: (Array.isArray(d.done) ? d.done : []).filter(function(v){ return validIds.indexOf(v) !== -1; }),
     bonusGiven: !!d.bonusGiven
   };
@@ -106,16 +107,33 @@ function ensureWochen(){
     state.weekly = sanitizeWochen(state.weekly);
   }
 }
+/* P4.2: Ziel-Helfer — das Wiederholungsziel wächst dynamisch (Ziel = falsche Aufgaben der Woche) */
+function wzZiel(z){
+  if(z.dynamisch){ return Math.max(0, Number(state.weekly.repeatsNew) || 0); }
+  return z.ziel;
+}
+function wzWert(z){
+  return Math.max(0, Number(state.weekly[z.id]) || 0);
+}
+function wzErreicht(z){
+  return wzWert(z) >= wzZiel(z);
+}
 function pruefeWochenziele(){
   ensureWochen();
   var neu = [];
   WOCHENZIELE.forEach(function(z){
-    if((state.weekly[z.id] || 0) >= z.ziel && state.weekly.done.indexOf(z.id) === -1){
+    var erreicht = wzErreicht(z);
+    var warErreicht = state.weekly.done.indexOf(z.id) !== -1;
+    if(erreicht && !warErreicht){
       state.weekly.done.push(z.id);
-      neu.push(z);
+      /* 0/0 (noch kein Fehler diese Woche) feiert keinen Banner — nur echtes Schaffen */
+      if(!z.dynamisch || wzZiel(z) > 0){ neu.push(z); }
+    } else if(!erreicht && warErreicht){
+      /* Ziel wieder offen (z. B. neuer Fehler beim Wiederholungsziel) */
+      state.weekly.done = state.weekly.done.filter(function(id){ return id !== z.id; });
     }
   });
-  var alle = WOCHENZIELE.every(function(z){ return (state.weekly[z.id] || 0) >= z.ziel; });
+  var alle = WOCHENZIELE.every(wzErreicht);
   var bonus = false;
   if(alle && !state.weekly.bonusGiven){
     state.weekly.bonusGiven = true;
@@ -124,62 +142,61 @@ function pruefeWochenziele(){
   }
   return { neue: neu, bonus: bonus };
 }
+/* P4.2/P4.4: Kompakte Wochenziel-Balken (eine Zeile: Headline + Balken + Label) + Klick-Details */
 function renderWochenziele(){
-  var host = document.getElementById("wochenziele");
-  if(!host) return;
+  var row = document.getElementById("weeklyRow");
+  if(!row) return;
+  var barsHost = row.querySelector("#weeklyBars");
+  if(!barsHost) return;
   ensureWochen();
   var html = WOCHENZIELE.map(function(z){
-    var wert = state.weekly[z.id] || 0;
-    var fertig = wert >= z.ziel;
-    var pct = Math.max(0, Math.min(100, (wert / z.ziel) * 100));
-    return '<div class="wz-goal'+(fertig ? ' fertig' : '')+'" title="'+z.label+(fertig?' ✅':'')+'">'
-      + '<div class="wz-head"><span class="wz-label">'+z.icon+' '+Math.min(wert, z.ziel)+'/'+z.ziel+'</span><span>'+(fertig ? '✅' : '')+'</span></div>'
-      + '<div class="wz-track"><div class="wz-fill" style="width:'+pct+'%"></div></div>'
+    var wert = wzWert(z), ziel = wzZiel(z);
+    var fertig = wzErreicht(z);
+    var pct = ziel > 0 ? Math.max(0, Math.min(100, (wert / ziel) * 100)) : 100;
+    var count = ziel > 0 ? (Math.min(wert, ziel) + "/" + ziel) : "0/0";
+    if(fertig) count = count + " ✅";
+    return '<div class="weekly-goal'+(fertig ? ' fertig' : '')+'" data-goal-id="'+z.id+'" title="'+z.label+'" role="button" tabindex="0">'
+      + '<span class="weekly-bar"><span class="weekly-bar-fill" style="width:'+pct+'%"></span></span>'
+      + '<span class="weekly-bar-label">'+z.icon+' '+count+'</span>'
       + '</div>';
   }).join("");
-  html += '<div class="wz-bonus'+(state.weekly.bonusGiven ? ' fertig' : '')+'>'
-    + '<span id="motd-rotator" class="motd-text">' + (state.weekly.bonusGiven ? '🎉 Wochen-Bonus +30 Punkte' : '🎯 Noch ' + (50 - state.weekly.points) + ' Punkte') + '</span>'
-    + '</div>';
-  host.innerHTML = html;
-  /* P4.4: Mikro-Motivation — rotiert durch Mini-Nachrichten alle 5s */
-  var rotEl = document.getElementById("motd-rotator");
-  if(rotEl && !state.weekly.bonusGiven){
-    rotEl.style.fontSize = "0.72rem";
-    rotEl.style.opacity = "0.8";
-    var msgs = ["🎯 Noch " + Math.max(0, 50 - state.weekly.points) + " Punkte", "📚 Noch " + Math.max(0, 20 - state.weekly.solved) + " Aufgaben", "🔁 Noch " + Math.max(0, 5 - state.weekly.repeats) + " Wiederholungen"];
-    var idx = 0;
-    setInterval(function(){ rotEl.textContent = msgs[idx]; idx = (idx+1) % msgs.length; }, 5000);
-  }
-  var barsHost = row.querySelector("#weeklyBars");
-  barsHost.innerHTML = barsHTML;
-  /* Event-Listener programmatisch anhängen — funktioniert im strict Scope */
-  Array.prototype.forEach.call(barsHost.querySelectorAll(".weekly-bar"), function(bar){
-    bar.addEventListener("click", function(){ toggleWeeklyDetails(bar); });
+  barsHost.innerHTML = html;
+  Array.prototype.forEach.call(barsHost.querySelectorAll(".weekly-goal"), function(goal){
+    goal.addEventListener("click", function(){ toggleWeeklyDetails(goal); });
   });
 }
-function toggleWeeklyDetails(bar){
+function toggleWeeklyDetails(goal){
   var details = document.getElementById("weeklyDetails");
   if(!details) return;
-  /* Alle Balken-aktiv-Klassen zurücksetzen */
-  Array.prototype.forEach.call(bar.parentNode.querySelectorAll(".weekly-bar"), function(b){
-    b.classList.remove("active");
-  });
+  var row = document.getElementById("weeklyRow");
+  if(row){
+    Array.prototype.forEach.call(row.querySelectorAll(".weekly-goal"), function(g){
+      g.classList.remove("active");
+    });
+  }
   var expanded = details.style.display === "block";
   details.style.display = expanded ? "none" : "block";
-  if(!expanded){
-    bar.classList.add("active");
-    var goalId = bar.dataset.goalId;
-    var goal = WOCHENZIELE.filter(function(z){ return z.id === goalId; })[0];
-    if(goal){
-      var msgs = {
-        points: ["🎯 Sammle 50 Punkte für deinen ersten Wochen-Erfolg! Jede richtige Antwort bringt dich nah",],
-        solved: ["📚 20 Aufgaben in einer Woche — das zeigt echte Disziplin! 4 pro Tag und du bist dran.",],
-        repeats: ["🔁 5 Wiederholungen = echtes Verständnis! Wiederhole Schwächen gezielt.",]
-      };
-      var msg = (msgs[goalId] && msgs[goalId].length > 0) ? choice(msgs[goalId]) : "Du schaffst das!";
-      details.innerHTML = '<strong>'+goal.icon+' '+goal.label+'</strong><br>'+msg+'<br><br>🎯 Schaffe <strong>alle 3 Ziele</strong> = <strong>+30 Bonus-Punkte</strong>!';
-    }
+  if(expanded) return;
+  goal.classList.add("active");
+  var goalId = goal.dataset.goalId;
+  var z = null;
+  WOCHENZIELE.forEach(function(zz){ if(zz.id === goalId) z = zz; });
+  if(!z) return;
+  var wert = wzWert(z), ziel = wzZiel(z);
+  var msg;
+  if(z.id === "points"){
+    msg = "🎯 Noch " + Math.max(0, ziel - wert) + " Punkte — jede richtige Aufgabe bringt dich näher!";
+  } else if(z.id === "solved"){
+    msg = "📚 Noch " + Math.max(0, ziel - wert) + " richtige Aufgaben — bleib dran, du schaffst das!";
+  } else if(ziel > 0){
+    msg = "🔁 " + wert + " von " + ziel + " Wiederholungen geschafft. Jede falsche Aufgabe landet hier — bis du sie wieder sicher löst!";
+  } else {
+    msg = "🎉 Keine offenen Wiederholungen — bisher keine Fehler diese Woche!";
   }
+  var bonusTxt = state.weekly.bonusGiven
+    ? "🎁 Wochen-Bonus diese Woche schon kassiert (+30 Punkte)."
+    : "🎯 Schaffe <strong>alle 3 Ziele</strong> = <strong>+30 Bonus-Punkte</strong>!";
+  details.innerHTML = '<strong>'+z.icon+' '+z.label+'</strong><br>'+msg+'<br><br>'+bonusTxt;
 }
 function showWochenBanner(wz){
   var fb = document.getElementById("feedback");
@@ -595,6 +612,7 @@ function finishRound(isCorrect, explanation){
     if(isCorrect){ state.spaced = spacedCorrect(state.spaced, mk, nowSec); }
     else { state.spaced = spacedWrong(state.spaced, mk, nowSec); }
   }
+  ensureWochen();
   if(isCorrect){
     state.correct += 1;
     state.streak += 1;
@@ -602,13 +620,14 @@ function finishRound(isCorrect, explanation){
     state.bestStreak = Math.max(state.bestStreak, state.streak);
     var bonus = Math.min(10, state.streak) ;
     state.points += 10 + bonus;
-    /* P4.2: Nur bei richtig → Punktezähler + Wiederholungen */
+    /* P4.2: Wochenziele — nur RICHTIGE Lösungen zählen */
+    state.weekly.solved += 1;
     state.weekly.points += 10 + Math.min(10, state.streak);
-    if(state.currentIsRepeat && isCorrect) state.weekly.repeats += 1;
+    if(state.currentIsRepeat || state.currentWasDue) state.weekly.repeats += 1;
   } else {
     state.streak = 0;
-    /* P4.2: Bei falsch → "gelöst" (versucht) zählen, kein Punktebonus */
-    state.weekly.solved += 1;
+    /* P4.2: Wiederholungs-Ziel wächst dynamisch mit jedem Fehler (analog 🔁-Chip) */
+    state.weekly.repeatsNew += 1;
   }
   var wz = pruefeWochenziele();
   /* P6: Stufen-Aufstieg → neue Eule im Eulenhain */

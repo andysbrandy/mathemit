@@ -2203,9 +2203,10 @@
   /* ============ P4.2: Wöchentliche Ziele ============ */
 
   var WOCHENZIELE = [
-    { id:"points",  icon:"🎯", label:"Sammle 50 Punkte",        ziel:50 },
-    { id:"solved",  icon:"📚", label:"Löse 20 Aufgaben",        ziel:20 },
-    { id:"repeats", icon:"🔁", label:"Schaffe 5 Wiederholungen", ziel:5 }
+    { id:"points",  icon:"🎯", label:"Sammle 50 Punkte",          ziel:50 },
+    { id:"solved",  icon:"📚", label:"Löse 20 Aufgaben",          ziel:20 },
+    /* P4.2: Wiederholungs-Ziel ist dynamisch — wächst mit jedem Fehler dieser Woche */
+    { id:"repeats", icon:"🔁", label:"Schaffe deine Wiederholungen", ziel:0, dynamisch:true }
   ];
   /* ISO-Wochenschlüssel "YYYY-Wnn" (Montag = Wochenstart) */
   function wochenSchluessel(d){

@@ -159,9 +159,9 @@
 - Das Eulen-Logo im Header blinkt gelegentlich, die Pupillen folgen dem Cursor und die Flügel wedeln bei jeder richtigen Aufgabe.
 
 ### Wöchentliche Ziele (🎯) — P4.2
-- Direkt unter dem Fortschrittsbalken stehen **3 Ziele für diese Woche**: 🎯 Sammle 50 Punkte · 📚 Löse 20 Aufgaben · 🔁 Schaffe 5 Wiederholungen — jeder mit eigenem Fortschrittsbalken.
+- Direkt unter dem Fortschrittsbalken steht in einer Zeile **"Dein Wochenziel:"** mit 3 Mini-Balken (Klick öffnet Details mit Motivationsspruch + Bonus-Hinweis): 🎯 Sammle 50 Punkte · 📚 Löse 20 Aufgaben (**nur richtige Lösungen zählen**) · 🔁 Schaffe deine Wiederholungen (**dynamisch**: jeder Fehler dieser Woche erhöht das Ziel wie beim 🔁-Chip, jede gemeisterte Wiederholung füllt es — bei einem neuen Fehler ist es wieder offen).
 - Die Woche startet am **Montag**; alte Zähler werden dann automatisch zurückgesetzt.
-- Ein geschafftes Ziel wird grün mit ✅ markiert; geschaffte Ziele bleiben für die Woche grün.
+- Ein geschafftes Ziel wird grün mit ✅ markiert. Das Wiederholungsziel kann sich innerhalb der Woche wieder öffnen, wenn neue Fehler dazukommen; sind diese Woche noch keine Fehler passiert, gilt es als erreicht (🎉 keine offenen Wiederholungen).
 - **Alle 3 Ziele geschafft = +30 Bonus-Punkte** (einmal pro Woche) — das beschleunigt Stufen und Eulenhain zusätzlich.
 - Beim Schaffen eines Ziels gibt es Konfetti und einen Banner unter der Aufgabe.
 - Die Ziele werden dauerhaft gespeichert (als Gast im Browser, angemeldet geräteübergreifend).

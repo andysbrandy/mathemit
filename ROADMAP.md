@@ -81,6 +81,16 @@
 | 5.1 | Mehr Regionen (15+ Alltag-Generatoren) | ❌ |
 | 5.2 | PWA / Offline | ❌ |
 
+**Was steckt hinter 5.2 (PWA / Offline)?** — Noch nicht umgesetzt (kein Manifest, kein Service Worker, keine PWA-Metadaten in `index.html`).
+
+1. **Installierbarkeit (PWA):** `manifest.webmanifest` (Name, Icons, Theme-Farbe, `display: standalone`) + Meta-Tags in `index.html` (`<link rel="manifest">`, `theme-color`, Apple-Tags) → App per „Zum Home-Bildschirm" wie eine native App installieren und ohne Browser-Chrome öffnen.
+2. **Offline-Start:** Service Worker (`sw.js`) cached beim ersten Besuch die Kern-Dateien (`index.html`, `app-base.js`, `app-active.js`, beide CSS, `logo.svg`) → App startet auch ohne Internet (Stale-While-Revalidate, `CACHE_VERSION` an die `VERSION`-Datei koppeln, damit `?v=`-Deploys frisch werden).
+3. **Herausforderung — Fortschritt lebt in der DB:** Übungen sollen offline weiterlaufen; Punkte/Spaced-Fortschritt landen dann lokal (`localStorage`) und werden als **Offline-Write-Queue** bei nächster Verbindung an `backend/progress.php` nachgereicht (Konflikte lokal vs. DB lösen = aufwändigster Teil).
+4. **Update-Flow:** Nach jedem Deploy muss ein „♻️ Update verfügbar"-Toast die Nutzer zum Neuladen bewegen — sonst hängen sie auf alten gecachten `?v=`-Builds.
+5. **Online-bleibt-Online:** DB-Sync und 💬-Feedback brauchen Netz (klar als Offline-Hinweis/Chip kommunizieren).
+
+**Aufwand:** Grundversion (Punkte 1, 2 & 4) ≈ halber Tag · Offline-Write-Queue (Punkt 3 inkl. Sync-Konflikte) ist der große Brocken.
+
 ### P6 — Eulenhain (endlose Stufen + Eulensammlung)
 
 | # | Schritt | Status |

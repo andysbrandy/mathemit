@@ -1107,68 +1107,49 @@ function wwpKrone(form, rM, cy){
        + '" rx="' + (rM * 0.36).toFixed(1) + '" ry="' + (rM * 0.22).toFixed(1) + '" fill="#69A85A" opacity=".45"/>';
   return out;
 }
-/* P4.1: Stamm mit Wurzelanlauf (Buttress). Der Stamm verbreitert sich in der
-   unteren Hälfte gleichmäßig und läuft als breiter Fuß flach in die Wiese aus.
-   Dadurch wachsen die Wurzeln sichtbar AUS dem Stamm heraus (kein aufgesetzter
-   Klumpen, keine Beine). Breite & Fuß skalieren mit der Baumgröße bw. */
+/* P4.1: Stamm + Wurzeln als EINE durchgehende Silhouette — der Stamm fließt
+   unten direkt in zwei geschwungene Wurzeln aus (S-Bogen nach außen,
+   abgestumpfte Spitzen, flacher Bogen unter dem Stammfuß). Keine aufgesetzten
+   Keile, keine Streifen. Leichte Asymmetrie = organischer Look. */
 function wwpStamm(stammH, bw){
-  var H = stammH, tw = Math.max(3.5, bw * 0.28);
-  var fl = bw * 1.26, gy = bw * 0.80;          /* Fußbreite und Bodenlinie */
+  var H = stammH, tw = Math.max(3.5, bw * 0.34);
+  var gy = bw * 0.80;                            /* Bodenlinie unter dem Stamm */
+  var fL = bw * 2.60, fR = bw * 2.46;            /* Wurzelreichweite (asymmetrisch) */
   var d = "M " + (-tw).toFixed(1) + " " + (-H).toFixed(0);
-  /* linke Kante: Stammhals → Wurzelanlauf → flacher Fuß */
-  d += " C " + (-(bw * 0.58)).toFixed(1) + " " + (-H * 0.76).toFixed(0)
-     + " " + (-(bw * 0.94)).toFixed(1) + " " + (-H * 0.54).toFixed(0)
-     + " " + (-bw).toFixed(1) + " " + (-H * 0.44).toFixed(0);
-  d += " C " + (-(bw * 1.06)).toFixed(1) + " " + (-H * 0.30).toFixed(0)
-     + " " + (-(fl * 0.78)).toFixed(1) + " " + (-gy * 0.60).toFixed(1)
-     + " " + (-fl).toFixed(1) + " " + (gy * 0.55).toFixed(1);
-  d += " C " + (-(fl * 1.03)).toFixed(1) + " " + (gy * 1.06).toFixed(1)
-     + " " + (-(fl * 0.70)).toFixed(1) + " " + (gy * 1.18).toFixed(1)
-     + " " + (-(fl * 0.30)).toFixed(1) + " " + (gy * 1.18).toFixed(1);
-  d += " L " + (fl * 0.30).toFixed(1) + " " + (gy * 1.18).toFixed(1);
-  /* rechte Kante: Spiegelbild */
-  d += " C " + (fl * 0.70).toFixed(1) + " " + (gy * 1.18).toFixed(1)
-     + " " + (fl * 1.03).toFixed(1) + " " + (gy * 1.06).toFixed(1)
-     + " " + fl.toFixed(1) + " " + (gy * 0.55).toFixed(1);
-  d += " C " + (fl * 0.78).toFixed(1) + " " + (-gy * 0.60).toFixed(1)
-     + " " + (bw * 1.06).toFixed(1) + " " + (-H * 0.30).toFixed(0)
-     + " " + bw.toFixed(1) + " " + (-H * 0.44).toFixed(0);
-  d += " C " + (bw * 0.94).toFixed(1) + " " + (-H * 0.54).toFixed(0)
-     + " " + (bw * 0.58).toFixed(1) + " " + (-H * 0.76).toFixed(0)
+  /* linke Stammkante: schmaler Hals → sanfter Anlauf nach unten */
+  d += " C " + (-(bw * 0.52)).toFixed(1) + " " + (-H * 0.66).toFixed(0)
+     + " " + (-(bw * 0.84)).toFixed(1) + " " + (-H * 0.40).toFixed(0)
+     + " " + (-(bw * 1.00)).toFixed(1) + " " + (-H * 0.18).toFixed(0);
+  /* linke Wurzel: eleganter S-Bogen nach außen bis zur Spitze */
+  d += " C " + (-(bw * 1.38)).toFixed(1) + " " + (-H * 0.02).toFixed(1)
+     + " " + (-(fL * 0.76)).toFixed(1) + " " + (gy * 0.42).toFixed(1)
+     + " " + (-fL).toFixed(1) + " " + (gy * 1.00).toFixed(1);
+  /* abgestumpfte Spitze statt Nadelspitze */
+  d += " Q " + (-(fL + 2.4)).toFixed(1) + " " + (gy * 1.13).toFixed(1)
+     + " " + (-(fL - 3.2)).toFixed(1) + " " + (gy * 1.17).toFixed(1);
+  /* Unterseite der linken Wurzel zurück zum Bogen unter dem Stamm */
+  d += " C " + (-(bw * 1.90)).toFixed(1) + " " + (gy * 1.27).toFixed(1)
+     + " " + (-(bw * 1.05)).toFixed(1) + " " + (gy * 1.05).toFixed(1)
+     + " " + (-(bw * 0.52)).toFixed(1) + " " + (gy * 0.74).toFixed(1);
+  /* flacher Bogen unter dem Stammfuß (Wurzelteilung) */
+  d += " C " + (-(bw * 0.24)).toFixed(1) + " " + (gy * 0.58).toFixed(1)
+     + " " + (bw * 0.22).toFixed(1) + " " + (gy * 0.56).toFixed(1)
+     + " " + (bw * 0.50).toFixed(1) + " " + (gy * 0.72).toFixed(1);
+  /* Unterseite der rechten Wurzel hinaus zur Spitze */
+  d += " C " + (bw * 1.05).toFixed(1) + " " + (gy * 1.05).toFixed(1)
+     + " " + (bw * 1.86).toFixed(1) + " " + (gy * 1.26).toFixed(1)
+     + " " + (fR - 3.2).toFixed(1) + " " + (gy * 1.17).toFixed(1);
+  d += " Q " + (fR + 2.4).toFixed(1) + " " + (gy * 1.13).toFixed(1)
+     + " " + fR.toFixed(1) + " " + (gy * 1.00).toFixed(1);
+  /* rechte Wurzel-Oberseite → Stammkante hinauf (Spiegelbild, leicht anders) */
+  d += " C " + (fR * 0.76).toFixed(1) + " " + (gy * 0.42).toFixed(1)
+     + " " + (bw * 1.38).toFixed(1) + " " + (-H * 0.02).toFixed(0)
+     + " " + (bw * 1.00).toFixed(1) + " " + (-H * 0.18).toFixed(0);
+  d += " C " + (bw * 0.84).toFixed(1) + " " + (-H * 0.40).toFixed(0)
+     + " " + (bw * 0.52).toFixed(1) + " " + (-H * 0.66).toFixed(0)
      + " " + tw.toFixed(1) + " " + (-H).toFixed(0);
   d += " Z";
   return '<path d="' + d + '" fill="url(#wwpTrunk)" stroke="#6B4224" stroke-width="1.2" stroke-linejoin="round"/>';
-}
-/* P4.1: Wurzeln — verjüngte Keile, die IM Stamm wurzeln (Ansatzpunkte liegen
-   hinter dem Stamm) und über den Boden auslaufen. Drei Stränge je Seite in
-   unterschiedlicher Länge/Höhe = organischer Wurzelfuß statt Beine. */
-function wwpWurzeln(rM, bw){
-  var gy = bw * 0.80, out = "", i;
-  /* [Seite, Länge, Ansatzhöhe (× bw, über dem Boden), Dicke am Stamm (× bw), Farbe] */
-  var roots = [
-    [-1, rM * 0.96, 2.10, 0.92, "#6B4224"],
-    [ 1, rM * 0.88, 1.86, 0.86, "#6B4224"],
-    [-1, rM * 0.68, 1.36, 0.74, "#744724"],
-    [ 1, rM * 0.60, 1.16, 0.68, "#744724"],
-    [-1, rM * 0.46, 0.82, 0.58, "#7C4E28"],
-    [ 1, rM * 0.40, 0.70, 0.52, "#7C4E28"]
-  ];
-  for(i = 0; i < roots.length; i++){
-    var sd = roots[i][0], L = roots[i][1], ay = -bw * roots[i][2], th = bw * roots[i][3];
-    var tipY = gy * (1.00 + (i % 2) * 0.08 + i * 0.03);
-    var tx = sd * L, nx = sd * (L - 4.5);
-    out += '<path d="M' + (sd * bw * 0.30).toFixed(1) + ' ' + ay.toFixed(1)
-      + ' C ' + (sd * bw * 1.35).toFixed(1) + ' ' + (ay * 0.62).toFixed(1)
-      + ' ' + (sd * L * 0.45).toFixed(1) + ' ' + (tipY * 0.10).toFixed(1)
-      + ' ' + tx.toFixed(1) + ' ' + tipY.toFixed(1)
-      /* leicht abgestumpfte Spitze statt Nadelspitze */
-      + ' L ' + nx.toFixed(1) + ' ' + (tipY - 1.6).toFixed(1)
-      + ' C ' + (sd * L * 0.80).toFixed(1) + ' ' + (tipY * 1.18).toFixed(1)
-      + ' ' + (sd * bw * 1.22).toFixed(1) + ' ' + (ay + th).toFixed(1)
-      + ' ' + (sd * bw * 0.34).toFixed(1) + ' ' + (ay + th).toFixed(1)
-      + ' Z" fill="' + roots[i][4] + '" stroke="' + roots[i][4] + '" stroke-width="2.2" stroke-linejoin="round"/>';
-  }
-  return out;
 }
 /* Früchte (Kompetenzen) gleichmäßig im Kronen-Oval verteilen (Sonnenblumen-Muster) */
 function wwpTuffPosis(n, R, aspect){
@@ -1299,9 +1280,7 @@ function renderWissenswald(){
     s += '<ellipse cx="' + x + '" cy="' + hy + '" rx="82" ry="17" fill="' + (hinten ? "#9BD489" : "#96CE83") + '"/>';
     s += '<g class="wwp-tree" transform="translate(' + x + ',' + y0 + ') scale(' + sk + ')">';
     var bw = rM * 0.20;                         /* Stamm-Halbbbreite (skaliert mit der Baumgröße) */
-    /* Wurzeln: wachsen aus dem Wurzelhals heraus (vor dem Stamm gezeichnet) */
-    s += wwpWurzeln(rM, bw);
-    /* Stamm mit Wurzelhals → Wurzeln sitzen IM Stamm, kein sichtbarer Standfuß */
+    /* Stamm + zwei Wurzeln als EINE durchgehende Silhouette */
     s += wwpStamm(stammH, bw);
     /* Seitenäste: bleiben unterhalb der Krone sichtbar → echter Baum statt Lutscher */
     var bh = stammH * 0.46, bl = stammH * 0.20;

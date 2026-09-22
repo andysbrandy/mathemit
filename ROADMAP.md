@@ -91,6 +91,69 @@
 
 **Aufwand:** Grundversion (Punkte 1, 2 & 4) ≈ halber Tag · Offline-Write-Queue (Punkt 3 inkl. Sync-Konflikte) ist der große Brocken.
 
+### P7 — Bekanntmachung im Zielgruppe-Bereich (10–14 J.)
+
+**Status: ❌ geplant (noch keine Umsetzung, nur Planung)**
+
+**Zielgruppe:** 10–14-Jährige in Österreich (Hauptschule / Mittelschule / AHS Unterstufe, 5./6. Klasse) — und indirekt: Lehrer, Eltern, Referenzpersonen, die die App für Schüler empfehlen.
+
+#### 1) Social-Kanäle / Themenfelder
+
+| Kanal | Warum relevant | Rolle |
+|---|---|---|
+| **Instagram** (Reels + Carousel) | Visuell stark, junge Zielgruppe, spielerischer Mathe-Content, leicht zu teilen | Primärkanal für Schüler + Jugendliche |
+| **YouTube Shorts** | Kurze Lern-Schnippel, „Mathe-Hack", AHA-Momente — gut für Suchmaschine und Empfehlungs-System | Primärkanal für Lerneffekt + Reichweite |
+| **TikTok** | Junge Zielgruppe, „Quick-Hack"-Mentalität, freundliche Kurzanimationen | Experiment, viral Potenzial |
+| **Pinterest** | Lehrer und Eltern sammeln Lern-Material — Mathe-Serie für Vorbereitung, Schnell-Übungen | Indirekt, hohe Qualität |
+| **E-Mail-Newsletter** | Direkte Linie zu Interessierten (Lehrer, Eltern, ehemalige Schüler) — ohne Algorithmus | Beziehung & Feedback-Loop |
+| **GitHub Discussions / Issues** | Feedback-Loop, KI-Analyse jeden Freitag, Planungs-Transparenz | Community + Planung |
+| **Schul-Integration (Klassen-Code)** | Bereits gebaut (P2): Lehrer können Klasse einrichten, Schüler gehen ein; Referenzpersonen können App empfehlen | Vertrauens-Channel, organischer Wachstum |
+
+#### 2) Automatisierter Aufgaben-Content-Generator („Portal-Bewerber")
+
+Die Idee: ein **automatisierter Content-Pipeline**, der die bestehenden Generatoren nutzt, um **soziale Lern-Snippets zu erzeugen**, die das Portal bewerben — **ohne dass jemand ständig manuell Inhalte erstellen muss**.
+
+**Konzept:**
+- Pipeline liest aus der **bestehenden Generator-Logik** (app-base.js) eine Aufgaben-Variante aus
+- Renders sie als **Bild/Video-Raster** (SVG-Sketch der Aufgabe, Beispiel-Lösung, kurze Erklärung)
+- Erzeugt **fertigen Social-Post** (Bild + Caption + Hashtag-Set + Link zur App)
+- Plant Posts über einen Zeitplan (z. B. mehrmals pro Woche)
+- Entsteht damit ein **Content-Feed**, der genau das zeigt, was die App kann — aber als „Lern-Paket" mit Mehrwert (nicht nur „Lade die App")
+
+**Automatisierungs-Bausteine:**
+- **Content-Pipeline (skriptbasiert):** Node-Skript, das die Generatoren aufruft, Aufgaben-Varianten extrahiert, als SVG-Raster → PNG / Webp exportiert
+- **Caption-Generator:** kurze Erklärung, „Tipp", „Warum das wichtig ist", Tag-Set (Lehrplan-Code, Klasse, Thema)
+- **Scheduling:** Liste von Posts, Planungs-Reihenfolge, ggf. Zeitplan (z. B. 2–3 Posts pro Woche)
+- **Qualitäts-Check:** jeder Post wird auf Vollständigkeit geprüft (Aufgabe klar? Lösung da? Link da?), ggf. manuelle Freigabe vor Posts
+
+**Vorteile:**
+- Skaliert mit der Anzahl Generatoren (mehr Generatoren → mehr automatische Posts)
+- Zeigt den tatsächlichen Inhalt der App (keine leere Werbung)
+- Lehrer und Schüler können Posts als „Übungs-Snippet" nutzen
+- Feedback-Loop: wird ein Post häufig besucht / geteilt, kann die Pipeline das Thema priorisieren
+
+**Herausforderungen / Hinweise:**
+- **Automatisierung ist nicht ersetzt für echte Präsenz** — Social-Kanäle brauchen auch Interaktion, Gespräche, Community
+- **Inhalte müssen altersgerecht sein** (10–14 J.) — nicht zu „Kindisch", nicht zu „Werblich"
+- **Kein Zugriff auf echte Schüler-Daten** in den Posts (Datenschutz!), nur generische Beispiele
+- **Domain** muss für externe Links funktionieren (HTTPS + iOS/Android-Installation)
+- **Newsletter-Abonnieren** erfordert Double-Opt-In, DSGVO-konforme Speicherung (E-Mail-Adresse, Einwilligung, Widerruf)
+
+#### 3) Konkret-Plan (wenn umgesetzt)
+
+1. **Kanäle ansiedeln:** Instagram + YouTube Shorts als primär; TikTok + Pinterest als Experiment; E-Mail-Listen-Basis legen (Double-Opt-In)
+2. **Content-Pipeline bauen:** Node-Skript, das aus den Generatoren zufällige Varianten nimmt, als SVG → PNG + Caption + Hashtag-Set exportiert; manuelle Freigabe vor Post
+3. **Wöchentlicher Rhythmus:** z. B. 2 Posts / Woche (1 „Mathe-Lick", 1 „Tipp zum Thema der Woche"); 1 Newsletter / Monat (Neues, Tipps, Rückmeldungen)
+4. **Mit Lehrern starten:** Klassen-Code-System → Referenzpersonen, die die App empfehlen; Feedback-Loop aus GitHub Discussions + KI-Analyse
+5. **Tracken:** Klicks auf Social-Links, Installationen, Wiederkehr — KI-Analyse jede Woche
+
+**Aufwand:**
+- Social-Kanal-Aufbau + Content-Pipeline (MVP): ca. 3–5 Tage
+- Dauerhafte Betreuung: 1–2 Stunden/Woche (Posts planen, reagieren, Newsletter)
+- Skalierung: Pipeline kann später automatisiert posts (mit Freigabe) und mehr Generatoren einbinden
+
+---
+
 ### P6 — Eulenhain (endlose Stufen + Eulensammlung)
 
 | # | Schritt | Status |

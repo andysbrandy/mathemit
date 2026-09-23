@@ -8,18 +8,19 @@
 
 | Element | Wert |
 |---|---|
-| **Handle** | `@mathemit` (Fallbacks: `@mathemit.at`, `@mathemit_app`, `@mathemit.official`) |
+| **Handle** | `@mathemit.andybrandy.at` — die volle Domain, kein Spielraum für Verwechslungen (Fallbacks: `@mathemitandybrandy`, `@mathemit.andybrandy`) |
 | **Anzeigename** | `Mathemit` |
 | **Link** | `https://mathemit.andybrandy.at/` |
-| **Avatar** | `avatar.png` (800×800, Eule + Wortmarke, Marken-Verlauf) |
+| **Avatar** | `avatar.png` (800×800, Eule + „mathemit.andybrandy.at"-Wortmarke, Marken-Verlauf) |
 | **Social-Card** | `og-image.png` (1200×630, für Vorschauen/Endcards) |
 | **Logo (Vektor)** | `logo.svg` |
 
 **Verfügbarkeit (Stand 23.9.2026, finale Prüfung bei der Registrierung!):**
-- YouTube `@mathemit`: **404 → frei** ✅
-- TikTok `@mathemit`: kein exakter Treffer (nur `@mathemitnick`, `@mathemitmelli`) → vermutlich frei ✅
-- Instagram `mathemit`: kein Treffer → vermutlich frei ✅
-- ⚠️ Existiert: `mathemit.de` (Deutschland, anderer Betreiber) — nicht verwechseln, TLD unterscheidet klar
+- YouTube `@mathemit.andybrandy.at`: **404 → frei** ✅
+- TikTok `@mathemit.andybrandy.at`: kein Treffer → frei ✅
+- Instagram `mathemit.andybrandy.at`: kein Treffer → frei ✅
+- (Kurz-Handle `@mathemit`: YouTube 404 → frei, TikTok/IG ohne exakten Treffer — als Alternative verfügbar)
+- ⚠️ Existiert: `mathemit.de` (Deutschland, anderer Betreiber) — **genau deshalb handle = volle Domain**
 
 ## ✍️ Bios (fertig zum Kopieren)
 
@@ -51,7 +52,7 @@ Feedback gern über den 💬-Button in der App. Made in Austria 🇦🇹
 ## ✅ Anlage-Checkliste (einmalig, je Kanal)
 
 1. **Konto mit Projekt-E-Mail erstellen** (nicht das private Konto! Kanal = Produkt, nicht Privatperson — wichtig für Jugendschutz & spätere Übergabe)
-2. **Handle `@mathemit` setzen** (Fallback greifen, falls doch vergeben)
+2. **Handle `@mathemit.andybrandy.at` setzen** (Fallback greifen, falls die volle Domain irgendwo abgelehnt wird)
 3. **`avatar.png` als Profilbild** hochladen
 4. **Bio** aus obigen Vorlagen einfügen
 5. **Link** eintragen:

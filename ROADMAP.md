@@ -91,66 +91,60 @@
 
 **Aufwand:** Grundversion (Punkte 1, 2 & 4) ≈ halber Tag · Offline-Write-Queue (Punkt 3 inkl. Sync-Konflikte) ist der große Brocken.
 
-### P7 — Bekanntmachung im Zielgruppe-Bereich (10–14 J.)
+### P7 — Bekanntmachung Zielgruppe 10–14 J. (revidiertes Konzept 🔄)
 
-**Status: ❌ geplant (noch keine Umsetzung, nur Planung)**
+**Status: ❌ geplant (Konzept final, noch keine Umsetzung)**
 
-**Zielgruppe:** 10–14-Jährige in Österreich (Hauptschule / Mittelschule / AHS Unterstufe, 5./6. Klasse) — und indirekt: Lehrer, Eltern, Referenzpersonen, die die App für Schüler empfehlen.
+**Zielgruppe:** 10–14-Jährige in Österreich (MS/AHS-Unterstufe, 5./6. Klasse).
 
-#### 1) Social-Kanäle / Themenfelder
+**Grundprinzip der Revidierung:** Alterslimits regeln die **Account-Erstellung**, nicht wer die Inhalte tatsächlich zu sehen bekommt (geteiltes Familien-Handy, kein Login zum Zuschauen, ältere Geschwister zeigen's weiter). Reichweite bei 10–14-Jährigen entsteht real über genau diese Kanäle — unabhängig vom offiziellen Mindestalter.
 
-| Kanal | Warum relevant | Rolle |
+#### 🔄 Priorisierung der Kanäle
+
+| Priorität | Kanal | Warum an dieser Stelle |
 |---|---|---|
-| **Instagram** (Reels + Carousel) | Visuell stark, junge Zielgruppe, spielerischer Mathe-Content, leicht zu teilen | Primärkanal für Schüler + Jugendliche |
-| **YouTube Shorts** | Kurze Lern-Schnippel, „Mathe-Hack", AHA-Momente — gut für Suchmaschine und Empfehlungs-System | Primärkanal für Lerneffekt + Reichweite |
-| **TikTok** | Junge Zielgruppe, „Quick-Hack"-Mentalität, freundliche Kurzanimationen | Experiment, viral Potenzial |
-| **Pinterest** | Lehrer und Eltern sammeln Lern-Material — Mathe-Serie für Vorbereitung, Schnell-Übungen | Indirekt, hohe Qualität |
-| **E-Mail-Newsletter** | Direkte Linie zu Interessierten (Lehrer, Eltern, ehemalige Schüler) — ohne Algorithmus | Beziehung & Feedback-Loop |
-| **GitHub Discussions / Issues** | Feedback-Loop, KI-Analyse jeden Freitag, Planungs-Transparenz | Community + Planung |
-| **Schul-Integration (Klassen-Code)** | Bereits gebaut (P2): Lehrer können Klasse einrichten, Schüler gehen ein; Referenzpersonen können App empfehlen | Vertrauens-Channel, organischer Wachstum |
+| **1** | **YouTube Shorts** | Höchste De-facto-Reichweite bei Kids ohne eigenen Account nötig (Algorithmus spielt nach Interesse, nicht nach Alter); Google-Auffindbarkeit als Bonus |
+| **1 (gleichrangig)** | **TikTok** | Schnellster Cold-Start für virale Reichweite (For-You-Page braucht keine Follower); Format passt perfekt zu „Mathe-Trick in 15 Sekunden“ |
+| **2** | **Instagram Reels** | Gleicher Content wie oben, zusätzlicher Kanal, cross-postbar ohne Mehraufwand |
+| **3** | **Klassen-Code-System aktiv bewerben** | Verstärker **nachdem** organische Reichweite da ist — nicht als Startpunkt |
+| **Phase 2 (später)** | Lehrer-Netzwerke, SEO-Seiten, Pinterest, Newsletter | Auf später verschoben, nicht gestrichen |
+| **Gestrichen** | GitHub Discussions als Reichweitenkanal | Bleibt technischer Feedback-Kanal, gehört nicht in die Wachstumsstrategie |
 
-#### 2) Automatisierter Aufgaben-Content-Generator („Portal-Bewerber")
+#### 🎬 Automatisierte Pipeline — Video statt Webseiten
 
-Die Idee: ein **automatisierter Content-Pipeline**, der die bestehenden Generatoren nutzt, um **soziale Lern-Snippets zu erzeugen**, die das Portal bewerben — **ohne dass jemand ständig manuell Inhalte erstellen muss**.
+Das native Format aller drei Top-Kanäle ist das Kurzvideo statt statischer Seiten — **ein Asset, dreifach verwertbar**.
 
-**Konzept:**
-- Pipeline liest aus der **bestehenden Generator-Logik** (app-base.js) eine Aufgaben-Variante aus
-- Renders sie als **Bild/Video-Raster** (SVG-Sketch der Aufgabe, Beispiel-Lösung, kurze Erklärung)
-- Erzeugt **fertigen Social-Post** (Bild + Caption + Hashtag-Set + Link zur App)
-- Plant Posts über einen Zeitplan (z. B. mehrmals pro Woche)
-- Entsteht damit ein **Content-Feed**, der genau das zeigt, was die App kann — aber als „Lern-Paket" mit Mehrwert (nicht nur „Lade die App")
+**Wöchentlicher Job** (lokal oder GitHub Action mit Puppeteer):
 
-**Automatisierungs-Bausteine:**
-- **Content-Pipeline (skriptbasiert):** Node-Skript, das die Generatoren aufruft, Aufgaben-Varianten extrahiert, als SVG-Raster → PNG / Webp exportiert
-- **Caption-Generator:** kurze Erklärung, „Tipp", „Warum das wichtig ist", Tag-Set (Lehrplan-Code, Klasse, Thema)
-- **Scheduling:** Liste von Posts, Planungs-Reihenfolge, ggf. Zeitplan (z. B. 2–3 Posts pro Woche)
-- **Qualitäts-Check:** jeder Post wird auf Vollständigkeit geprüft (Aufgabe klar? Lösung da? Link da?), ggf. manuelle Freigabe vor Posts
+1. Node-Skript ruft **3–5 Generatoren** aus der Generator-Sammlung (`GEN{}` in `app-base.js`) auf
+2. **Puppeteer** öffnet die App headless und triggert die vorhandene **Blueprint-Reveal-Animation** (bereits implementiert — von Natur aus „satisfying content“, ein bewährtes TikTok-Genre)
+3. **Frame-Recording** während der Animation → **ffmpeg** baut daraus ein **9:16-Vertical-Video** (15–25 Sek.)
+4. **Text-Overlay** aus Frage/Hook-Vorlage + Lösung — Hook zuerst, **2 Sek. Pause vor der Auflösung** (Retention-Technik)
+5. **Endcard** mit App-Name/Link automatisch angehängt
+6. Video + Caption + Hashtag-Set in eine **Warteschlange** ablegen
+7. **Kurze manuelle Freigabe** (30 Sek. anschauen, ok?) → dann auf **allen 3 Kanälen gleichzeitig** posten (gleiches Asset, kein Mehraufwand)
 
-**Vorteile:**
-- Skaliert mit der Anzahl Generatoren (mehr Generatoren → mehr automatische Posts)
-- Zeigt den tatsächlichen Inhalt der App (keine leere Werbung)
-- Lehrer und Schüler können Posts als „Übungs-Snippet" nutzen
-- Feedback-Loop: wird ein Post häufig besucht / geteilt, kann die Pipeline das Thema priorisieren
+**Stack:** Puppeteer + ffmpeg, alles kostenlos — kein bezahlter Dienst nötig.
 
-**Herausforderungen / Hinweise:**
-- **Automatisierung ist nicht ersetzt für echte Präsenz** — Social-Kanäle brauchen auch Interaktion, Gespräche, Community
-- **Inhalte müssen altersgerecht sein** (10–14 J.) — nicht zu „Kindisch", nicht zu „Werblich"
-- **Kein Zugriff auf echte Schüler-Daten** in den Posts (Datenschutz!), nur generische Beispiele
-- **Domain** muss für externe Links funktionieren (HTTPS + iOS/Android-Installation)
-- **Newsletter-Abonnieren** erfordert Double-Opt-In, DSGVO-konforme Speicherung (E-Mail-Adresse, Einwilligung, Widerruf)
+#### 🪝 Hook-Formate (für 10–14 nachweislich wirksam)
 
-#### 3) Konkret-Plan (wenn umgesetzt)
+| Hook | Wirkmechanik |
+|---|---|
+| „Kannst du das in 10 Sekunden lösen?“ | Countdown-Timer eingeblendet, Auflösung als Reveal |
+| „Können Erwachsene das? (Mittelschul-Niveau)“ | Doppelter Effekt: Kids teilen's stolz bei Erfolg; Erwachsene, die scheitern, ist von Natur aus shareable |
+| „Mein Streak: 47 🔥“ | Screen-Recording der Gamification — Kids lieben Flex-Content |
+| Vorher/Nachher | „So erklärt's die Schule“ vs. „So macht's die App“ (Blueprint-Zeichnung) |
 
-1. **Kanäle ansiedeln:** Instagram + YouTube Shorts als primär; TikTok + Pinterest als Experiment; E-Mail-Listen-Basis legen (Double-Opt-In)
-2. **Content-Pipeline bauen:** Node-Skript, das aus den Generatoren zufällige Varianten nimmt, als SVG → PNG + Caption + Hashtag-Set exportiert; manuelle Freigabe vor Post
-3. **Wöchentlicher Rhythmus:** z. B. 2 Posts / Woche (1 „Mathe-Lick", 1 „Tipp zum Thema der Woche"); 1 Newsletter / Monat (Neues, Tipps, Rückmeldungen)
-4. **Mit Lehrern starten:** Klassen-Code-System → Referenzpersonen, die die App empfehlen; Feedback-Loop aus GitHub Discussions + KI-Analyse
-5. **Tracken:** Klicks auf Social-Links, Installationen, Wiederkehr — KI-Analyse jede Woche
+#### ⚠️ Zwei operative Punkte (unabhängig von der Strategie-Entscheidung)
 
-**Aufwand:**
-- Social-Kanal-Aufbau + Content-Pipeline (MVP): ca. 3–5 Tage
-- Dauerhafte Betreuung: 1–2 Stunden/Woche (Posts planen, reagieren, Newsletter)
-- Skalierung: Pipeline kann später automatisiert posts (mit Freigabe) und mehr Generatoren einbinden
+1. **Kommentare moderieren oder deaktivieren** — bei Videos mit erkennbar Kinder-Zielgruppe ziehen offene Kommentarspalten unerwünschte Erwachsene an. Reine Schutzmaßnahme.
+2. **Bezahlte Werbung (nicht organischer Content)** darf sich in EU/AT rechtlich nicht gezielt an unter 13-Jährige richten — betrifft nur ein späteres Ads-Budget, nicht den organischen Content-Plan.
+
+#### 📅 Realistischer Aufwand
+
+- **Pipeline-MVP (Schritte 1–7):** ca. 2–3 Tage
+- **Laufend:** ~1 Std./Woche (Freigabe + Posten auf 3 Kanälen)
+- **Erste messbare Reichweite:** realistisch 1–3 Wochen nach Start (TikTok schnell, YouTube Shorts träger)
 
 ---
 

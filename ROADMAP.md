@@ -99,6 +99,18 @@
 
 **Grundprinzip der Revidierung:** Alterslimits regeln die **Account-Erstellung**, nicht wer die Inhalte tatsächlich zu sehen bekommt (geteiltes Familien-Handy, kein Login zum Zuschauen, ältere Geschwister zeigen's weiter). Reichweite bei 10–14-Jährigen entsteht real über genau diese Kanäle — unabhängig vom offiziellen Mindestalter.
 
+#### 📋 Schritte (Checkliste)
+
+| # | Schritt | Status |
+|---|---------|--------|
+| 7.1 | Link-Vorschauen: OG-/Twitter-Tags + Canonical + `og-image.png` (1200×630) in `index.html` | ✅ |
+| 7.2 | Kanäle anlegen: YouTube (Shorts), TikTok, Instagram — Handle/Bio/Link einheitlich | ❌ |
+| 7.3 | Video-Pipeline-MVP: Puppeteer (headless) → Blueprint-Reveal → ffmpeg 9:16 (15–25 s) → Overlay + Endcard → Warteschlange | ❌ |
+| 7.4 | Hook-Bibliothek: 4 Formate (Countdown, Erwachsenen-Challenge, Streak-Flex, Vorher/Nachher) als Vorlagen | ❌ |
+| 7.5 | Wöchentlicher Rhythmus: 30-Sek.-Freigabe → Cross-Post auf 3 Kanäle (~1 Std./Woche) | ❌ |
+| 7.6 | Schutz & Recht: Kommentare bei Kinder-Content moderieren/deaktivieren; bezahlte Ads nur ab 13 (EU/AT) | ❌ |
+| 7.7 | Phase 2: Klassen-Code aktiv bewerben, Lehrer-Netzwerke, SEO-Seiten, Pinterest, Newsletter | ⏳ Phase 2 |
+
 #### 🔄 Priorisierung der Kanäle
 
 | Priorität | Kanal | Warum an dieser Stelle |

@@ -104,7 +104,7 @@
 | # | Schritt | Status |
 |---|---------|--------|
 | 7.1 | Link-Vorschauen: OG-/Twitter-Tags + Canonical + `og-image.png` (1200×630) in `index.html` | ✅ |
-| 7.2 | Kanäle anlegen: YouTube (Shorts), TikTok, Instagram — Handle (`@mathemit.andybrandy.at`)/Bio/Link einheitlich | 🔄 Kit in `CHANNELS.md` (Handle = Domain, Avatar & Bios fertig — Accounts manuell anlegen) |
+| 7.2 | Kanäle anlegen: YouTube (Shorts), TikTok, Instagram — URLs & Handles hinterlegt in `CHANNELS.md` | ✅ |
 | 7.3 | Video-Pipeline-MVP: Puppeteer (headless) → Blueprint-Reveal → ffmpeg 9:16 (15–25 s) → Overlay + Endcard → Warteschlange | ❌ |
 | 7.4 | Hook-Bibliothek: 4 Formate (Countdown, Erwachsenen-Challenge, Streak-Flex, Vorher/Nachher) als Vorlagen | ❌ |
 | 7.5 | Wöchentlicher Rhythmus: 30-Sek.-Freigabe → Cross-Post auf 3 Kanäle (~1 Std./Woche) | ❌ |

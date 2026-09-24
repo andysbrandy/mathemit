@@ -1,8 +1,16 @@
 # 📣 P7 Kanal-Kit — Schritt 7.2: Kanäle anlegen
 
-> Copy-Paste-Vorlagen für YouTube, TikTok und Instagram. **Handle/Bio/Link einheitlich** — hier alles vorbereitet, die Accounts selbst werden manuell erstellt.
+> Copy-Paste-Vorlagen für YouTube, TikTok und Instagram. **Handle/Bio/Link einheitlich** — Accounts sind angelegt und verlinkt.
 
-**Stand:** 7.2 in Arbeit (Kit fertig, Accounts offen)
+**Stand:** 7.2 abgeschlossen ✅ (Accounts angelegt)
+
+## 🔗 Live-Kanäle
+
+| Plattform | Handle / URL | Status |
+|---|---|---|
+| **Instagram** | [@mathemit.andybrandy.at](https://www.instagram.com/mathemit.andybrandy.at) | ✅ Live |
+| **TikTok** | [@mathefit.andybrandy.at](https://www.tiktok.com/@mathefit.andybrandy.at) *(Hinweis: Handle lautet `mathefit`)* | ✅ Live |
+| **YouTube** | [Kanal UCLYEbAqgnCGcWASkaDOnXjw](https://www.youtube.com/channel/UCLYEbAqgnCGcWASkaDOnXjw) | ✅ Live |
 
 ## 🪪 Einheitliches Branding
 
@@ -71,7 +79,9 @@ Feedback gern über den 💬-Button in der App. Made in Austria 🇦🇹
 
 ## 🧭 Nächste Schritte
 
-- [ ] YouTube-Kanal anlegen (7.2)
-- [ ] TikTok-Konto anlegen (7.2)
-- [ ] Instagram umschalten/anlegen (7.2)
-- [ ] Danach: 7.3 Video-Pipeline-MVP bauen
+- [x] YouTube-Kanal anlegen (7.2) ✅
+- [x] TikTok-Konto anlegen (7.2) ✅
+- [x] Instagram umschalten/anlegen (7.2) ✅
+- [ ] 7.3: Video-Pipeline-MVP bauen (Puppeteer + ffmpeg, 9:16)
+- [ ] 7.4: Hook-Vorlagen vorbereiten
+- [ ] 7.5: Erster Testlauf & wöchentlicher Veröffentlichungs-Rhythmus

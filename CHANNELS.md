@@ -1,6 +1,6 @@
 # 📣 P7 Kanal-Kit — Schritt 7.2: Kanäle anlegen
 
-> Copy-Paste-Vorlagen für YouTube, TikTok und Instagram. **Handle/Bio/Link einheitlich** — Accounts sind angelegt und verlinkt.
+> Copy-Paste-Vorlagen und Kanalübersicht für YouTube, TikTok und Instagram. Accounts sind angelegt und verlinkt; gemeinsames Branding und Ziel-Link bleiben einheitlich.
 
 **Stand:** 7.2 abgeschlossen ✅ (Accounts angelegt)
 
@@ -16,19 +16,18 @@
 
 | Element | Wert |
 |---|---|
-| **Handle** | `@mathemit.andybrandy.at` — die volle Domain, kein Spielraum für Verwechslungen (Fallbacks: `@mathemitandybrandy`, `@mathemit.andybrandy`) |
+| **Instagram-Handle** | `@mathemit.andybrandy.at` |
+| **TikTok-Handle** | `@mathefit.andybrandy.at` |
+| **YouTube** | Kanal `UCLYEbAqgnCGcWASkaDOnXjw` |
 | **Anzeigename** | `Mathemit` |
 | **Link** | `https://mathemit.andybrandy.at/` |
 | **Avatar** | `avatar.png` (800×800, Eule + „mathemit.andybrandy.at"-Wortmarke, Marken-Verlauf) |
 | **Social-Card** | `og-image.png` (1200×630, für Vorschauen/Endcards) |
 | **Logo (Vektor)** | `logo.svg` |
 
-**Verfügbarkeit (Stand 23.9.2026, finale Prüfung bei der Registrierung!):**
-- YouTube `@mathemit.andybrandy.at`: **404 → frei** ✅
-- TikTok `@mathemit.andybrandy.at`: kein Treffer → frei ✅
-- Instagram `mathemit.andybrandy.at`: kein Treffer → frei ✅
-- (Kurz-Handle `@mathemit`: YouTube 404 → frei, TikTok/IG ohne exakten Treffer — als Alternative verfügbar)
-- ⚠️ Existiert: `mathemit.de` (Deutschland, anderer Betreiber) — **genau deshalb handle = volle Domain**
+**Handle-Hinweise:**
+- Instagram und TikTok verwenden bewusst unterschiedliche, markenspezifische Handles; die Live-URLs oben sind die verbindlichen Referenzen.
+- ⚠️ `mathemit.de` gehört einem anderen Betreiber. Die verlinkten Profilseiten und `mathemit.andybrandy.at` sind daher die eindeutige Zuordnung zu diesem Projekt.
 
 ## ✍️ Bios (fertig zum Kopieren)
 
@@ -44,7 +43,7 @@
 Mathe nach AT-Lehrplan 🦉 47 Übungstypen · 3 Stufen · kostenlos
 ```
 
-### YouTube — Kanalbeschreibung (Kanal „Mathemit", Handle `@mathemit`)
+### YouTube — Kanalbeschreibung (Kanal „Mathemit“; verlinkter Kanal: `UCLYEbAqgnCGcWASkaDOnXjw`)
 
 ```
 🦉 Mathemit – Mathe üben nach dem österreichischen Lehrplan (AHS/MS 2023)
@@ -57,11 +56,11 @@ https://mathemit.andybrandy.at
 Feedback gern über den 💬-Button in der App. Made in Austria 🇦🇹
 ```
 
-## ✅ Anlage-Checkliste (einmalig, je Kanal)
+## 📋 Profileinrichtung (für die drei Live-Konten)
 
-1. **Konto mit Projekt-E-Mail erstellen** (nicht das private Konto! Kanal = Produkt, nicht Privatperson — wichtig für Jugendschutz & spätere Übergabe)
-2. **Handle `@mathemit.andybrandy.at` setzen** (Fallback greifen, falls die volle Domain irgendwo abgelehnt wird)
-3. **`avatar.png` als Profilbild** hochladen
+1. **Konto mit Projekt-E-Mail verwenden** (nicht das private Konto — Kanal = Produkt, nicht Privatperson; wichtig für Jugendschutz und spätere Übergabe)
+2. **Angelegten Handle beibehalten** und die Live-URL aus der Tabelle oben als verbindliche Referenz verwenden
+3. **`avatar.png` als Profilbild** prüfen
 4. **Bio** aus obigen Vorlagen einfügen
 5. **Link** eintragen:
    - YouTube: Kanalbeschreibung (immer) + „Angepasste Links" (ggf. Voraussetzung prüfen)

@@ -93,7 +93,7 @@
 
 ### P7 — Bekanntmachung Zielgruppe 10–14 J. (revidiertes Konzept 🔄)
 
-**Status: ❌ geplant (Konzept final, noch keine Umsetzung)**
+**Status: 🔄 in Umsetzung (7.1 und 7.2 abgeschlossen; nächster Schritt: 7.3 Video-Pipeline-MVP)**
 
 **Zielgruppe:** 10–14-Jährige in Österreich (MS/AHS-Unterstufe, 5./6. Klasse).
 

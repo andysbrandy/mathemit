@@ -2,8 +2,6 @@
 
 > Stand: laufende Version siehe App-Footer bzw. VERSION-Datei | Ziel: Vollständige Lehrplan-Abdeckung (AHS/MS 2023) mit pädagogischem Support + Feedback-Loop
 
----
-
 ## 📊 Aktueller Stand
 
 - **47 Generatoren in 15 lehrplangetreuen Themen-Modi** (H1–H4/I1–I3):
@@ -105,7 +103,7 @@
 |---|---------|--------|
 | 7.1 | Link-Vorschauen: OG-/Twitter-Tags + Canonical + `og-image.png` (1200×630) in `index.html` | ✅ |
 | 7.2 | Kanäle anlegen: YouTube (Shorts), TikTok, Instagram — URLs & Handles hinterlegt in `CHANNELS.md` | ✅ |
-| 7.3 | Video-Pipeline-MVP: Puppeteer (headless) → Blueprint-Reveal → ffmpeg 9:16 (15–25 s) → Overlay + Endcard → Warteschlange | ❌ |
+| 7.3 | Video-Pipeline-MVP: Puppeteer (headless) → Blueprint-Reveal → ffmpeg 9:16 (15–25 s) → Overlay + Endcard → Warteschlange | 🔄 1/6 Pakete |
 | 7.4 | Hook-Bibliothek: 4 Formate (Countdown, Erwachsenen-Challenge, Streak-Flex, Vorher/Nachher) als Vorlagen | ❌ |
 | 7.5 | Wöchentlicher Rhythmus: 30-Sek.-Freigabe → Cross-Post auf 3 Kanäle (~1 Std./Woche) | ❌ |
 | 7.6 | Schutz & Recht: Kommentare bei Kinder-Content moderieren/deaktivieren; bezahlte Ads nur ab 13 (EU/AT) | ❌ |
@@ -125,6 +123,22 @@
 #### 🎬 Automatisierte Pipeline — Video statt Webseiten
 
 Das native Format aller drei Top-Kanäle ist das Kurzvideo statt statischer Seiten — **ein Asset, dreifach verwertbar**.
+
+
+#### 🧩 7.3 in Arbeitspakete zerlegt
+
+Jedes Paket hat eine eigene Abnahme; erst nach erfolgreichem Test wird das nächste begonnen. Die Pipeline bleibt zunächst **lokal und ohne automatisiertes Posten**.
+
+| Arbeitspaket | Inhalt | Abnahme | Status |
+|---|---|---|---|
+| **7.3.1** | **Deterministische Aufgaben-Auswahl als gemeinsames Fundament:** Seed und gewünschte Schwierigkeitsstufe vorgeben; pro Episode 3–5 echte Generatoren aus `GEN{}` aufrufen; vollständige Aufgabendaten (Frage, Antwort, Erklärung, Hinweis, Input-Typ, SVG) als versioniertes JSON ausgeben. | Zwei Läufe mit demselben Seed sind bytegleich; alle 47 Generatoren und 3 Stufen sind grundsätzlich auswählbar; ungültige Parameter ergeben einen klaren Fehler; keine App- oder Nutzerdaten werden verändert. | ✅ `select-exercises.js` + 7 Tests |
+| **7.3.2** | **Browser-Datenübergabe:** Auswahl-JSON in einer isolierten Chrome-/Puppeteer-Szene an die reale App übergeben und eine gewählte Aufgabe sichtbar rendern; Login, gespeicherte Nutzerdaten und Nebenwirkungen vermeiden. | Der Browser rendert exakt die JSON-Aufgabe inklusive Blueprint-SVG; keine Anmeldung und kein Progress-Write; Fehler/Timeout brechen den Lauf ab. | ⬜ offen |
+| **7.3.3** | **Deterministisches 9:16-Rendering:** definierte 1080×1920-Szene, feste Kamera, 30 fps und reproduzierbare Blueprint-Reveal-Frames einschließlich 2-Sekunden-Pause vor der Auflösung. | 1080×1920-Frames/Media ohne schwarze oder abgeschnittene Bereiche; gleicher Seed ergibt vergleichbare Frames; Daten und SVG erscheinen korrekt. | ⬜ offen |
+| **7.3.4** | **Video-Montage mit ffmpeg:** Frames zu 15–25 s zusammensetzen, fps/Codec/Aspect Ratio fixieren und Ausgabe für YouTube Shorts, TikTok und Reels vorbereiten. | Valider MP4 (H.264/AAC, 1080×1920, 9:16, planbar 15–25 s), `ffprobe` bestätigt die Spezifikationen; ffmpeg-Fehler brechen den Lauf ab. | ⬜ offen |
+| **7.3.5** | **Hook, Lösung und Endcard:** erste Hook-Vorlage mit Frage, 2 s Denkpause, Blueprint-Reveal und Lösung; anschließend Marken-Endcard mit App-Name und `https://mathemit.andybrandy.at/`. | Vollständiger 15–25-s-Clip mit lesbarem Hook, sichtbarer Lösung und 2–3 s Endcard; keine unlesbar gekürzten Texte. | ⬜ offen |
+| **7.3.6** | **Metadaten, Warteschlange & manuelle Freigabe:** Caption, Hashtags, Quellen-/Seed-Daten und technische Prüfergebnisse erzeugen; Ergebnis atomar in eine lokale Queue schreiben. **Kein automatisches Posten.** | Jede Queue-Episode enthält MP4, Caption, Hashtags und Manifest; unvollständige Dateien gelten nicht als freigegeben; ein manueller Freigabeschritt bleibt zwingend. | ⬜ offen |
+
+**Ergebnis von 7.3:** Derselbe deterministische Aufgaben-Input muss mehrfach dieselbe 9:16-Datei mit Freigabedaten erzeugen. Plattform-Uploads bleiben bis dahin ein manueller Schritt.
 
 **Wöchentlicher Job** (lokal oder GitHub Action mit Puppeteer):
 

@@ -1,3 +1,9 @@
 /backend/config.php
 /backend/**/config.php
 /backend/logs/
+
+# Generated content pipeline artifacts (source code remains versioned)
+/content-pipeline/node_modules/
+/content-pipeline/output/
+/content-pipeline/queue/
+/content-pipeline/work/

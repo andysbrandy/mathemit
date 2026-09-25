@@ -158,6 +158,10 @@ function curriculumFor(mb, key) {
   };
 }
 
+function isChoiceExercise(exercise) {
+  return exercise.inputType === "choice" || exercise.inputType === "mc";
+}
+
 function exerciseFor(mb, key, difficulty, index) {
   const exercise = mb.GEN[key](difficulty);
   if (!exercise || typeof exercise !== "object") fail("Generator " + key + " lieferte keine Aufgabe.");
@@ -166,7 +170,7 @@ function exerciseFor(mb, key, difficulty, index) {
       fail("Generator " + key + " liefert kein Pflichtfeld: " + field);
     }
   });
-  if (exercise.inputType === "choice" && (!Array.isArray(exercise.choices) || exercise.choices.length < 2)) {
+  if (isChoiceExercise(exercise) && (!Array.isArray(exercise.choices) || exercise.choices.length < 2)) {
     fail("Generator " + key + " hat keinen gültigen Auswahlblock.");
   }
 
@@ -180,7 +184,7 @@ function exerciseFor(mb, key, difficulty, index) {
     prompt: exercise.question,
     hint: exercise.hint,
     answer: exercise.answer,
-    choices: exercise.inputType === "choice" ? exercise.choices.slice() : null,
+    choices: isChoiceExercise(exercise) ? exercise.choices.slice() : null,
     inputType: exercise.inputType,
     unit: exercise.unit || null,
     tolerance: exercise.tolerance === undefined ? null : exercise.tolerance,

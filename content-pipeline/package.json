@@ -5,7 +5,13 @@
   "description": "Lokale, reproduzierbare Auswahl und Aufbereitung von Mathemit-Aufgaben für Kurzvideos.",
   "scripts": {
     "select": "node select-exercises.js",
-    "test": "node test/select-exercises.test.js",
+    "preview": "node render-preview.js",
+    "test": "node test/select-exercises.test.js && node test/render-preview.test.js",
+    "test:unit": "node test/select-exercises.test.js",
+    "test:preview": "node test/render-preview.test.js",
     "generate": "npm run select --"
+  },
+  "devDependencies": {
+    "puppeteer-core": "25.12.0"
   }
 }

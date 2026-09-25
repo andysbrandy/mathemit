@@ -1,3 +1,4 @@
+.DS_Store
 /backend/config.php
 /backend/**/config.php
 /backend/logs/

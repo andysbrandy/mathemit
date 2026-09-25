@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mathemit Content-Pipeline – isolierte Vorschau</title>
+  <link rel="icon" href="data:,">
+  <!-- APP_STYLES -->
+  <style>
+    /* Nur die statische Vorschau; weder app-active.js noch Backend-Logik. */
+    body { overflow: hidden; }
+    .wrap { max-width: 1080px; }
+    .preview-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 0.65fr);
+      gap: 18px;
+      align-items: start;
+    }
+    .preview-grid .figure-panel { min-height: 340px; }
+    .preview-grid .figure-panel svg { max-height: 430px; }
+    .preview-data { overflow-wrap: anywhere; }
+    @media (max-width: 760px) {
+      .preview-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body data-content-pipeline-preview="isolated">
+  <script id="episode-data" type="application/json">{}</script>
+
+  <main class="wrap">
+    <header class="app-header-old">
+      <div class="brand">
+        <div>
+          <h1>Mathemit · isolierte Vorschau</h1>
+          <p>Statische Renderer-Szene ohne Login, Backend oder Fortschrittsspeicherung</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="board content-grid preview-grid" aria-live="polite">
+      <article class="panel question-panel">
+        <div class="eyebrow" id="previewEyebrow">Aufgabe</div>
+        <h2 class="question-text" id="previewPrompt"></h2>
+        <div class="answer-row">
+          <div class="figure-panel">
+            <span class="topic-badge" id="topicBadge"></span>
+            <div id="figureHost"></div>
+          </div>
+        </div>
+        <div id="previewAnswer"></div>
+      </article>
+
+      <aside class="panel preview-data" aria-label="Aufgabendaten">
+        <h2>Geprüfte JSON-Daten</h2>
+        <dl id="previewMeta"></dl>
+        <p id="previewError" hidden></p>
+      </aside>
+    </section>
+  </main>
+
+  <!-- APP_SCRIPT -->
+  <script>
+    (function () {
+      "use strict";
+      var episode = JSON.parse(document.getElementById("episode-data").textContent);
+      var exercise = episode.exercises[episode.previewIndex];
+      var prompt = document.getElementById("previewPrompt");
+      var answer = document.getElementById("previewAnswer");
+      var choiceItems = [];
+
+      document.getElementById("previewEyebrow").textContent = exercise.topic || "Aufgabe";
+      prompt.textContent = exercise.prompt;
+      window.MB.renderFigure(exercise.svg, exercise.badge, exercise.badgeColor);
+
+      if (exercise.inputType === "choice" || exercise.inputType === "mc") {
+        var list = document.createElement("ol");
+        list.className = "choice-list";
+        exercise.choices.forEach(function (choice) {
+          var item = document.createElement("li");
+          item.textContent = choice;
+          list.appendChild(item);
+          choiceItems.push(choice);
+        });
+        answer.appendChild(list);
+      } else {
+        var value = document.createElement("strong");
+        value.className = "preview-answer-value";
+        value.textContent = String(exercise.answer) + (exercise.unit || "");
+        answer.appendChild(value);
+      }
+
+      var meta = document.getElementById("previewMeta");
+      [
+        ["Generator", exercise.generator],
+        ["Stufe", exercise.difficulty],
+        ["Hinweis", exercise.hint || "—"],
+        ["Input", exercise.inputType],
+        ["Antwort", String(exercise.answer)],
+        ["Lehrplan", exercise.curriculum ? exercise.curriculum.codes.join(", ") : "—"],
+        ["Erklärung", exercise.explanation]
+      ].forEach(function (entry) {
+        var dt = document.createElement("dt");
+        var dd = document.createElement("dd");
+        dt.textContent = entry[0];
+        dd.textContent = entry[1];
+        meta.appendChild(dt);
+        meta.appendChild(dd);
+      });
+
+      document.documentElement.dataset.contentPipelineReady = "true";
+      document.documentElement.dataset.contentPipelineExercise = JSON.stringify(exercise);
+      document.documentElement.dataset.contentPipelineChoices = JSON.stringify(choiceItems);
+    }());
+  </script>
+</body>
+</html>

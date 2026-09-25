@@ -69,6 +69,11 @@ function testAllGeneratorMatrix() {
         assert.notEqual(ex[field], null, ex.generator + " ohne " + field);
         assert.notEqual(ex[field], "", ex.generator + " ohne " + field);
       });
+      if (ex.inputType === "mc" || ex.inputType === "choice") {
+        assert.ok(Array.isArray(ex.choices) && ex.choices.length >= 2, ex.generator + " ohne Antwortmöglichkeiten");
+      } else {
+        assert.equal(ex.choices, null, ex.generator + " darf für Number-Aufgaben keine Antwortmöglichkeiten exportieren");
+      }
       assert.ok(ex.svg.includes("<svg") && ex.svg.includes("</svg>"));
     });
   });
@@ -105,7 +110,9 @@ function testRepositoryRelativeOutput() {
   const relative = "content-pipeline/work/.path-test-" + process.pid + ".json";
   const expected = path.join(REPO_ROOT, relative);
   try {
-    run(["--seed", "pfad", "--difficulty", "2", "--count", "3", "--out", relative], false, path.join(REPO_ROOT, "content-pipeline"));
+    const first = run(["--seed", "pfad", "--difficulty", "2", "--count", "3", "--out", relative], false, path.join(REPO_ROOT, "content-pipeline"));
+    const second = run(["--seed", "pfad", "--difficulty", "2", "--count", "3", "--out", relative], false, REPO_ROOT);
+    assert.equal(first.stderr, second.stderr, "Relative Pfade müssen unabhängig vom Startordner gleich bleiben");
     assert.doesNotThrow(function () { JSON.parse(fs.readFileSync(expected, "utf8")); });
   } finally {
     fs.rmSync(expected, { force: true });

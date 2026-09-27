@@ -105,6 +105,32 @@ Beim Start erscheinen zwei Links: `localhost` für den Rechner und die IP für d
 - **Die Freigabe läuft über dieselbe Funktion wie `--release`.** Der Server kann also nichts freigeben, was das Skript nicht auch freigeben würde. Eine unvollständige Episode zeigt keinen Knopf und lehnt auch einen erzwungenen Klick ab.
 - Beenden mit Strg-C. Es gibt keinen Dienst und keinen Watchdog.
 
+## 7.5 — Videowerkstatt (GUI)
+
+`npm run review` startet nicht nur die Freigabeliste, sondern eine Oberfläche, in der sich der ganze Ablauf bedienen lässt:
+
+```bash
+npm run review
+```
+
+Im Browser (Link aus dem Terminal, funktioniert auch am Handy im WLAN):
+
+- **Clip erzeugen** — Seed (leer = heute), Hook-Vorlage, Aufgabenzahl. Dauert etwa eine Minute.
+- **Status** — läuft / bereit / kein Clip, dazu ffmpeg- und Chrome-Verfügbarkeit, Frame-Zahl, Dauer, Format und ob gegengeprüft wurde.
+- **Vorschau** — der fertige Clip läuft direkt im Player, ohne ihn erst herunterladen zu müssen.
+- **Protokoll** — die Ausgabe des Laufs, live mitlaufend.
+- **Queue** — alle Episoden mit Status, Klick führt zur Freigabeseite.
+
+Nach dem Lauf liegt das Material automatisch in der Queue; freigegeben wird weiterhin **manuell** auf der Freigabeseite.
+
+Drei Eigenschaften, die bewusst so gebaut sind:
+
+- **Es läuft immer nur ein Auftrag.** Ein zweiter Klick wird abgelehnt — zwei gleichzeitige Läufe würden in dieselben `work/`-Ordner schreiben und den ersten zerstören.
+- **Der Abbruch beendet auch die Browserprozesse.** Der Lauf startet selbst Chrome; abgeschickt wird deshalb an die ganze Prozessgruppe, sonst liefe Chrome im Hintergrund weiter.
+- **Alles Angezeigte steht in einer Datei.** Die Oberfläche rechnet nichts nach, sie liest `pipeline-report.json` und `clip-manifest.json`. Deshalb stimmt sie auch nach einem Neuladen der Seite.
+
+Nur die Freigabeliste ohne Steuerung: `npm run review -- --list-only`
+
 ## 7.3.6 — Queue und manuelle Freigabe
 
 Aus einem belegten Lauf entsteht eine Queue-Episode mit Caption, Hashtags, Quellen-/Seed-Daten und den technischen Prüfergebnissen. Das MP4 wird in die Queue kopiert, damit ihr Bestand unabhängig vom Arbeitsordner bleibt.

@@ -31,6 +31,7 @@ const path = require("node:path");
 
 const scene = require("./lib/isolated-scene");
 const queue = require("./queue-episode");
+const control = require("./lib/pipeline-control");
 
 const fail = scene.fail;
 const resolvePipelinePath = scene.resolvePipelinePath;
@@ -55,18 +56,34 @@ function usage() {
     "  --port <nummer>        Port (Standard: " + DEFAULT_PORT + ")",
     "  --host <adresse>       Nur an diese Adresse binden (Standard: alle)",
     "  --token <text>         Freigabe-Token; ohne Angabe wird eines erzeugt",
+    "  --open                Browser-Oberflaeche (Standard: nur die Freigabeliste)",
     "  --help                 Diese Hilfe anzeigen"
   ].join("\n");
 }
 
 function parseArgs(argv) {
-  const opts = { queue: DEFAULT_QUEUE, port: DEFAULT_PORT, host: "0.0.0.0", token: "" };
-  const known = ["--queue", "--port", "--host", "--token"];
+  const opts = {
+    queue: DEFAULT_QUEUE,
+    port: DEFAULT_PORT,
+    host: "0.0.0.0",
+    token: "",
+    /* P7.5 — Oberflaeche an; die reine Freigabeliste bleibt moeglich. */
+    open: true
+  };
+  const known = ["--queue", "--port", "--host", "--token", "--open", "--list-only"];
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === "--help" || arg === "-h") {
       process.stdout.write(usage() + "\n");
       process.exit(0);
+    }
+    if (arg === "--open") {
+      opts.open = true;
+      continue;
+    }
+    if (arg === "--list-only") {
+      opts.open = false;
+      continue;
     }
     if (!known.includes(arg)) fail("Unbekannte Option: " + arg + "\n\n" + usage());
     if (i + 1 >= argv.length) fail("Für " + arg + " fehlt ein Wert.");
@@ -190,7 +207,7 @@ function renderEpisode(opts, slug) {
 
   return page(opts,
     "<h1>" + escapeHtml(slug) + "</h1>"
-    + "<p class=\"meta\"><a href=\"/?token=" + encodeURIComponent(opts.token) + "\">zurueck</a></p>"
+    + "<p class=\"meta\"><a href=\"/freigabe?token=" + encodeURIComponent(opts.token) + "\">zurueck</a></p>"
     + "<div class=\"card\"><h2>Video</h2>"
     + (hasVideo
       ? "<video controls playsinline preload=\"metadata\" src=\"/v/" + encodeURIComponent(slug)
@@ -208,6 +225,174 @@ function renderEpisode(opts, slug) {
     + action + "</div>");
 }
 
+/*
+ * P7.5 — Die Oberflaeche.
+ *
+ * Sie startet Laeufe, zeigt den Zustand und stellt den fertigen Clip zur
+ * Pruefung bereit. Bewusst ohne Framework und ohne Build: das Ding laeuft
+ * neben dem Server aus einem Quellbaum, und eine Abhaengigkeit, die nur fuer
+ * eine Seite eingefuehrt wird, waere hier Aufwand ohne Gegenwert.
+ *
+ * Der Zustand kommt per Abfrage aus /api/status, nicht aus localStorage —
+ * so zeigt die Seite immer das, was wirklich auf der Platte liegt, auch
+ * wenn sie neu geoeffnet wurde.
+ */
+/*
+ * Das Skript der Oberflaeche steht als Zeichenkette im Server. Grund: ein
+ * Blockkommentar im ausgelieferten HTML wuerde beim Zerlegen des Dokuments
+ * den String zerreissen. Die Klammern sind deshalb hier bewusst vermieden.
+ */
+function studioScript() {
+  return [
+    "var $ = function (id) { return document.getElementById(id); };",
+    "function txt(el, s) { if (el) el.textContent = s; }",
+    "function setHtml(el, s) { if (el) el.innerHTML = s; }",
+    "function esc(s) { return String(s == null ? '' : s).replace(/[&<>\"']/g, function (c) {",
+    "  return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', \"'\": '&#39;' }[c]; }); }",
+    "var lastVideo = '';",
+    "function post(path, body) {",
+    "  return fetch(path, { method: 'POST',",
+    "    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },",
+    "    body: new URLSearchParams(body).toString() })",
+    "    .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, data: j }; }); });",
+    "}",
+    "function facts(items) {",
+    "  setHtml($('facts'), items.map(function (pair) {",
+    "    return '<dt>' + esc(pair[0]) + '</dt><dd>' + esc(pair[1]) + '</dd>'; }).join(''));",
+    "}",
+    "function draw(s) {",
+    "  var st = $('state');",
+    "  if (s.running) { st.className = 'pill run'; txt(st, 'laeuft'); }",
+    "  else if (s.hasVideo && s.report && s.report.verified) { st.className = 'pill ok'; txt(st, 'bereit'); }",
+    "  else { st.className = 'pill bad'; txt(st, 'kein Clip'); }",
+    "  $('go').disabled = !!s.running;",
+    "  $('kill').hidden = !s.running;",
+    "  $('seed').disabled = !!s.running;",
+    "  txt($('log'), (s.log && s.log.length) ? s.log.join('\\n') : '(noch nichts)');",
+    "  var l = $('log'); l.scrollTop = l.scrollHeight;",
+    "  var hooks = s.hooks || [];",
+    "  if ($('hook').options.length === 0) {",
+    "    setHtml($('hook'), hooks.map(function (h) {",
+    "      return '<option value=\"' + esc(h.id) + '\">' + esc(h.label) + ' (' + h.seconds + ' s)</option>'; }).join(''));",
+    "  }",
+    "  if (s.hook) { $('hook').value = s.hook; }",
+    "  var t = s.toolchain || {};",
+    "  facts([['ffmpeg', t.ffmpeg ? 'gefunden' : 'FEHLT'],",
+    "    ['Chrome', t.chrome ? 'gefunden' : 'FEHLT'],",
+    "    ['Aufgaben', String(s.episodeCount || 0)],",
+    "    ['Clip', s.hasVideo ? (Math.round((s.videoBytes || 0) / 1024) + ' KB') : '—'],",
+    "    ['Frames', s.report ? String(s.report.frameCount) : '—'],",
+    "    ['Dauer', s.report ? s.report.durationSeconds + ' s' : '—'],",
+    "    ['Format', s.clipManifest ? s.clipManifest.width + 'x' + s.clipManifest.height : '—'],",
+    "    ['Gegengeprueft', s.report ? (s.report.verified ? 'ja' : 'nein') : '—'],",
+    "    ['Exit-Code', s.lastExitCode == null ? '—' : String(s.lastExitCode)]]);",
+    "  setHtml($('queue'), (s.queue || []).length ? s.queue.map(function (q) {",
+    "    var cls = q.status === 'freigegeben' ? 'ok' : (q.status === 'bereit' ? 'run' : 'bad');",
+    "    return '<li><a href=\"/e/' + encodeURIComponent(q.slug) + '?token=' + encodeURIComponent(TOKEN) + '\">'",
+    "      + esc(q.slug) + '</a> <span class=\"pill ' + cls + '\">' + esc(q.status) + '</span>'",
+    "      + (q.gaps && q.gaps.length ? ' <span class=\"note\">' + esc(q.gaps.join('; ')) + '</span>' : '') + '</li>';",
+    "  }).join('') : '<li class=\"note\">leer</li>');",
+    "  if (s.hasVideo) {",
+    "    var url = '/v/current?token=' + encodeURIComponent(TOKEN) + '&t=' + Date.now();",
+    "    if (url !== lastVideo) {",
+    "      lastVideo = url;",
+    "      setHtml($('preview'), '<video controls playsinline preload=\"metadata\" src=\"' + url + '\"></video>');",
+    "    }",
+    "  } else if (lastVideo) {",
+    "    lastVideo = '';",
+    "    setHtml($('preview'), '<p class=\"note\">Noch kein Clip vorhanden.</p>');",
+    "  }",
+    "}",
+    "function poll() {",
+    "  fetch('/api/status?token=' + encodeURIComponent(TOKEN)).then(function (r) { return r.json(); })",
+    "    .then(draw).catch(function () { txt($('state'), 'Server nicht erreichbar'); });",
+    "}",
+    "$('startForm').addEventListener('submit', function (e) {",
+    "  e.preventDefault();",
+    "  post('/api/start?token=' + encodeURIComponent(TOKEN), {",
+    "    seed: $('seed').value, hook: $('hook').value,",
+    "    count: $('count').value, index: $('index').value, token: TOKEN })",
+    "    .then(function (r) { if (r.ok) draw(r.data.status); else { poll(); } })",
+    "    .catch(function () { poll(); });",
+    "});",
+    "$('kill').addEventListener('click', function () {",
+    "  post('/api/stop?token=' + encodeURIComponent(TOKEN), { token: TOKEN }).then(poll);",
+    "});",
+    "poll();",
+    "setInterval(poll, 1500);"
+  ].join("\n");
+}
+
+function renderStudio(opts) {
+  const tokenQuery = "token=" + encodeURIComponent(opts.token);
+  return [
+    "<!doctype html><html lang=\"de\"><head><meta charset=\"utf-8\">",
+    "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">",
+    "<title>Mathemit — Videowerkstatt</title>",
+    "<style>",
+    ":root{--bg:#f2f5f9;--card:#fff;--ink:#1f2e45;--muted:#5b6b82;--line:#dde4ee;",
+    "--go:#1f7a4d;--stop:#b4341f;--warn:#8a5a0b}",
+    "*{box-sizing:border-box}",
+    "body{margin:0;padding:20px;background:var(--bg);color:var(--ink);",
+    "font-family:system-ui,-apple-system,Segoe UI,sans-serif}",
+    "header{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;margin-bottom:18px}",
+    "h1{font-size:22px;margin:0}h2{font-size:15px;margin:0 0 12px;text-transform:uppercase;",
+    "letter-spacing:.06em;color:var(--muted)}",
+    "a{color:#1f5fa8;text-decoration:none}a:hover{text-decoration:underline}",
+    ".grid{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,420px);gap:18px;",
+    "align-items:start}",
+    "@media(max-width:900px){.grid{grid-template-columns:1fr}}",
+    ".card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;",
+    "margin-bottom:16px}",
+    "label{display:block;font-size:13px;color:var(--muted);margin:12px 0 4px}",
+    "input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;",
+    "font-size:15px;background:#fff;color:var(--ink)}",
+    ".row{display:flex;gap:10px}.row>*{flex:1}",
+    "button{margin-top:16px;width:100%;padding:12px;border:0;border-radius:10px;font-size:15px;",
+    "font-weight:700;cursor:pointer;background:var(--go);color:#fff}",
+    "button[disabled]{background:#9aa8bb;cursor:default}",
+    "button.stop{background:var(--stop)}",
+    ".pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700}",
+    ".pill.run{background:#fdf0d5;color:var(--warn)}.pill.ok{background:#dff3e6;color:var(--go)}",
+    ".pill.bad{background:#fbe3df;color:var(--stop)}",
+    "pre{margin:0;padding:12px;background:#f7f9fc;border-radius:10px;font-size:12px;",
+    "max-height:260px;overflow:auto;white-space:pre-wrap;font-family:ui-monospace,Menlo,monospace}",
+    "video{width:100%;border-radius:12px;background:#000;display:block}",
+    "dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;font-size:14px}",
+    "dt{color:var(--muted)}dd{margin:0;font-variant-numeric:tabular-nums}",
+    "ul{list-style:none;margin:0;padding:0}li{padding:6px 0;border-bottom:1px solid var(--line)}",
+    ".note{font-size:13px;color:var(--muted);margin-top:10px}",
+    "</style></head><body>",
+    "<header><h1>Mathemit — Videowerkstatt</h1>",
+    "<span class=\"muted\" id=\"state\"></span>",
+    "<a href=\"/freigabe?" + tokenQuery + "\">Zur Freigabeliste</a></header>",
+    "<div class=\"grid\"><div>",
+    "<section class=\"card\"><h2>Neuen Clip erzeugen</h2>",
+    "<form id=\"startForm\">",
+    "<label for=\"seed\">Seed (leer lassen = heute)</label>",
+    "<input id=\"seed\" name=\"seed\" placeholder=\"gui-20260927\" autocomplete=\"off\">",
+    "<label for=\"hook\">Hook-Vorlage</label><select id=\"hook\" name=\"hook\"></select>",
+    "<div class=\"row\"><div><label for=\"count\">Aufgaben</label>",
+    "<select id=\"count\" name=\"count\"><option>3</option><option>4</option><option>5</option></select></div>",
+    "<div><label for=\"index\">Aufgabe</label>",
+    "<select id=\"index\" name=\"index\"><option>0</option><option>1</option><option>2</option></select></div></div>",
+    "<button type=\"submit\" id=\"go\">Clip erzeugen</button>",
+    "<button type=\"button\" class=\"stop\" id=\"kill\" hidden>Lauf abbrechen</button>",
+    "</form><p class=\"note\">Dauert etwa eine Minute. Es läuft immer nur ein Auftrag.</p></section>",
+    "<section class=\"card\"><h2>Vorschau</h2>",
+    "<div id=\"preview\"><p class=\"note\">Noch kein Clip vorhanden.</p></div></section>",
+    "<section class=\"card\"><h2>Protokoll</h2><pre id=\"log\">(noch nichts)</pre></section>",
+    "</div><div>",
+    "<section class=\"card\"><h2>Zustand</h2><dl id=\"facts\"></dl></section>",
+    "<section class=\"card\"><h2>Werkzeug</h2><dl id=\"tools\"></dl></section>",
+    "<section class=\"card\"><h2>Queue</h2><ul id=\"queue\"><li class=\"note\">leer</li></ul></section>",
+    "</div></div>",
+    "<script>",
+    "var TOKEN=" + JSON.stringify(opts.token) + ";",
+    studioScript(),
+    "</script></body></html>"
+  ].join("");
+}
 /* Nur MP4 wird ausgeliefert — keine beliebigen Dateien aus dem Queue-Ordner. */
 function sendVideo(opts, res, slug) {
   const dir = episodeDir(opts, slug);
@@ -229,6 +414,15 @@ function sendVideo(opts, res, slug) {
 function sendHtml(res, status, body) {
   res.writeHead(status, { "Content-Type": CONTENT_TYPES[".html"], "Cache-Control": "no-store" });
   res.end(body);
+}
+
+/* JSON-Antworten: die Oberflaeche fragt den Zustand in einem festen Takt ab. */
+function sendJson(res, status, payload) {
+  res.writeHead(status, {
+    "Content-Type": CONTENT_TYPES[".json"],
+    "Cache-Control": "no-store"
+  });
+  res.end(JSON.stringify(payload));
 }
 
 function readBody(req) {
@@ -277,7 +471,30 @@ function createServer(opts) {
 
     try {
       if (req.method === "GET" && url.pathname === "/") {
-        sendHtml(res, 200, renderIndex(opts));
+        sendHtml(res, 200, opts.open ? renderStudio(opts) : renderIndex(opts));
+        return;
+      }
+      /*
+       * P7.5 — Steuerung. Ohne --open gibt es diese Endpunkte nicht: dann
+       * laeuft der Server nur als Freigabeliste und kann keine Laeufe starten.
+       */
+      if (opts.open && req.method === "GET" && url.pathname === "/api/status") {
+        sendJson(res, 200, control.status());
+        return;
+      }
+      if (opts.open && req.method === "POST" && url.pathname === "/api/start") {
+        const result = control.start({
+          seed: form.get("seed"),
+          hook: form.get("hook"),
+          count: form.get("count"),
+          index: form.get("index")
+        });
+        sendJson(res, result.ok ? 200 : 400, Object.assign({ status: control.status() }, result));
+        return;
+      }
+      if (opts.open && req.method === "POST" && url.pathname === "/api/stop") {
+        const result = control.stop();
+        sendJson(res, result.ok ? 200 : 400, Object.assign({ status: control.status() }, result));
         return;
       }
       if (req.method === "GET" && url.pathname.startsWith("/e/")) {
@@ -285,7 +502,34 @@ function createServer(opts) {
         return;
       }
       if (req.method === "GET" && url.pathname.startsWith("/v/")) {
-        sendVideo(opts, res, decodeURIComponent(url.pathname.slice(3)));
+        /*
+         * P7.5 — "/v/current" zeigt den Clip des letzten Laufs, ohne dass er
+         * schon in der Queue liegen muss. Das ist der Unterschied zur
+         * Freigabeliste: hier wird direkt nach einem Lauf geprueft.
+         */
+        const slug = decodeURIComponent(url.pathname.slice(3));
+        if (slug === "current") {
+          if (!fs.existsSync(control.VIDEO)) {
+            res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+            res.end("noch kein Clip");
+            return;
+          }
+          const stat = fs.statSync(control.VIDEO);
+          res.writeHead(200, {
+            "Content-Type": "video/mp4",
+            "Content-Length": stat.size,
+            "Cache-Control": "no-store"
+          });
+          fs.createReadStream(control.VIDEO).pipe(res);
+          return;
+        }
+        sendVideo(opts, res, slug);
+        return;
+      }
+      /* Die alte Freigabeliste bleibt erreichbar, damit alte Links nicht
+         tot werden. */
+      if (req.method === "GET" && url.pathname === "/freigabe") {
+        sendHtml(res, 200, renderIndex(opts));
         return;
       }
       if (req.method === "POST" && url.pathname === "/release") {

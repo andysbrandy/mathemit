@@ -7,32 +7,28 @@
  */
 
 const fs = require("node:fs");
-const os = require("node:os");
 const path = require("node:path");
-const puppeteer = require("puppeteer-core");
+const scene = require("./lib/isolated-scene");
 
-const CHROME_PATHS = [
-  process.env.CHROME_PATH,
-  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-  "/Applications/Chromium.app/Contents/MacOS/Chromium",
-  "/usr/bin/google-chrome",
-  "/usr/bin/google-chrome-stable",
-  "/usr/bin/chromium",
-  "/usr/bin/chromium-browser"
-];
-const DEFAULT_EPISODE = "work/episode.json";
-const DEFAULT_SCREENSHOT = "work/previews/exercise.png";
+const DEFAULT_EPISODE = "content-pipeline/work/episode.json";
+const DEFAULT_SCREENSHOT = "content-pipeline/work/previews/exercise.png";
 const DEFAULT_TIMEOUT_MS = 15000;
 const PREVIEW_WIDTH = 1200;
 const PREVIEW_HEIGHT = 900;
-const PREVIEW_ORIGIN = "https://content-pipeline.invalid/";
-const REPO_ROOT = path.resolve(__dirname, "..");
-
-function fail(message) {
-  const error = new Error(message);
-  error.code = "P7_PREVIEW";
-  throw error;
-}
+/* P7.4.1 — die Vorschau teilt sich die Hook-Vorlagen mit dem Renderer. */
+const timeline = require("./lib/timeline");
+const REPO_ROOT = scene.REPO_ROOT;
+const fail = scene.fail;
+const findChrome = scene.findChrome;
+const resolvePipelinePath = scene.resolvePipelinePath;
+const isChoiceExercise = scene.isChoiceExercise;
+const readEpisode = scene.readEpisode;
+const buildDocument = scene.buildDocument;
+const writeAtomic = scene.writeAtomic;
+const sleep = scene.sleep;
+const startIsolatedScene = scene.startIsolatedScene;
+const closeIsolatedScene = scene.closeIsolatedScene;
+const assertNoSceneErrors = scene.assertNoSceneErrors;
 
 function usage() {
   return [
@@ -41,6 +37,8 @@ function usage() {
     "  --episode <datei.json>  Aufgaben-Episode (Standard: " + DEFAULT_EPISODE + ")",
     "  --index <0|1|2|3|4>    Aufgabe aus der Episode (Standard: 0)",
     "  --out <datei.png>      Screenshot-Ausgabe",
+    "  --hook <name>           Hook-Vorlage: " + timeline.HOOK_IDS.join(" | ")
+      + " (Standard: " + timeline.DEFAULT_HOOK + ")",
     "  --chrome <pfad>        Expliziter Chrome-/Chromium-Pfad",
     "  --timeout <ms>         Browser-Timeout (Standard: " + DEFAULT_TIMEOUT_MS + ")",
     "  --help                 Diese Hilfe anzeigen"
@@ -52,6 +50,7 @@ function parseArgs(argv) {
     episode: DEFAULT_EPISODE,
     index: 0,
     out: DEFAULT_SCREENSHOT,
+    hook: timeline.DEFAULT_HOOK,
     chrome: findChrome(),
     timeout: DEFAULT_TIMEOUT_MS
   };
@@ -61,7 +60,7 @@ function parseArgs(argv) {
       process.stdout.write(usage() + "\n");
       process.exit(0);
     }
-    if (!["--episode", "--index", "--out", "--chrome", "--timeout"].includes(arg)) {
+    if (!["--episode", "--index", "--out", "--hook", "--chrome", "--timeout"].includes(arg)) {
       fail("Unbekannte Option: " + arg + "\n\n" + usage());
     }
     if (i + 1 >= argv.length) fail("Für " + arg + " fehlt ein Wert.");
@@ -69,6 +68,7 @@ function parseArgs(argv) {
     if (arg === "--episode") opts.episode = value;
     if (arg === "--index") opts.index = Number(value);
     if (arg === "--out") opts.out = value;
+    if (arg === "--hook") opts.hook = value;
     if (arg === "--chrome") opts.chrome = value;
     if (arg === "--timeout") opts.timeout = Number(value);
   }
@@ -76,102 +76,11 @@ function parseArgs(argv) {
   if (!Number.isInteger(opts.index) || opts.index < 0) fail("Aufgabenindex muss eine ganze Zahl ab 0 sein.");
   if (!Number.isInteger(opts.timeout) || opts.timeout < 1000) fail("Timeout muss mindestens 1000 ms betragen.");
   if (!opts.episode.trim() || !opts.out.trim()) fail("Episode und Ausgabepfad dürfen nicht leer sein.");
+  /* Unbekannte Vorlage ist ein Fehler, kein stiller Rückfall auf "frage". */
+  timeline.hookById(opts.hook);
   return opts;
 }
 
-function findChrome() {
-  return CHROME_PATHS.find(function (candidate) {
-    return candidate && fs.existsSync(candidate);
-  }) || null;
-}
-
-function resolvePipelinePath(value) {
-  return path.isAbsolute(value) ? path.resolve(value) : path.resolve(__dirname, value);
-}
-
-function isChoiceExercise(exercise) {
-  return exercise.inputType === "choice" || exercise.inputType === "mc";
-}
-
-function readEpisode(episodePath, index) {
-  let episode;
-  try {
-    episode = JSON.parse(fs.readFileSync(episodePath, "utf8"));
-  } catch (error) {
-    fail("Episode kann nicht gelesen werden: " + error.message);
-  }
-  if (!episode || episode.schemaVersion !== 1 || !Array.isArray(episode.exercises)) {
-    fail("Episode hat kein unterstütztes Format (schemaVersion 1 + exercises).");
-  }
-  if (index >= episode.exercises.length) {
-    fail("Aufgabenindex " + index + " liegt außerhalb der Episode (" + episode.exercises.length + ").");
-  }
-  const exercise = episode.exercises[index];
-  ["generator", "prompt", "svg", "badge", "badgeColor", "inputType", "answer", "explanation"].forEach(function (field) {
-    if (exercise[field] === undefined || exercise[field] === null || exercise[field] === "") {
-      fail("Gewählte Aufgabe hat kein Pflichtfeld: " + field);
-    }
-  });
-  if (exercise.inputType !== "number" && !isChoiceExercise(exercise)) {
-    fail("Gewählte Aufgabe hat einen unbekannten Input-Typ: " + exercise.inputType);
-  }
-  if (isChoiceExercise(exercise) && (!Array.isArray(exercise.choices) || exercise.choices.length < 2)) {
-    fail("Gewählte Auswahlaufgabe hat keine gültigen Antwortmöglichkeiten.");
-  }
-  if (!/<svg[\s>]/i.test(exercise.svg) || !/<\/svg>/i.test(exercise.svg)) {
-    fail("Gewählte Aufgabe enthält kein vollständiges SVG.");
-  }
-  return { episode: episode, exercise: exercise };
-}
-
-function buildDocument(template, cssBase, cssActive, appBase, episode, index) {
-  const payload = JSON.stringify(Object.assign({}, episode, { previewIndex: index }));
-  const marker = '<script id="episode-data" type="application/json">{}</script>';
-  if (!template.includes(marker)) fail("Preview-Template enthält keinen episode-data-Platzhalter.");
-  if (!template.includes("<!-- APP_STYLES -->") || !template.includes("<!-- APP_SCRIPT -->")) {
-    fail("Preview-Template enthält nicht alle Inline-Platzhalter.");
-  }
-
-  let html = template
-    .replace(marker, '<script id="episode-data" type="application/json">' +
-      payload.replace(/&/g, "\\u0026").replace(/</g, "\\u003c").replace(/>/g, "\\u003e")
-        .replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029") + "</script>")
-    .replace("<!-- APP_STYLES -->", "<style>\n" + cssBase + "\n" + cssActive + "\n</style>")
-    .replace("<!-- APP_SCRIPT -->", "<script>\n" + appBase + "\n</script>");
-
-  if (/<script[^>]+src=|<link[^>]+(?:href|src)=(?!\s*["']data:)[^>]+>|<img[^>]+src=/i.test(html)) {
-    fail("Preview enthält nach der Inline-Erzeugung noch externe Ressourcen.");
-  }
-  /*
-   * Kommentare werden vor der Prüfung entfernt: app-base.js darf die
-   * aktive App in einem Kommentar erwähnen, führt sie aber nicht aus.
-   */
-  const executableAppBase = appBase
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/(^|[^:])\/\/.*$/gm, "$1");
-  if (/app-active\.js|backend\/|localStorage|sessionStorage|indexedDB|sendBeacon|XMLHttpRequest|WebSocket/i.test(executableAppBase)) {
-    fail("app-base.js enthält unerlaubte App-, Backend- oder Storage-Logik.");
-  }
-  return html;
-}
-
-function normaliseSvg(svg) {
-  return svg
-    .replace(/\s+/g, " ")
-    .replace(/>\s+</g, "><")
-    .replace(/\s+style="[^"]*"/g, "")
-    /* Chrome serialisiert leere SVG-Elemente als <rect></rect>. */
-    .replace(/<(rect|circle|ellipse|line|path|polygon|polyline|stop|use)\b([^>]*)\/\>/gi, "<$1$2></$1>")
-    .replace(/<(rect|circle|ellipse|line|path|polygon|polyline|stop|use)\b([^>]*)><\/\1>/gi, "<$1$2></$1>")
-    .trim();
-}
-
-function writeAtomic(filePath, data) {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  const temp = filePath + ".tmp-" + process.pid;
-  fs.writeFileSync(temp, data);
-  fs.renameSync(temp, filePath);
-}
 
 async function render(opts) {
   const episodePath = resolvePipelinePath(opts.episode);
@@ -181,64 +90,20 @@ async function render(opts) {
   const cssBase = fs.readFileSync(path.join(REPO_ROOT, "style-base.css"), "utf8");
   const cssActive = fs.readFileSync(path.join(REPO_ROOT, "style-active.css"), "utf8");
   const appBase = fs.readFileSync(path.join(REPO_ROOT, "app-base.js"), "utf8");
-  const html = buildDocument(template, cssBase, cssActive, appBase, selected.episode, opts.index);
+  const html = buildDocument(template, cssBase, cssActive, appBase, selected.episode, opts.index,
+    timeline.buildTimeline(timeline.DEFAULT_FPS, opts.hook));
 
-  let browser = null;
-  let userDataDir = null;
-  const blockedRequests = [];
-  const pageErrors = [];
-  const consoleErrors = [];
+  let activeScene = null;
+  let page = null;
+  let collectors = null;
   try {
-      userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "mathemit-p7-browser-"));
-      browser = await puppeteer.launch({
-        executablePath: opts.chrome,
-        headless: true,
-        userDataDir: userDataDir,
-        args: [
-        "--no-first-run",
-        "--no-default-browser-check",
-        "--disable-background-networking",
-        "--disable-component-update",
-        "--disable-default-apps",
-        "--disable-extensions",
-        "--disable-sync",
-        "--metrics-recording-only",
-        "--mute-audio"
-      ]
-    });
-
-    const page = await browser.newPage();
-    await page.setViewport({ width: PREVIEW_WIDTH, height: PREVIEW_HEIGHT, deviceScaleFactor: 1 });
-    page.setDefaultTimeout(opts.timeout);
-    page.setDefaultNavigationTimeout(opts.timeout);
-    await page.setRequestInterception(true);
-    page.on("request", function (request) {
-      const url = request.url();
-      if (url === PREVIEW_ORIGIN) {
-        request.respond({
-          status: 200,
-          contentType: "text/html; charset=utf-8",
-          body: html
-        });
-        return;
-      }
-      if (url === "about:blank" || url.startsWith("data:")) {
-        request.continue();
-        return;
-      }
-      blockedRequests.push(url);
-      request.abort("blockedbyclient");
-    });
-    page.on("pageerror", function (error) { pageErrors.push(error.message); });
-    page.on("console", function (message) {
-      if (message.type() === "error") consoleErrors.push(message.text());
-    });
-
-    await page.goto(PREVIEW_ORIGIN, { waitUntil: "domcontentloaded", timeout: opts.timeout });
+    activeScene = await startIsolatedScene(opts, html, { width: PREVIEW_WIDTH, height: PREVIEW_HEIGHT });
+    page = activeScene.page;
+    collectors = activeScene.collectors;
     await page.waitForFunction(function () {
       return document.documentElement.dataset.contentPipelineReady === "true";
     }, { timeout: opts.timeout });
-    await new Promise(function (resolve) { setTimeout(resolve, 1100); });
+    await sleep(1100);
 
     const result = await page.evaluate(function () {
       const svg = document.querySelector("#figureHost svg");
@@ -325,10 +190,7 @@ async function render(opts) {
       };
     });
 
-    if (blockedRequests.length) fail("Browser hat externe Ressourcen angefordert: " + blockedRequests.join(", "));
-    if (pageErrors.length || consoleErrors.length) {
-      fail("Browserfehler: " + pageErrors.concat(consoleErrors).join(" | "));
-    }
+    assertNoSceneErrors(collectors);
     if (!result.promptVisible || !result.badgeVisible || !result.svgVisible || !result.answerVisible) {
       fail("Mindestens ein Bestandteil der Vorschau ist nicht sichtbar.");
     }
@@ -379,13 +241,12 @@ async function render(opts) {
       screenshotBytes: buffer.length,
       width: PREVIEW_WIDTH,
       height: PREVIEW_HEIGHT,
-      blockedRequestCount: blockedRequests.length,
+      blockedRequestCount: collectors.blockedRequests.length,
       storageItemCount: result.storage.accessible ? result.storage.local + result.storage.session : 0,
       storageAccessible: result.storage.accessible
     };
   } finally {
-    if (browser) await browser.close();
-    if (userDataDir) fs.rmSync(userDataDir, { recursive: true, force: true });
+    await closeIsolatedScene(activeScene);
   }
 }
 

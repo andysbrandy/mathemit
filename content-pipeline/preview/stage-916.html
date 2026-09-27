@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1080, initial-scale=1">
+  <title>Mathemit · 9:16-Bühne</title>
+  <link rel="icon" href="data:,">
+  <!-- APP_STYLES -->
+  <style>
+    /*
+     * P7.3.3 — Feste 9:16-Bühne für die Video-Pipeline.
+     * Bewusst ohne CSS-Animationen und ohne Übergänge: jeder Frame-Zustand wird
+     * von außen gesetzt, damit derselbe Seed dieselben Frames ergibt.
+     */
+    html, body {
+      width: 1080px !important;
+      height: 1920px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+    }
+    #stage, #stage * {
+      animation: none !important;
+      transition: none !important;
+    }
+    #stage {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+      padding: 64px 56px 52px;
+    }
+    .stage-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .stage-brand {
+      font-size: 58px;
+      line-height: 1;
+      margin: 0;
+      letter-spacing: -0.5px;
+    }
+    .stage-kicker {
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1.4px;
+    }
+    .stage-question {
+      padding: 40px 44px;
+      border-radius: 28px;
+      background: var(--panel);
+      border: 2px solid var(--line);
+      box-shadow: 0 14px 34px rgba(31, 46, 69, 0.08);
+    }
+    .stage-question .eyebrow {
+      font-size: 25px;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .stage-question .question-text {
+      font-size: 60px;
+      line-height: 1.22;
+      max-height: 560px;
+      overflow: hidden;
+    }
+    .stage-figure {
+      position: relative;
+      flex: 1 1 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 44px;
+      border-radius: 28px;
+      background: var(--panel);
+      border: 2px solid var(--line);
+      min-height: 0;
+    }
+    .stage-figure .topic-badge {
+      font-size: 26px;
+      padding: 10px 18px;
+    }
+    #figureHost { width: 100%; }
+    #figureHost svg { width: 100%; height: auto; max-height: 860px; display: block; }
+    .stage-pause {
+      position: absolute;
+      left: 50%;
+      bottom: 26px;
+      transform: translateX(-50%);
+      margin: 0;
+      padding: 12px 24px;
+      border-radius: 999px;
+      background: var(--gold-soft);
+      color: var(--textaufgabe);
+      font-size: 27px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .stage-pause[hidden] { display: none; }
+    /* P7.4.2 — Countdown: grosse Zahl plus Balken ueber der Denkpause. */
+    .stage-countdown {
+      position: absolute;
+      left: 50%;
+      bottom: 26px;
+      transform: translateX(-50%);
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 26px;
+      border-radius: 999px;
+      background: var(--gold-soft);
+      color: var(--textaufgabe);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .stage-countdown[hidden] { display: none; }
+    .stage-countdown-value {
+      font-size: 40px;
+      line-height: 1;
+      min-width: 34px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+    .stage-countdown-track {
+      width: 150px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(176, 122, 22, 0.22);
+      overflow: hidden;
+    }
+    .stage-countdown-fill {
+      display: block;
+      height: 100%;
+      width: 0;
+      border-radius: 999px;
+      background: var(--textaufgabe);
+    }
+    /* P7.4.3 — Hook-Zeile unter der Aufgabenstellung. */
+    .stage-hookline {
+      margin: 10px 0 0;
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1.2;
+      color: var(--textaufgabe);
+    }
+    .stage-hookline[hidden] { display: none; }
+    /* P7.3.5 — Endcard: Marke als ruhiger Abschluss, deckend über der Bühne. */
+    #endcard {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      /* --paper statt --bg: die App definiert keine Variable namens --bg. */
+      background: var(--paper);
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+    }
+    /* #endcard ist fix und liegt außerhalb von #stage, daher eigene Sperre. */
+    #endcard, #endcard * {
+      animation: none !important;
+      transition: none !important;
+    }
+    /*
+     * Das Eulenzeichen so gross wie moeglich: randlos ueber die volle
+     * Buehnenbreite (1080 px) und als groesster Block der Karte. Der
+     * viewBox ist bewusst enger als in logo.svg — er umschliesst nur die
+     * Grafik (Kunst 87 x 77 Einheiten, x 6.5–93.5 / y 22–99) statt den
+     * Originalrand. Mit dem Rand aus logo.svg waeren nur 758 der 1080
+     * Pixel vom Zeichen belegt.
+     */
+    .endcard-logo {
+      width: 100%;
+      flex: 0 0 auto;
+      line-height: 0;
+    }
+    /*
+      Logo inline als SVG: der Renderer blockiert jede externe Ressource,
+      ein <img src="logo.svg"> wuerde beim Rendern abgerissen.
+      Farben und Proportionen sind 1:1 aus logo.svg uebernommen.
+    */
+    .endcard-logo svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    /* Der Rest der Karte fuellt die Hoehe und zentriert sich darin. */
+    .endcard-text {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 46px;
+      width: 100%;
+      padding: 0 40px;
+    }
+    .endcard-name {
+      margin: 0;
+      font-size: 196px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -5px;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+    .endcard-url {
+      display: inline-block;
+      margin: 0;
+      padding: 28px 48px;
+      border-radius: 999px;
+      border: 4px solid var(--line);
+      background: var(--panel);
+      font-size: 50px;
+      font-weight: 600;
+      color: var(--textaufgabe);
+      white-space: nowrap;
+    }
+    .endcard-claim {
+      margin: 0;
+      max-width: 940px;
+      font-size: 58px;
+      line-height: 1.35;
+      color: var(--muted);
+    }
+    .stage-solution {
+      padding: 36px 44px;
+      border-radius: 28px;
+      background: var(--success-soft);
+      border: 2px solid var(--success);
+      opacity: 0;
+      visibility: hidden;
+    }
+    .stage-solution-label {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+      color: var(--success);
+      margin-bottom: 10px;
+    }
+    .stage-answer {
+      font-size: 74px;
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--ink);
+      max-height: 190px;
+      overflow: hidden;
+    }
+    .stage-explain {
+      margin: 14px 0 0;
+      font-size: 34px;
+      line-height: 1.35;
+      color: var(--ink);
+      max-height: 300px;
+      overflow: hidden;
+    }
+    .stage-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 25px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body data-content-pipeline-preview="isolated" data-content-pipeline-stage="916">
+  <script id="episode-data" type="application/json">{}</script>
+  <script id="timeline-data" type="application/json">{}</script>
+
+  <main id="stage" data-measure="stage">
+    <header class="stage-head" data-measure="head">
+      <h1 class="stage-brand">Mathemit</h1>
+      <span class="stage-kicker">Trick in 15 Sekunden</span>
+    </header>
+
+    <article class="stage-question" data-measure="question">
+      <div class="eyebrow" id="stageEyebrow">Aufgabe</div>
+      <h2 class="question-text" id="stagePrompt"></h2>
+      <p class="stage-hookline" id="stageHookLine" hidden></p>
+    </article>
+
+    <section class="stage-figure" data-measure="figure">
+      <span class="topic-badge" id="topicBadge"></span>
+      <div id="figureHost"></div>
+      <p class="stage-pause" id="stagePause" hidden>2 Sekunden zum Nachdenken</p>
+      <p class="stage-countdown" id="stageCountdown" hidden>
+        <span class="stage-countdown-value" id="stageCountdownValue">3</span>
+        <span class="stage-countdown-track"><span class="stage-countdown-fill" id="stageCountdownFill"></span></span>
+      </p>
+    </section>
+
+    <section class="stage-solution" id="stageSolution" data-measure="solution">
+      <div class="stage-solution-label">Auflösung</div>
+      <div class="stage-answer" id="stageAnswer"></div>
+      <p class="stage-explain" id="stageExplanation"></p>
+    </section>
+
+    <footer class="stage-foot" data-measure="foot">
+      <span>Mathemit</span>
+      <span id="stageFootMeta"></span>
+    </footer>
+  </main>
+
+  <!--
+    P7.3.5 — Endcard liegt deckend über der Bühne und wird pro Frame gesteuert.
+    Muss vor dem Skript stehen: das IIFE holt das Element beim Start.
+    Der viewBox ist enger als in logo.svg (-12 0 124 100): Er umschliesst nur
+    die Grafik mit 1 Einheit Sicherheitsrand, damit die Eule randlos die
+    volle Buehnenbreite nutzt.
+  -->
+  <div id="endcard" data-measure="endcard" aria-hidden="true">
+    <div class="endcard-logo" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="5.5 21 89 79" preserveAspectRatio="xMidYMid meet" focusable="false">
+        <ellipse cx="19" cy="64" rx="12.5" ry="20" fill="#D9502E"/>
+        <ellipse cx="81" cy="64" rx="12.5" ry="20" fill="#D9502E"/>
+        <ellipse cx="50" cy="58" rx="30" ry="35" fill="#FF6B4A"/>
+        <ellipse cx="50" cy="73" rx="17" ry="14" fill="#FFE3DA"/>
+        <path d="M32 33 L35 22 L42 31 Z" fill="#F2A93B"/>
+        <path d="M68 33 L65 22 L58 31 Z" fill="#F2A93B"/>
+        <circle cx="38" cy="49" r="13.5" fill="#FFFFFF" stroke="#1F2E45" stroke-width="2.5"/>
+        <circle cx="62" cy="49" r="13.5" fill="#FFFFFF" stroke="#1F2E45" stroke-width="2.5"/>
+        <circle cx="38" cy="49" r="5.5" fill="#1F2E45"/>
+        <circle cx="62" cy="49" r="5.5" fill="#1F2E45"/>
+        <path d="M43 56 L57 56 L50 66 Z" fill="#F2A93B" stroke="#1F2E45" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M40 92 L50 92 L45 99 Z" fill="#F2A93B"/>
+        <path d="M50 92 L60 92 L55 99 Z" fill="#F2A93B"/>
+      </svg>
+    </div>
+    <div class="endcard-text">
+      <p class="endcard-name" id="endcardName">Mathemit</p>
+      <p class="endcard-url" id="endcardUrl">https://mathemit.andybrandy.at/</p>
+      <p class="endcard-claim" id="endcardClaim">Jeden Tag eine echte Aufgabe mit Musterlösung.</p>
+    </div>
+  </div>
+
+  <!-- APP_SCRIPT -->
+  <script>
+    (function () {
+      "use strict";
+      var episode = JSON.parse(document.getElementById("episode-data").textContent);
+      var exercise = episode.exercises[episode.previewIndex];
+      var stage = document.getElementById("stage");
+      var prompt = document.getElementById("stagePrompt");
+      var explain = document.getElementById("stageExplanation");
+      var solution = document.getElementById("stageSolution");
+      var pauseHint = document.getElementById("stagePause");
+      var countdownEl = document.getElementById("stageCountdown");
+      var countdownValue = document.getElementById("stageCountdownValue");
+      var countdownFill = document.getElementById("stageCountdownFill");
+      var hookLine = document.getElementById("stageHookLine");
+      var eyebrow = document.getElementById("stageEyebrow");
+      /*
+       * P7.4.1 — Die Zeitachse kommt als zweites JSON-Feld in die Szene.
+       * Fehlt sie (Aufruf ohne --hook), gilt der Standardablauf, damit alte
+       * Aufrufer unveraendert laufen.
+       */
+      var timeline = null;
+      var rawTimeline = document.getElementById("timeline-data");
+      if (rawTimeline) {
+        try { timeline = JSON.parse(rawTimeline.textContent); } catch (error) { timeline = null; }
+      }
+      var endcard = document.getElementById("endcard");
+      var outlines = [];
+      var extras = [];
+
+      function clamp01(value) {
+        if (!(value > 0)) return 0;
+        return value > 1 ? 1 : value;
+      }
+
+      function answerText() {
+        var raw = String(exercise.answer);
+        if (exercise.inputType === "choice" || exercise.inputType === "mc") {
+          var match = (exercise.choices || []).find(function (choice) {
+            return String(choice) === raw;
+          });
+          return match === undefined ? raw : String(match);
+        }
+        return raw + (exercise.unit || "");
+      }
+
+      document.getElementById("stageEyebrow").textContent = exercise.badge || exercise.topic || "Aufgabe";
+      document.getElementById("stageFootMeta").textContent = "Stufe " + exercise.difficulty + " · " + exercise.generator;
+      document.getElementById("stageAnswer").textContent = answerText();
+      explain.textContent = exercise.explanation || "";
+      prompt.textContent = exercise.prompt;
+      /*
+       * P7.4.1/7.4.3 — Eyebrow und Hook-Zeile kommen aus der Vorlage.
+       * Ohne Zeitachse gilt der bisherige Text, damit der Standardlauf
+       * bytegleich bleibt.
+       */
+      if (timeline && timeline.eyebrow) eyebrow.textContent = timeline.eyebrow;
+      if (timeline && timeline.hookLine) {
+        hookLine.textContent = timeline.hookLine;
+        hookLine.hidden = false;
+      } else {
+        hookLine.hidden = true;
+        hookLine.textContent = "";
+      }
+      if (timeline && timeline.pauseText) pauseHint.textContent = timeline.pauseText;
+      window.MB.renderFigure(exercise.svg, exercise.badge, exercise.badgeColor);
+
+      /* Reveal-Zustand wird von außen gesetzt, nie über CSS-Übergänge. */
+      var svg = document.querySelector("#figureHost svg");
+      var DRAWABLE = ["path", "rect", "circle", "ellipse", "line", "polyline", "polygon"];
+      var OUTLINE_SELECTOR = DRAWABLE.map(function (tag) { return tag + ".shape-outline"; }).join(",");
+      var marked = svg ? svg.querySelectorAll(OUTLINE_SELECTOR) : [];
+
+      /*
+       * Bevorzugt die von der App markierten Reveal-Pfade. Fehlt diese
+       * Markierung (manche Generatoren), gelten alle sichtbaren Konturen
+       * der obersten SVG-Ebene als Reveal-Pfade.
+       */
+      function genericOutlines() {
+        if (!svg) return [];
+        return Array.prototype.filter.call(svg.children, function (node) {
+          if (DRAWABLE.indexOf(node.tagName.toLowerCase()) < 0) return false;
+          return window.getComputedStyle(node).stroke !== "none";
+        });
+      }
+
+      var targets = marked.length ? Array.prototype.slice.call(marked) : genericOutlines();
+      var revealMode = marked.length ? "marked" : "generic";
+      targets.forEach(function (node) {
+        node.style.transition = "none";
+        var length = 0;
+        try {
+          length = typeof node.getTotalLength === "function" ? node.getTotalLength() : 0;
+        } catch (error) {
+          length = 0;
+        }
+        var drawable = length > 0 && window.getComputedStyle(node).stroke !== "none";
+        if (drawable) {
+          node.style.strokeDasharray = length + " " + length;
+          node.style.strokeDashoffset = String(length);
+        }
+        outlines.push({ node: node, length: length, drawable: drawable });
+      });
+      /* Ohne App-Markierung blenden Beschriftungen erst nach der Kontur ein. */
+      if (revealMode === "generic" && svg) {
+        extras = Array.prototype.slice.call(svg.querySelectorAll("text"));
+      }
+      /* Texte dürfen nie abgeschnitten werden: fest definierte Größensuche. */
+      function fitText(element, startSize, minSize) {
+        var size = startSize;
+        element.style.fontSize = size + "px";
+        while (size > minSize && element.scrollHeight > element.clientHeight + 1) {
+          size -= 2;
+          element.style.fontSize = size + "px";
+        }
+        return size;
+      }
+
+      var fitted = {
+        prompt: fitText(prompt, 60, 30),
+        explain: fitText(explain, 34, 20)
+      };
+
+      function apply(state) {
+        var reveal = clamp01(state.revealProgress);
+        outlines.forEach(function (entry) {
+          if (!entry.drawable) return;
+          entry.node.style.strokeDashoffset = String(entry.length * (1 - reveal));
+          entry.node.style.fillOpacity = String(Math.round(reveal * reveal * 1e6) / 1e6);
+        });
+        var extraOpacity = reveal <= 0.45 ? 0 : Math.round(clamp01((reveal - 0.45) / 0.55) * 1e6) / 1e6;
+        extras.forEach(function (node) {
+          node.style.opacity = String(extraOpacity);
+        });
+        var shown = clamp01(state.solutionProgress);
+        solution.style.opacity = String(shown);
+        solution.style.visibility = shown > 0 ? "visible" : "hidden";
+        solution.style.transform = "translateY(" + Math.round((1 - shown) * 26) + "px)";
+        pauseHint.hidden = !state.pauseActive;
+        /*
+         * P7.4.2 — Countdown. Entweder der Timer oder der Hinweistext, nie
+         * beide: sie teilen sich dieselbe Position und wuerden uebereinander
+         * liegen. Der Wert kommt aus der Zeitachse, nicht aus der Uhr.
+         */
+        var showsCountdown = !!state.countdownVisible;
+        if (showsCountdown) {
+          countdownEl.hidden = false;
+          pauseHint.hidden = true;
+          countdownValue.textContent = String(state.countdownValue);
+          countdownFill.style.width = (clamp01(state.countdownProgress) * 100).toFixed(2) + "%";
+        } else {
+          countdownEl.hidden = true;
+          if (timeline && timeline.pauseMode === "countdown") {
+            /* In dieser Vorlage gibt es keinen Hinweistext als Ersatz. */
+            pauseHint.hidden = true;
+          }
+        }
+        /* P7.3.5 — Die Endcard blendet als ruhiger Abschluss über die Bühne. */
+        var card = clamp01(state.endcardProgress);
+        endcard.style.opacity = String(card);
+        endcard.style.visibility = card > 0 ? "visible" : "hidden";
+        endcard.setAttribute("aria-hidden", card > 0 ? "false" : "true");
+      }
+
+      function rectOf(element) {
+        if (!element) return null;
+        var rect = element.getBoundingClientRect();
+        return {
+          left: Math.round(rect.left),
+          top: Math.round(rect.top),
+          right: Math.round(rect.right),
+          bottom: Math.round(rect.bottom),
+          width: Math.round(rect.width),
+          height: Math.round(rect.height)
+        };
+      }
+      function measure(state) {
+        var box = rectOf(stage);
+        var offenders = [];
+        Array.prototype.forEach.call(document.querySelectorAll("[data-measure]"), function (element) {
+          var rect = rectOf(element);
+          var name = element.getAttribute("data-measure");
+          if (!rect || rect.width <= 0 || rect.height <= 0) {
+            offenders.push({ name: name, rect: rect, reason: "leer" });
+            return;
+          }
+          if (rect.left < box.left - 1 || rect.top < box.top - 1 ||
+              rect.right > box.right + 1 || rect.bottom > box.bottom + 1) {
+            offenders.push({ name: name, rect: rect, reason: "ueber den Rand" });
+          }
+        });
+        var clipped = [];
+        [prompt, explain].forEach(function (element) {
+          if (element && element.scrollHeight > element.clientHeight + 1) {
+            clipped.push({ id: element.id, scrollHeight: element.scrollHeight, clientHeight: element.clientHeight });
+          }
+        });
+        /* P7.3.5 — Auch die Endcard muss vollständig lesbar sein, wenn sie sichtbar ist. */
+        var cardVisible = endcard.style.visibility === "visible";
+        /*
+         * Das Eulenzeichen muss die Bühnenbreite ausfüllen. Gemessen wird die
+         * tatsächliche Box des gerenderten SVG, nicht die gewünschte CSS-Angabe.
+         */
+        var logoRect = rectOf(document.querySelector(".endcard-logo svg"));
+        var logoFill = logoRect && box && box.width > 0 ? logoRect.width / box.width : 0;
+        if (cardVisible) {
+          ["endcardName", "endcardUrl", "endcardClaim"].forEach(function (id) {
+            var element = document.getElementById(id);
+            var box = rectOf(element);
+            if (!box || box.width <= 0 || box.height <= 0) {
+              clipped.push({ id: id, scrollHeight: 0, clientHeight: 0 });
+            } else if (element.scrollWidth > element.clientWidth + 1) {
+              clipped.push({ id: id, scrollWidth: element.scrollWidth, clientWidth: element.clientWidth });
+            }
+          });
+        }
+        var storage = { local: 0, session: 0, accessible: false };
+        try {
+          storage.local = window.localStorage.length;
+          storage.session = window.sessionStorage.length;
+          storage.accessible = true;
+        } catch (error) {
+          storage.accessible = false;
+        }
+        return {
+          stage: box,
+          expected: { width: 1080, height: 1920 },
+          docScroll: {
+            width: document.documentElement.scrollWidth,
+            height: document.documentElement.scrollHeight
+          },
+          offenders: offenders,
+          clipped: clipped,
+          svgRect: rectOf(svg),
+          outlineCount: outlines.length,
+          drawableCount: outlines.filter(function (entry) { return entry.drawable; }).length,
+          revealMode: revealMode,
+          extraCount: extras.length,
+          fontSize: fitted,
+          solutionOpacity: solution.style.opacity,
+          solutionVisible: solution.style.visibility === "visible",
+          pauseVisible: !pauseHint.hidden,
+          endcardOpacity: endcard.style.opacity,
+          endcardVisible: cardVisible,
+          endcardLogo: logoRect,
+          endcardLogoFill: Math.round(logoFill * 1e6) / 1e6,
+          endcardName: document.getElementById("endcardName").textContent,
+          endcardUrl: document.getElementById("endcardUrl").textContent,
+          endcardClaim: document.getElementById("endcardClaim").textContent,
+          promptText: prompt.textContent,
+          answerText: document.getElementById("stageAnswer").textContent,
+          badgeText: document.getElementById("topicBadge").textContent,
+          eyebrowText: document.getElementById("stageEyebrow").textContent,
+          state: state || null,
+          storage: storage,
+          scripts: Array.prototype.map.call(document.scripts, function (script) { return script.src; }).filter(Boolean),
+          resources: performance.getEntriesByType("resource").map(function (entry) { return entry.name; })
+        };
+      }
+
+      apply({ revealProgress: 0, solutionProgress: 0, pauseActive: false, endcardProgress: 0 });
+      window.__STAGE__ = {
+        exercise: exercise,
+        answerText: answerText(),
+        brandName: document.getElementById("endcardName").textContent,
+        brandUrl: document.getElementById("endcardUrl").textContent,
+        apply: apply,
+        measure: measure
+      };
+      document.documentElement.dataset.contentPipelineStageReady = "true";
+    }());
+  </script>
+</body>
+</html>

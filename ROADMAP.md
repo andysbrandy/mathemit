@@ -91,7 +91,7 @@
 
 ### P7 — Bekanntmachung Zielgruppe 10–14 J. (revidiertes Konzept 🔄)
 
-**Status: 🔄 in Umsetzung (7.1 und 7.2 abgeschlossen; nächster Schritt: 7.3 Video-Pipeline-MVP)**
+**Status: ✅ 7.3 abgeschlossen (alle sechs Arbeitspakete 7.3.1–7.3.6 grün; Veröffentlichung bleibt ein manueller Schritt)**
 
 **Zielgruppe:** 10–14-Jährige in Österreich (MS/AHS-Unterstufe, 5./6. Klasse).
 
@@ -103,8 +103,8 @@
 |---|---------|--------|
 | 7.1 | Link-Vorschauen: OG-/Twitter-Tags + Canonical + `og-image.png` (1200×630) in `index.html` | ✅ |
 | 7.2 | Kanäle anlegen: YouTube (Shorts), TikTok, Instagram — URLs & Handles hinterlegt in `CHANNELS.md` | ✅ |
-| 7.3 | Video-Pipeline-MVP: Puppeteer (headless) → Blueprint-Reveal → ffmpeg 9:16 (15–25 s) → Overlay + Endcard → Warteschlange | 🔄 2/6 Pakete |
-| 7.4 | Hook-Bibliothek: 4 Formate (Countdown, Erwachsenen-Challenge, Streak-Flex, Vorher/Nachher) als Vorlagen | ❌ |
+| 7.3 | Video-Pipeline-MVP: Puppeteer (headless) → Blueprint-Reveal → ffmpeg 9:16 (15–25 s) → Overlay + Endcard → Warteschlange | ✅ 6/6 Pakete |
+| 7.4 | Hook-Bibliothek: 4 Formate (Countdown, Erwachsenen-Challenge, Streak-Flex, Vorher/Nachher) als Vorlagen + Freigabe per Link | ✅ 7.4.1–7.4.3 + Freigabelink |
 | 7.5 | Wöchentlicher Rhythmus: 30-Sek.-Freigabe → Cross-Post auf 3 Kanäle (~1 Std./Woche) | ❌ |
 | 7.6 | Schutz & Recht: Kommentare bei Kinder-Content moderieren/deaktivieren; bezahlte Ads nur ab 13 (EU/AT) | ❌ |
 | 7.7 | Phase 2: Klassen-Code aktiv bewerben, Lehrer-Netzwerke, SEO-Seiten, Pinterest, Newsletter | ⏳ Phase 2 |
@@ -133,33 +133,74 @@ Jedes Paket hat eine eigene Abnahme; erst nach erfolgreichem Test wird das näch
 |---|---|---|---|
 | **7.3.1** | **Deterministische Aufgaben-Auswahl als gemeinsames Fundament:** Seed und gewünschte Schwierigkeitsstufe vorgeben; pro Episode 3–5 echte Generatoren aus `GEN{}` aufrufen; vollständige Aufgabendaten (Frage, Antwort, Erklärung, Hinweis, Input-Typ, SVG) als versioniertes JSON ausgeben. | Zwei Läufe mit demselben Seed sind bytegleich; alle 47 Generatoren und 3 Stufen sind grundsätzlich auswählbar; ungültige Parameter ergeben einen klaren Fehler; keine App- oder Nutzerdaten werden verändert. | ✅ `select-exercises.js` + 7 Tests |
 | **7.3.2** | **Browser-Datenübergabe:** Auswahl-JSON in einer isolierten Chrome-/Puppeteer-Szene an die reale App übergeben und eine gewählte Aufgabe sichtbar rendern; Login, gespeicherte Nutzerdaten und Nebenwirkungen vermeiden. | Der Browser rendert exakt die JSON-Aufgabe inklusive Blueprint-SVG; keine Anmeldung und kein Progress-Write; Fehler/Timeout brechen den Lauf ab. | ✅ `render-preview.js` + 4 Tests |
-| **7.3.3** | **Deterministisches 9:16-Rendering:** definierte 1080×1920-Szene, feste Kamera, 30 fps und reproduzierbare Blueprint-Reveal-Frames einschließlich 2-Sekunden-Pause vor der Auflösung. | 1080×1920-Frames/Media ohne schwarze oder abgeschnittene Bereiche; gleicher Seed ergibt vergleichbare Frames; Daten und SVG erscheinen korrekt. | ⬜ offen |
-| **7.3.4** | **Video-Montage mit ffmpeg:** Frames zu 15–25 s zusammensetzen, fps/Codec/Aspect Ratio fixieren und Ausgabe für YouTube Shorts, TikTok und Reels vorbereiten. | Valider MP4 (H.264/AAC, 1080×1920, 9:16, planbar 15–25 s), `ffprobe` bestätigt die Spezifikationen; ffmpeg-Fehler brechen den Lauf ab. | ⬜ offen |
-| **7.3.5** | **Hook, Lösung und Endcard:** erste Hook-Vorlage mit Frage, 2 s Denkpause, Blueprint-Reveal und Lösung; anschließend Marken-Endcard mit App-Name und `https://mathemit.andybrandy.at/`. | Vollständiger 15–25-s-Clip mit lesbarem Hook, sichtbarer Lösung und 2–3 s Endcard; keine unlesbar gekürzten Texte. | ⬜ offen |
-| **7.3.6** | **Metadaten, Warteschlange & manuelle Freigabe:** Caption, Hashtags, Quellen-/Seed-Daten und technische Prüfergebnisse erzeugen; Ergebnis atomar in eine lokale Queue schreiben. **Kein automatisches Posten.** | Jede Queue-Episode enthält MP4, Caption, Hashtags und Manifest; unvollständige Dateien gelten nicht als freigegeben; ein manueller Freigabeschritt bleibt zwingend. | ⬜ offen |
+| **7.3.3** | **Deterministisches 9:16-Rendering:** definierte 1080×1920-Szene, feste Kamera, 30 fps und reproduzierbare Blueprint-Reveal-Frames einschließlich 2-Sekunden-Pause vor der Auflösung. | 1080×1920-Frames/Media ohne schwarze oder abgeschnittene Bereiche; gleicher Seed ergibt vergleichbare Frames; Daten und SVG erscheinen korrekt. | ✅ `render-frames.js` + `lib/timeline.js` + 15 Tests |
+| **7.3.4** | **Video-Montage mit ffmpeg:** Frames zu 15–25 s zusammensetzen, fps/Codec/Aspect Ratio fixieren und Ausgabe für YouTube Shorts, TikTok und Reels vorbereiten. | Valider MP4 (H.264/AAC, 1080×1920, 9:16, planbar 15–25 s), `ffprobe` bestätigt die Spezifikationen; ffmpeg-Fehler brechen den Lauf ab. | ✅ `assemble-video.js` + `lib/ffmpeg-runner.js` + 7 Tests |
+| **7.3.5** | **Hook, Lösung und Endcard:** erste Hook-Vorlage mit Frage, 2 s Denkpause, Blueprint-Reveal und Lösung; anschließend Marken-Endcard mit App-Name und `https://mathemit.andybrandy.at/`. | Vollständiger 15–25-s-Clip mit lesbarem Hook, sichtbarer Lösung und 2–3 s Endcard; keine unlesbar gekürzten Texte. | ✅ `run-pipeline.js` + `verify-clip.js` + 12 Tests |
+| **7.3.6** | **Metadaten, Warteschlange & manuelle Freigabe:** Caption, Hashtags, Quellen-/Seed-Daten und technische Prüfergebnisse erzeugen; Ergebnis atomar in eine lokale Queue schreiben. **Kein automatisches Posten.** | Jede Queue-Episode enthält MP4, Caption, Hashtags und Manifest; unvollständige Dateien gelten nicht als freigegeben; ein manueller Freigabeschritt bleibt zwingend. | ✅ `queue-episode.js` + 8 Tests |
 
-**Ergebnis von 7.3:** Derselbe deterministische Aufgaben-Input muss mehrfach dieselbe 9:16-Datei mit Freigabedaten erzeugen. Plattform-Uploads bleiben bis dahin ein manueller Schritt.
+**Ergebnis von 7.3:** Derselbe deterministische Aufgaben-Input muss mehrfach dieselbe 9:16-Datei mit Freigabedaten erzeugen. Plattform-Uploads bleiben ein manueller Schritt.
 
-**Wöchentlicher Job** (lokal oder GitHub Action mit Puppeteer):
+##### 📦 Was 7.3 konkret ermöglicht
 
-1. Node-Skript ruft **3–5 Generatoren** aus der Generator-Sammlung (`GEN{}` in `app-base.js`) auf
-2. **Puppeteer** öffnet die App headless und triggert die vorhandene **Blueprint-Reveal-Animation** (bereits implementiert — von Natur aus „satisfying content“, ein bewährtes TikTok-Genre)
-3. **Frame-Recording** während der Animation → **ffmpeg** baut daraus ein **9:16-Vertical-Video** (15–25 Sek.)
-4. **Text-Overlay** aus Frage/Hook-Vorlage + Lösung — Hook zuerst, **2 Sek. Pause vor der Auflösung** (Retention-Technik)
-5. **Endcard** mit App-Name/Link automatisch angehängt
-6. Video + Caption + Hashtag-Set in eine **Warteschlange** ablegen
-7. **Kurze manuelle Freigabe** (30 Sek. anschauen, ok?) → dann auf **allen 3 Kanälen gleichzeitig** posten (gleiches Asset, kein Mehraufwand)
+7.3 ist kein „Video-Skript", sondern eine **belegte, reproduzierbare Kette**. Jede Stufe schreibt ihr Ergebnis auf die Platte, und der Beleg der einen Stufe ist die Eingangsbedingung der nächsten. Bricht eine ab, laufen die folgenden nicht — es entsteht kein scheinbar gültiges Ergebnis.
+
+**Die Kette im Überblick** (`content-pipeline/`, ~5.100 Zeilen inkl. Tests):
+
+```
+select-exercises.js  ──▶  work/episode.json          Auswahl: 3–5 Aufgaben, Seed, Stufe
+render-frames.js     ──▶  work/frames/              480 PNGs, 1080×1920, 30 fps
+assemble-video.js    ──▶  work/video/clip.mp4       H.264, 9:16, 16 s
+verify-clip.js       ──▶  CLIP_CHECK_OK             Gegenprobe aus dem MP4 selbst
+run-pipeline.js      ──▶  work/pipeline-report.json Auswahl → Frames → Clip, Hash-Kette
+queue-episode.js     ──▶  work/queue/<slug>/        Caption, Hashtags, Seed, Status
+                     ──▶  --release                manuelle Freigabe
+```
+
+**Fünf Dinge, die vorher nicht möglich waren:**
+
+1. **Reproduzierbarkeit ohne Netz und ohne App.** Zwei Läufe mit demselben Seed liefern byteidentisches JSON und denselben Clip-Hash. Die Aufgaben kommen aus denselben `GEN{}`-Generatoren wie in der Lern-App — der Inhalt ist damit kein erfundener Clip-Themen-Text, sondern echtes App-Material.
+
+2. **Der Clip wird gegen sich selbst geprüft.** `verify-clip.js` dekodiert Stichproben neu aus dem fertigen MP4 statt die PNGs zu lesen, und vergleicht sie mit dem erwarteten Bühnenzustand. Geprüft werden Hook, Reveal, Denkpause, Lösung, Endcard-Anfang und letzter Frame plus ein gleichmäßiges Raster — ein Aussetzer mitten im Reveal kann nicht unbemerkt bleiben.
+
+3. **Geschlossene Hash-Kette.** `frameSetSha256` (Frames) = `sourceFrameSetSha256` (Clip-Manifest) = `frameSetSha256` (Laufbericht) = Wert in der Queue. Ein Clip aus einem fremden oder verkürzten Framesatz wird abgelehnt statt veröffentlicht. Die Queue prüft **alle drei Glieder** — sonst würde sie technische Daten zu einem Clip nennen, den es so nie gab.
+
+4. **Vollständige Isolation.** Die Szene ist eine abgeschirmte Chrome-Instanz mit eigenem Profil; jede Anfrage außerhalb der Szene wird abgebrochen und protokolliert. Kein Login, kein Progress-Write, keine Nutzerdaten, keine externen Ressourcen (CSS und App-Skript werden inline injiziert).
+
+5. **Freigabe ist ein eigener, nicht umgehbarer Schritt.** Neue Episoden landen als `bereit` mit `releasedAt: null`. `--release` ist die einzige Freigabe, und sie lehnt alles ab, was nicht vollständig ist — fehlendes MP4, ungeprüfter Lauf, gebrochene Kette. Es gibt im Code keinen Pfad, auf dem eine Episode sich selbst freigibt, und keinen Netzwerkpfad für ein automatisches Posten.
+
+**Belegter Ist-Stand** (Seed `p7-3-5`, 3 Aufgaben, Stufe 2):
+
+| | Wert |
+|---|---|
+| Clip | `clip.mp4`, 1080×1920, H.264 High, yuv420p, 30 fps, 480 Frames, 16,0 s |
+| Dauer | ca. 7 s mit wiederverwendeten Frames, ca. 60 s ab Null (End-to-End-Test) |
+| Geprüft | `overflowCount: 0`, `clippedTextCount: 0`, `blackFrameCount: 0` |
+| Endcard | Logo full-bleed (1080×959, Füllgrad 1,0), 2,5 s Marken-Endcard |
+| Tests | 48 grün (40 aus 7.3.1–7.3.5, 8 aus 7.3.6) |
+| Generatoren | alle 47 aus `GEN{}` in `app-base.js` auswählbar, 3 Stufen |
+
+**Bewusste Grenzen:** kein Audio (der Clip ist stumm), eine Hook-Vorlage (die übrigen drei folgen in 7.4), keine Veröffentlichung, lokale Platte statt Datenbank.
+
+**Betrieb im Wochenrhythmus** — der folgende Ablauf ist mit 7.3 technisch vollständig umgesetzt; was noch fehlt, ist die Veröffentlichung (→ 7.4/7.5):
+
+1. Node-Skript ruft **3–5 Generatoren** aus der Generator-Sammlung (`GEN{}` in `app-base.js`) auf → ✅ `select-exercises.js`
+2. **Puppeteer** öffnet die App headless und triggert die vorhandene **Blueprint-Reveal-Animation** (bereits implementiert — von Natur aus „satisfying content“, ein bewährtes TikTok-Genre) → ✅ `render-frames.js`
+3. **Frame-Recording** während der Animation → **ffmpeg** baut daraus ein **9:16-Vertical-Video** (15–25 Sek.) → ✅ `render-frames.js` + `assemble-video.js`
+4. **Text-Overlay** aus Frage/Hook-Vorlage + Lösung — Hook zuerst, **2 Sek. Pause vor der Auflösung** (Retention-Technik) → ✅ `lib/timeline.js` (1 von 4 Hook-Formaten)
+5. **Endcard** mit App-Name/Link automatisch angehängt → ✅
+6. Video + Caption + Hashtag-Set in eine **Warteschlange** ablegen → ✅ `queue-episode.js`
+7. **Kurze manuelle Freigabe** (30 Sek. anschauen, ok?) → dann auf **allen 3 Kanälen gleichzeitig** posten (gleiches Asset, kein Mehraufwand) → ⬜ manuell, 7.5
 
 **Stack:** Puppeteer + ffmpeg, alles kostenlos — kein bezahlter Dienst nötig.
 
 #### 🪝 Hook-Formate (für 10–14 nachweislich wirksam)
 
-| Hook | Wirkmechanik |
-|---|---|
-| „Kannst du das in 10 Sekunden lösen?“ | Countdown-Timer eingeblendet, Auflösung als Reveal |
-| „Können Erwachsene das? (Mittelschul-Niveau)“ | Doppelter Effekt: Kids teilen's stolz bei Erfolg; Erwachsene, die scheitern, ist von Natur aus shareable |
-| „Mein Streak: 47 🔥“ | Screen-Recording der Gamification — Kids lieben Flex-Content |
-| Vorher/Nachher | „So erklärt's die Schule“ vs. „So macht's die App“ (Blueprint-Zeichnung) |
+| Hook | Wirkmechanik | Status |
+|---|---|---|
+| „Kannst du das in 10 Sekunden lösen?“ | Countdown-Timer eingeblendet, Auflösung als Reveal | ✅ umgesetzt in 7.3.5 |
+| „Können Erwachsene das? (Mittelschul-Niveau)“ | Doppelter Effekt: Kids teilen's stolz bei Erfolg; Erwachsene, die scheitern, ist von Natur aus shareable | ⬜ 7.4 |
+| „Mein Streak: 47 🔥“ | Screen-Recording der Gamification — Kids lieben Flex-Content | ⬜ 7.4 |
+| Vorher/Nachher | „So erklärt's die Schule“ vs. „So macht's die App“ (Blueprint-Zeichnung) | ⬜ 7.4 |
 
 #### ⚠️ Zwei operative Punkte (unabhängig von der Strategie-Entscheidung)
 
@@ -168,9 +209,62 @@ Jedes Paket hat eine eigene Abnahme; erst nach erfolgreichem Test wird das näch
 
 #### 📅 Realistischer Aufwand
 
-- **Pipeline-MVP (Schritte 1–7):** ca. 2–3 Tage
+- **Pipeline-MVP (Schritte 1–7):** erledigt ✅
 - **Laufend:** ~1 Std./Woche (Freigabe + Posten auf 3 Kanälen)
-- **Erste messbare Reichweite:** realistisch 1–3 Wochen nach Start (TikTok schnell, YouTube Shorts träger)
+- **Erste messbare Reichweite:** realistisch 1–3 Wochen nach dem ersten Post (TikTok schnell, YouTube Shorts träger)
+
+#### 🧩 7.4 — Plan: Hook-Bibliothek und die ersten Veröffentlichungen
+
+**Ausgangslage:** 7.3 liefert fertige, freigegebene Clips — aber nur in **einer** Form. `lib/timeline.js` hat die fünf Segmente fest verdrahtet (`hook` 3 s, `reveal` 4 s, `pause` 2 s, `solution` 4 s, `endcard` 3 s), es gibt genau **eine** Hook-Vorlage, und im Repo existiert **kein** Publishing-Code und **keine** Action dafür (nur `weekly-summary.yml`). Die Kanäle aus 7.2 sind live, die Queue ist mit einer Episode gefüllt.
+
+**Strategische Überlegung vorweg:** Die Hook-Bibliothek und das automatische Posten sind zwei sehr verschiedene Risiken. Der erste Clip ist ein Reputationsrisiko auf einem Kinder-Kanal; ein falscher Post ist sichtbar und nicht zurücknehmbar. Deshalb ist die Reihenfolge bewusst so gewählt, und **7.4 ist in zwei Teile geteilt, die getrennt abgenommen werden**.
+
+##### Teil A — Hook-Bibliothek (7.4.1–7.4.3) · ohne Netz, ohne Risiko
+
+| Paket | Inhalt | Abnahme | Aufwand |
+|---|---|---|---|
+| **7.4.1** | `lib/timeline.js` von festen Segmenten auf **Vorlagen** umstellen: je Vorlage Segmentfolge, Dauern, Reveal-Art und Countdown-Text. Auswahl per `--hook <name>`, Standard bleibt der bestehende Ablauf. | Jede Vorlage ergibt einen gültigen 15–25-s-Clip; der bestehende Lauf bleibt byteidentisch; unbekannter Hook-Name ist ein klarer Fehler, kein stiller Fallback. | ✅ `lib/timeline.js` + 6 Tests |
+| **7.4.2** | **Countdown** („Kannst du das in 5 Sekunden lösen?“): sichtbarer Timer über der Denkpause, exakt auf die Pause abgestimmt, deterministisch pro Frame. | Timer läuft synchron zur Denkpause, endet bei 1 statt 0; nie `0` oder abgeschnitten im Bild; **die Zahl im Hook-Text ist die Zahl, die sichtbar heruntergezählt wird.** | ✅ `stage-916.html`, als Test festgeschrieben |
+| **7.4.3** | **Die drei weiteren Hooks** als Vorlagen: Erwachsenen-Challenge, Streak-Flex, Vorher/Nachher. Nur was ohne echte Nutzerdaten geht — der Streak-Hook nutzt synthetische Beispielwerte, keine echten Konten. | Pro Hook ein geprüfter Clip; `verify-clip.js` besteht für alle vier; jede Vorlage einzeln anwählbar. | ✅ alle 5 Vorlagen mit `PIPELINE_OK` |
+
+**Ergebnis Teil A:** Fünf Vorlagen, alle zwischen 15 und 25 s, alle mit `PIPELINE_OK` und `CLIP_CHECK_OK` belegt. `frage` ist der bisherige Ablauf und bytegleich — ohne `--hook` ändert sich nichts.
+
+##### ➕ Zusätzlich: Freigabe per Link (`review-server.js`)
+
+Fertige Clips liegen nach `npm run queue` in `work/queue/`. `npm run review` startet einen kleinen Server, der sie im Browser zeigt — mit Link für den Rechner **und für das Handy im selben WLAN** — und die Freigabe per Klick entgegennimmt.
+
+- **Nichts wird veröffentlicht.** Der Server kennt keinen Netzwerkpfad und ruft keine Plattform auf; er liest und schreibt nur in `work/queue/`. Das Posten bleibt manuell.
+- **Der Token steht im Link.** Ohne ihn zeigt der Server nichts und nimmt nichts an. Es gibt keine Anmeldung, weil es keine Nutzer gibt — deshalb ausschließlich für das eigene Netz gedacht.
+- **Die Freigabe nutzt dieselbe Funktion wie `--release`.** Der Server kann nichts freigeben, was das Skript nicht auch freigeben würde; eine unvollständige Episode zeigt gar keinen Knopf und lehnt auch einen erzwungenen POST ab.
+- Beenden mit Strg-C. Kein Dienst, kein Watchdog.
+
+| Paket | Inhalt | Abnahme | Status |
+|---|---|---|---|
+| **7.4.F** | **Freigabelink ohne Netz:** lokaler Review-Server mit Token-Schutz, Videoplayback, Caption/Hashtags und Freigabeklick. | Ohne Token kein Zugriff; Fremdpfade abgewiesen; eine unvollständige Episode lässt sich weder per Knopf noch per erzwungenem POST freigeben. | ✅ `review-server.js` + 6 Tests |
+
+**Warum die Reihenfolge:** Der Countdown zuerst, weil er als einziger einen **neuen sichtbaren Mechanismus** einführt und damit das größte Rendering-Risiko trägt. Die drei übrigen sind Umbenennungen und Umbauten bestehender Segmente.
+
+**Wichtig:** Diese Phase ändert **nichts** am Publish-Verhalten. Ergebnis sind vier tested, lokal freigegebene Clips — noch immer ohne Upload.
+
+##### Teil B — Veröffentlichung (7.4.4–7.4.6) · hier entstehen echte Posts
+
+| Paket | Inhalt | Abnahme | Aufwand |
+|---|---|---|---|
+| **7.4.4** | **Plattform-Rechte klären, bevor Code entsteht.** TikTok Content-Posting-API, YouTube Data API v3, Instagram Graph API: freigeschalteter Content-Posting-Zugang, App-Review, Quoten und Altersrichtlinien. | Für alle drei Kanäle ist schriftlich geklärt: Zugang vorhanden? Review bestanden? Rate-Limits? | ~1–3 Tage Wartezeit |
+| **7.4.5** | **`publish-episode.js`**: nimmt **ausschließlich** freigegebene Episoden (`status: "freigegeben"`), prüft vor dem Absenden Hash-Kette und Status erneut, postet, schreibt die Plattform-IDs zurück ins Manifest (`publishedAt`, `posts[]`). | Eine nicht freigegebene Episode wird abgelehnt; ein fehlgeschlagener Post lässt das Manifest auf `freigegeben` mit Fehlervermerk, ohne Doppel-Post beim Wiederholen; Zugangsdaten kommen **ausschließlich** aus der Umgebung, nie aus dem Repo. | ~1 Tag |
+| **7.4.6** | **Die ersten 3 echten Posts** — bewusst wenige, mit Beobachtung dazwischen. | 3 Clips auf 3 Kanälen, je 24 h Reichweite/Retention notiert; bei auffälligem Feedback sofort Stopp. | ~2 h + Beobachtung |
+
+**Abbruchregel für 7.4.4:** Steht einer der drei Zugänge bis dahin nicht, wird **nicht** ersetzt — dann läuft 7.5 manuell weiter, wie es heute schon geplant ist. Automatisierung ist ein Komfort, kein Ersatz für den manuellen Schritt.
+
+##### Bewusste Reihenfolge und Grenzen
+
+1. **Erst Inhalte, dann Uploads.** Teil A ist vollständig risikofrei und liefert unabhängig Wert — auch wenn Teil B nie stattfindet.
+2. **Freigabe bleibt auch mit Publishing-Code zwingend.** `publish-episode.js` bekommt keinen Auto-Freigabe-Pfad. Das ist der wichtigste Sicherheitsgurt: Ein Fehler in der Automatik darf nicht dazu führen, dass ungeprüfter Content live geht.
+3. **`--dry-run` von Anfang an.** Jeder Publish-Aufruf muss erst beschaubar sein, was passieren würde. Kostet eine Stunde, erspart den ersten Fehler.
+4. **Rückweg ist Pflicht.** Plattform-IDs werden ins Manifest geschrieben, damit ein gelöschter Post nachvollziehbar bleibt und nicht versehentlich neu erzeugt wird.
+5. **7.6 (Schutz & Recht) ist keine spätere Kosmetik.** Kommentare bei Kinder-Content gehören **vor** den ersten Post abgesichert, nicht danach — das gehört inhaltlich vor 7.4.6 und ist eine Entscheidung, keine Technik.
+
+**Was 7.4 bewusst nicht macht:** keine Auto-Playlist-Erstellung, keine Kommentar-Interaktion, kein A/B-Test von Captions, keine Analytics-Anbindung. Das sind 7.5-Themen und brauchen echte Reichweitendaten, nicht nur mehr Code.
 
 ---
 

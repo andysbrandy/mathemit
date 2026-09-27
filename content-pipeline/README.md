@@ -48,3 +48,90 @@ Jede Episode enthält:
 - Badge und unverändertes SVG für die spätere Blueprint-Szene
 
 Weitere Arbeitspakete bauen darauf auf: Browser-Übergabe (7.3.2), vertikales Rendering (7.3.3), ffmpeg (7.3.4), Hook/Endcard (7.3.5) und Queue/Freigabe (7.3.6).
+
+## 7.3.2 bis 7.3.5 — Clip bauen
+
+Nach dem Auswählen wird der Clip in vier Stufen erzeugt. Jede Stufe hat einen eigenen Beleg, und bricht eine ab, laufen die folgenden nicht:
+
+```bash
+# Alles in einem Lauf (Auswahl → Frames → MP4 → Gegenprobe)
+npm run e2e -- --seed wochenserie-01 --count 3
+
+# Mit Hook-Vorlage (P7.4.1)
+npm run e2e -- --seed wochenserie-01 --count 3 --hook countdown
+
+# Einzelne Stufen
+npm run preview -- --index 0          # Standbild der Aufgabe
+npm run frames  -- --index 0          # 9:16-Frames, 30 fps
+npm run video                            # Frames → MP4
+npm run verify:clip                      # Gegenprobe am fertigen Clip
+
+# Abnahme
+npm run test:pipeline
+```
+
+## 7.4 — Hook-Vorlagen
+
+Fünf Vorlagen, ausgewählt mit `--hook <name>`. Die Reihenfolge ist überall gleich (Frage → Reveal → Denkpause → Auflösung → Endcard), variiert werden Eyebrow, Hook-Text und die Denkpause.
+
+| Vorlage | Dauer | Aufbau | Einsatz |
+|---|---|---|---|
+| `frage` | 16 s | Standard, ohne Zusatz | Classic; **bisheriges Verhalten, bytegleich** |
+| `countdown` | 19 s | 5-s-Pause mit sichtbarem Timer 5→1 | „Kannst du das in 5 Sekunden lösen?" |
+| `erwachsenen` | 16 s | Eyebrow „Mittelschul-Niveau" | „Können Erwachsene das?" |
+| `streak` | 16 s | Eyebrow „Streak" | Konkurrenzmoment, ohne echte Nutzerdaten |
+| `vorher-nachher` | 18 s | zusätzliches Segment „Schulweg" vor dem Blueprint | „So erklärt's die Schule vs. so macht's die App" |
+
+Zwei Punkte, die bewusst so gelöst sind:
+
+- **Der Countdown zählt dieselbe Zahl herunter, die der Hook verspricht.** Ein Hook, der „10 Sekunden" ankündigt, während sichtbar „3" steht, ist der häufigste Fehler in solchen Clips. 5 s Pause statt 10 s — 10 s wären zwar im Zeitfenster, aber ein echter Retention-Killer.
+- **Ohne `--hook` bleibt alles bytegleich.** `frage` ist exakt der Ablauf aus 7.3.5; das ist als Test festgeschrieben, nicht nur behauptet.
+
+## 7.4 — Freigabe per Link
+
+Nach `npm run queue` liegt fertiges Material in `work/queue/`. Der Review-Server zeigt es im Browser und nimmt die Freigabe per Klick entgegen:
+
+```bash
+npm run queue      # Material erzeugen
+npm run review     # Freigabe-Server starten
+```
+
+Beim Start erscheinen zwei Links: `localhost` für den Rechner und die IP für das **Handy im selben WLAN**. Der Token steht im Link — ohne ihn zeigt der Server nichts.
+
+**Grenzen, die wichtig sind:**
+
+- **Nur im eigenen Netz.** Der Server bindet auf alle Schnittstellen, damit der Handy-Link funktioniert. Es gibt keine Anmeldung, weil es keine Nutzer gibt.
+- **Nichts wird veröffentlicht.** Der Server liest und schreibt nur innerhalb von `work/queue/` und ruft keine Plattform auf. Das Posten bleibt manuell.
+- **Die Freigabe läuft über dieselbe Funktion wie `--release`.** Der Server kann also nichts freigeben, was das Skript nicht auch freigeben würde. Eine unvollständige Episode zeigt keinen Knopf und lehnt auch einen erzwungenen Klick ab.
+- Beenden mit Strg-C. Es gibt keinen Dienst und keinen Watchdog.
+
+## 7.3.6 — Queue und manuelle Freigabe
+
+Aus einem belegten Lauf entsteht eine Queue-Episode mit Caption, Hashtags, Quellen-/Seed-Daten und den technischen Prüfergebnissen. Das MP4 wird in die Queue kopiert, damit ihr Bestand unabhängig vom Arbeitsordner bleibt.
+
+```bash
+# Episode anlegen (liest Vorgaben aus work/)
+npm run queue
+
+# Status ansehen
+npm run queue -- --list content-pipeline/work/queue
+
+# Manuell freigeben — zwingend ein eigener Schritt
+npm run queue -- --release content-pipeline/work/queue/<slug>
+```
+
+**Es wird nichts veröffentlicht.** Das Skript kennt keinen Netzwerkpfad und keinen Upload; es schreibt ausschließlich Dateien unter `work/queue/`.
+
+Drei Punkte, die die Abnahme tragen:
+
+- **Unvollständig heißt nicht freigegeben.** Fehlt das MP4, ist der Lauf nicht gegengeprüft oder stimmt die Hash-Kette nicht, lautet der Status `unvollstaendig`, die Gründe stehen in `gaps`, und `--release` wird abgelehnt.
+- **Die Hash-Kette wird an drei Gliedern geprüft** — Frames, Clip und Laufbericht müssen denselben Framesatz nennen. Sonst würde die Queue Zahlen zu einem Clip veröffentlichen, den es so nie gab.
+- **Geschrieben wird atomar** (erst temporär, dann umbenannt). Ein Abbruch hinterlässt keine halbe Episode.
+
+Aufbau einer Episode:
+
+```
+work/queue/<slug>/
+  clip.mp4      # byteidentische Kopie des geprüften Clips
+  episode.json  # Caption, Hashtags, Seed-Daten, Prüfergebnisse, Status
+```

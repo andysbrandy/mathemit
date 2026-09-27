@@ -87,9 +87,16 @@ function testInvalidInputs() {
 
 /* 3 — render-preview.js muss eine leere Auswahl klar ablehnen. */
 function testMissingChromeFails() {
-  const result = run(RENDER, ["--chrome", "/pfad/zu/nicht/vorhanden", "--episode", "work/episode.json"]);
-  assert.notEqual(result.status, 0, "Nicht vorhandenes Chrome muss scheitern");
-  assert.match(result.stderr, /Browser was not found|Chrome|Chromium/);
+  /* Absolute Episode, damit der Test nicht von einem Lauf im work/-Ordner abhängt. */
+  const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "mathemit-p732-"));
+  try {
+    const episode = selectInto(workDir);
+    const result = run(RENDER, ["--chrome", "/pfad/zu/nicht/vorhanden", "--episode", episode]);
+    assert.notEqual(result.status, 0, "Nicht vorhandenes Chrome muss scheitern");
+    assert.match(result.stderr, /Browser was not found|Chrome|Chromium/);
+  } finally {
+    fs.rmSync(workDir, { recursive: true, force: true });
+  }
 }
 
 /* 4 — Echter Browserlauf: rendert, blockiert Netz, schreibt PNG, verändert keinen Storage. */

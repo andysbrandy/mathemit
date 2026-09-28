@@ -147,7 +147,30 @@ function readManifest(opts, slug) {
   return JSON.parse(fs.readFileSync(file, "utf8"));
 }
 
-function page(opts, body) {
+/*
+ * P7.5 — Navigation.
+ *
+ * Von jeder Seite kommt man ueber die Leiste oben zurueck zur Werkstatt.
+ * Ohne sie waere die Episodenseite eine Sackgasse: der einzige Weg zurueck
+ * fuehrt ueber die Freigabeliste, und wer direkt auf "/e/..." verlinkt wird,
+ * kommt nie bei der Werkstatt an.
+ *
+ * Die Leiste wird aus einer Quelle gebaut, damit Start, Freigabeliste und
+ * Episodenseite nicht drei verschiedene Kopien pflegen.
+ */
+function nav(opts, active) {
+  const q = "?token=" + encodeURIComponent(opts.token);
+  const item = function (href, label, key) {
+    const style = key === active ? ' class="on" aria-current="page"' : "";
+    return "<a href=\"" + href + q + "\"" + style + ">" + escapeHtml(label) + "</a>";
+  };
+  return "<nav class=\"nav\">"
+    + item("/", "Werkstatt", "studio")
+    + item("/freigabe", "Freigabeliste", "freigabe")
+    + "</nav>";
+}
+
+function page(opts, body, active) {
   return [
     "<!doctype html><html lang=\"de\"><head><meta charset=\"utf-8\">",
     "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">",
@@ -162,25 +185,145 @@ function page(opts, body) {
     "button{background:#1f7a4d;color:#fff;border:0;padding:12px 20px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer}",
     "ul{list-style:none;padding:0;margin:0}a{color:#1f5fa8}",
     ".bereit{color:#1f7a4d;font-weight:700}.unvollstaendig{color:#b4341f;font-weight:700}",
-    "</style></head><body>" + body + "</body></html>"
+    /* Die Leiste ist der Weg zurueck. Sie steht deshalb ueber allem. */
+    ".nav{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}",
+    ".nav a{padding:7px 14px;border-radius:999px;background:#fff;border:1px solid #dde4ee;font-size:14px;font-weight:600}",
+    ".nav a.on{background:#1f2e45;color:#fff;border-color:#1f2e45}",
+    /* P7.5 — Grosse Vorschau: Clip links gross, Angaben rechts daneben. */
+    ".two{display:grid;grid-template-columns:minmax(320px,460px) 1fr;gap:18px;align-items:start}",
+    "@media(max-width:860px){.two{grid-template-columns:1fr}}",
+    ".player video{max-width:100%;border-radius:12px}",
+    "dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:0;font-size:14px}",
+    "dt{color:#5b6b82}dd{margin:0;overflow-wrap:anywhere}",
+    /* Die Zeitleiste zeigt die Segmentanteile im Verhaeltnis der Dauer. */
+    ".bar{display:flex;height:34px;border-radius:9px;overflow:hidden;border:1px solid #dde4ee}",
+    ".part{background:#1f5fa8;color:#fff;display:flex;align-items:center;justify-content:center;",
+    "font-size:11px;font-weight:700;overflow:hidden;white-space:nowrap;min-width:0}",
+    ".part:nth-child(2n){background:#2f7ab5}.part:nth-child(3n){background:#1f2e45}",
+    "</style></head><body>",
+    nav(opts, active),
+    body,
+    "</body></html>"
   ].join("");
+}
+
+/*
+ * P7.5 — Die grosse Vorschau.
+ *
+ * Auf der Episodenseite ist der Player nur eine von vier Karten. Wer sich
+ * den Clip wirklich ansehen will, braucht ihn gross und die Angaben daneben.
+ * Deshalb eine eigene Seite, erreichbar ueber den Link an der Videokarte
+ * und aus der Warteschlange heraus.
+ *
+ * Der Ton startet nicht von selbst: ein Clip, der beim Oeffnen loslaeuft,
+ * ist auf dem Handy unangenehm und nicht zurueckzunehmen.
+ */
+function renderPreview(opts, slug) {
+  const record = readManifest(opts, slug);
+  const hasVideo = fs.existsSync(path.join(episodeDir(opts, slug), record.artifacts.video));
+  const tech = record.technical || {};
+  const source = record.source || {};
+
+  const tags = record.hashtags.map(function (tag) {
+    return "<span class=\"tag\">" + escapeHtml(tag) + "</span>";
+  }).join("");
+
+  /* Die Zeitleiste macht sichtbar, was wann passiert — eine Angabe, die man
+     sonst nur durch Zusehen pruefen kann. */
+  const parts = [];
+  let total = 0;
+  /* Segmente stehen in der Reihenfolge, in der sie im Clip kommen. Eine
+     feste Liste waere hier falsch: "vorher" gibt es nur in einer Vorlage. */
+  const segments = Array.isArray(record.segments) ? record.segments : [];
+  segments.forEach(function (segment) { total += segment.seconds || 0; });
+  segments.forEach(function (segment) {
+    const share = total ? Math.round((segment.seconds / total) * 100) : 0;
+    const label = {
+      hook: "Frage", vorher: "Schulweg", reveal: "Reveal",
+      pause: "Denkpause", solution: "Auflösung", endcard: "Endcard"
+    }[segment.id] || segment.id;
+    const title = label + " — " + segment.seconds + " s";
+    parts.push("<div class=\"part\" style=\"flex:" + Math.max(share, 4) + "\" title=\""
+      + escapeHtml(title) + "\"><span>" + escapeHtml(label) + " "
+      + escapeHtml(String(segment.seconds)) + "s</span></div>");
+  });
+
+  const shown = source.exerciseIndex === undefined ? (record.index || 0) : source.exerciseIndex;
+
+  const rows = [
+    ["Seed (Wiederholbar)", String(source.seed)],
+    ["Schwierigkeitsstufe", String(source.difficulty)],
+    ["Aufgaben in der Episode", String(source.exerciseCount)],
+    ["Gezeigte Aufgabe", (Number(shown) + 1) + ". von " + (source.exerciseCount || "?")],
+    ["Hook-Vorlage", String(record.hook || source.hook || "frage")],
+    ["Format", tech.stage ? tech.stage.width + " × " + tech.stage.height : "—"],
+    ["Dauer", String(tech.durationSeconds) + " s"],
+    ["Bilder", String(tech.frameCount) + " Frames"],
+    ["Bildrate", String(tech.fps || "—") + " fps"],
+    ["Gegengeprüft", tech.verified ? "ja" : "nein"],
+    ["Codec", tech.codecs ? tech.codecs.video + " / " + tech.codecs.pixFmt : "—"],
+    ["Ton", tech.codecs ? (tech.codecs.audio ? "ja" : "nein (stumm)") : "—"],
+    ["Status", String(record.status)],
+    ["Freigegeben am", record.releasedAt ? String(record.releasedAt) : "noch nicht"],
+    ["Clip-Prüfsumme", String(tech.clipSha256 || "—").slice(0, 16)],
+    ["Frame-Prüfsumme", String(tech.frameSetSha256 || "—").slice(0, 16)]
+  ];
+  const facts = rows.map(function (row) {
+    return "<dt>" + escapeHtml(row[0]) + "</dt><dd>" + escapeHtml(row[1]) + "</dd>";
+  }).join("");
+
+  const player = hasVideo
+    ? "<video controls playsinline preload=\"metadata\" poster=\"\" src=\"/v/" + encodeURIComponent(slug)
+      + "?token=" + encodeURIComponent(opts.token) + "\"></video>"
+      + "<p class=\"meta\" style=\"margin:10px 0 0\">"
+      + "<a download=\"" + escapeHtml(slug) + ".mp4\" href=\"/v/" + encodeURIComponent(slug)
+      + "?token=" + encodeURIComponent(opts.token) + "\">MP4 herunterladen</a> · "
+      + "<a href=\"/e/" + encodeURIComponent(slug) + "?token=" + encodeURIComponent(opts.token)
+      + "\">Zur Freigabe</a></p>"
+    : "<p class=\"unvollstaendig\">In dieser Episode liegt kein MP4. "
+      + "Deshalb gibt es hier nichts zu pruefen.</p>";
+
+  return page(opts,
+    "<h1>Vorschau — " + escapeHtml(slug) + "</h1>"
+    + "<p class=\"meta\">Episode in der Warteschlange</p>"
+    + "<div class=\"two\">"
+    + "<div class=\"card\"><h2>Clip</h2><div class=\"player\">" + player + "</div>"
+    + (parts.length
+      ? "<h2 style=\"margin-top:20px\">Aufbau</h2><div class=\"bar\">" + parts.join("") + "</div>"
+      : "")
+    + "</div>"
+    + "<div>"
+    + "<div class=\"card\"><h2>Angaben</h2><dl>" + facts + "</dl></div>"
+    + "<div class=\"card\"><h2>Caption</h2><pre>" + escapeHtml(record.caption) + "</pre></div>"
+    + "<div class=\"card\"><h2>Hashtags (" + record.hashtags.length + ")</h2><div>" + tags + "</div></div>"
+    + "</div></div>",
+    "freigabe");
 }
 
 function renderIndex(opts) {
   const rows = queue.list(opts.queue);
-  if (!rows.length) {
-    return page(opts, "<h1>Mathemit — Freigabe</h1><div class=\"card\">"
-      + "<p>Die Queue ist leer. Erst mit <code>npm run queue</code> fuellen.</p></div>");
-  }
-  const items = rows.map(function (row) {
-    return "<li><a href=\"/e/" + encodeURIComponent(row.slug) + "?token=" + encodeURIComponent(opts.token)
-      + "\">" + escapeHtml(row.slug) + "</a> — <span class=\"" + row.status + "\">"
-      + escapeHtml(row.status) + "</span>"
-      + (row.gaps.length ? " <em>(" + escapeHtml(row.gaps.join("; ")) + ")</em>" : "") + "</li>";
-  }).join("");
-  return page(opts, "<h1>Mathemit — Freigabe</h1>"
+  const q = "?token=" + encodeURIComponent(opts.token);
+  const head = "<h1>Freigabeliste</h1>"
     + "<p class=\"meta\">" + rows.length + " Episode(en). Nichts davon wird veroeffentlicht; "
-    + "das Posten bleibt manuell.</p><div class=\"card\"><ul>" + items + "</ul></div>");
+    + "das Posten bleibt manuell.</p>";
+
+  if (!rows.length) {
+    return page(opts, head + "<div class=\"card\"><p>Die Queue ist leer. "
+      + "Ein Lauf aus der Werkstatt fuellt sie automatisch.</p></div>", "freigabe");
+  }
+
+  /* Jede Zeile fuehrt zur Freigabe und zusaetzlich zur grossen Vorschau —
+     ansehen und entscheiden sind zwei verschiedene Handgriffe. */
+  const items = rows.map(function (row) {
+    const base = "/e/" + encodeURIComponent(row.slug) + q;
+    return "<li><a href=\"" + base + "\">" + escapeHtml(row.slug) + "</a>"
+      + " <span class=\"" + row.status + "\">" + escapeHtml(row.status) + "</span>"
+      + (row.gaps.length ? " <em class=\"meta\">(" + escapeHtml(row.gaps.join("; ")) + ")</em>" : "")
+      + "<br><a class=\"small\" href=\"/p/" + encodeURIComponent(row.slug) + q
+      + "\">Vorschau ansehen</a> · <a class=\"small\" href=\"" + base + "\">freigeben</a></li>";
+  }).join("");
+
+  return page(opts, head + "<div class=\"card\"><ul>" + items + "</ul></div>", "freigabe");
 }
 
 function renderEpisode(opts, slug) {
@@ -190,6 +333,8 @@ function renderEpisode(opts, slug) {
   /* Freigabe nur anbieten, wenn die Episode vollstaendig ist — dieselbe
      Bedingung, die queue-episode.js bei --release durchsetzt. */
   const canRelease = record.status === "bereit" && hasVideo;
+  const tech = record.technical || {};
+  const source = record.source || {};
 
   const tags = record.hashtags.map(function (tag) {
     return "<span class=\"tag\">" + escapeHtml(tag) + "</span>";
@@ -205,24 +350,47 @@ function renderEpisode(opts, slug) {
       : "<p class=\"unvollstaendig\">Nicht freigabefaehig: "
         + escapeHtml((record.gaps || []).join("; ") || "unbekannte Luecke") + "</p>";
 
+  /* Jedes Feld wird benannt, statt es dem Fachbegriff zu ueberlassen:
+     "stage", "verified" oder "frameSetSha256" sagt einem Menschen nichts. */
+  const shown = source.exerciseIndex === undefined ? (record.index || 0) : source.exerciseIndex;
+  const shownLabel = (Number(shown) + 1) + ". von " + (source.exerciseCount || "?");
+
+  const rows = [
+    ["Seed (Wiederholbar)", String(source.seed)],
+    ["Schwierigkeitsstufe", String(source.difficulty)],
+    ["Aufgaben in der Episode", String(source.exerciseCount)],
+    ["Gezeigte Aufgabe", shownLabel],
+    ["Hook-Vorlage", String(record.hook || source.hook || "frage")],
+    ["Format", tech.stage ? tech.stage.width + " × " + tech.stage.height : "—"],
+    ["Dauer", String(tech.durationSeconds) + " s"],
+    ["Bilder", String(tech.frameCount) + " Frames"],
+    ["Gegengeprüft", tech.verified ? "ja" : "nein"],
+    ["Codec", tech.codecs ? tech.codecs.video + " / " + tech.codecs.pixFmt : "—"],
+    ["Ton", tech.codecs ? (tech.codecs.audio ? "ja" : "nein (stumm)") : "—"],
+    ["Clip-Prüfsumme", String(tech.clipSha256 || "—").slice(0, 16)]
+  ];
+
+  const facts = rows.map(function (row) {
+    return "<dt>" + escapeHtml(row[0]) + "</dt><dd>" + escapeHtml(row[1]) + "</dd>";
+  }).join("");
+
   return page(opts,
     "<h1>" + escapeHtml(slug) + "</h1>"
-    + "<p class=\"meta\"><a href=\"/freigabe?token=" + encodeURIComponent(opts.token) + "\">zurueck</a></p>"
+    + "<p class=\"meta\">Episode in der Warteschlange</p>"
     + "<div class=\"card\"><h2>Video</h2>"
     + (hasVideo
       ? "<video controls playsinline preload=\"metadata\" src=\"/v/" + encodeURIComponent(slug)
         + "?token=" + encodeURIComponent(opts.token) + "\"></video>"
-      : "<p class=\"unvollstaendig\">MP4 fehlt in dieser Episode.</p>")
+        + "<p class=\"meta\" style=\"margin:12px 0 0\"><a href=\"/p/" + encodeURIComponent(slug)
+        + "?token=" + encodeURIComponent(opts.token) + "\">Groesse Vorschau mit allen Angaben oeffnen</a></p>"
+      : "<p class=\"unvollstaendig\">In dieser Episode liegt kein MP4.</p>")
     + "</div>"
     + "<div class=\"card\"><h2>Caption</h2><pre>" + escapeHtml(record.caption) + "</pre></div>"
-    + "<div class=\"card\"><h2>Hashtags</h2><div>" + tags + "</div></div>"
-    + "<div class=\"card\"><h2>Technik</h2><p class=\"meta\">"
-    + escapeHtml(record.technical.stage.width + "x" + record.technical.stage.height)
-    + " · " + escapeHtml(String(record.technical.durationSeconds)) + " s · "
-    + escapeHtml(String(record.technical.frameCount)) + " Frames · Seed "
-    + escapeHtml(String(record.source.seed)) + "</p>"
-    + "<p class=\"" + record.status + "\">Status: " + escapeHtml(record.status) + "</p>"
-    + action + "</div>");
+    + "<div class=\"card\"><h2>Hashtags (" + record.hashtags.length + ")</h2><div>" + tags + "</div></div>"
+    + "<div class=\"card\"><h2>Angaben</h2><dl>" + facts + "</dl>"
+    + "<p class=\"" + record.status + "\" style=\"margin-top:14px\">Status: " + escapeHtml(record.status) + "</p>"
+    + action + "</div>",
+    "freigabe");
 }
 
 /*
@@ -277,15 +445,24 @@ function studioScript() {
     "  }",
     "  if (s.hook) { $('hook').value = s.hook; }",
     "  var t = s.toolchain || {};",
-    "  facts([['ffmpeg', t.ffmpeg ? 'gefunden' : 'FEHLT'],",
-    "    ['Chrome', t.chrome ? 'gefunden' : 'FEHLT'],",
-    "    ['Aufgaben', String(s.episodeCount || 0)],",
+    "  var ok = [['ffmpeg', t.ffmpeg ? 'gefunden' : 'FEHLT'],",
+    "    ['Chrome', t.chrome ? 'gefunden' : 'FEHLT']];",
+    "  /* Die Werkzeugkarte wird nur gezeigt, wenn etwas fehlt. Eine leere",
+    "     Karte sieht nach Fehler aus und lenkt vom eigentlichen Zustand ab. */",
+    "  var missing = ok.filter(function (row) { return row[1] === 'FEHLT'; });",
+    "  var box = $('tools').parentNode;",
+    "  setHtml($('tools'), ok.map(function (row) {",
+    "    return '<dt>' + esc(row[0]) + '</dt><dd class=\"'",
+    "      + (row[1] === 'FEHLT' ? 'unvollstaendig' : 'bereit') + '\">' + esc(row[1]) + '</dd>';",
+    "  }).join(''));",
+    "  box.hidden = !missing.length;",
+    "  facts([['Aufgaben', String(s.episodeCount || 0)],",
     "    ['Clip', s.hasVideo ? (Math.round((s.videoBytes || 0) / 1024) + ' KB') : '—'],",
-    "    ['Frames', s.report ? String(s.report.frameCount) : '—'],",
+    "    ['Bilder', s.report ? String(s.report.frameCount) : '—'],",
     "    ['Dauer', s.report ? s.report.durationSeconds + ' s' : '—'],",
-    "    ['Format', s.clipManifest ? s.clipManifest.width + 'x' + s.clipManifest.height : '—'],",
-    "    ['Gegengeprueft', s.report ? (s.report.verified ? 'ja' : 'nein') : '—'],",
-    "    ['Exit-Code', s.lastExitCode == null ? '—' : String(s.lastExitCode)]]);",
+    "    ['Format', s.clipManifest ? s.clipManifest.width + ' × ' + s.clipManifest.height : '—'],",
+    "    ['Gegengeprüft', s.report ? (s.report.verified ? 'ja' : 'nein') : '—'],",
+    "    ['Letzter Lauf', s.lastExitCode == null ? '—' : (s.lastExitCode === 0 ? 'erfolgreich' : 'Fehler ' + s.lastExitCode)]]);",
     "  setHtml($('queue'), (s.queue || []).length ? s.queue.map(function (q) {",
     "    var cls = q.status === 'freigegeben' ? 'ok' : (q.status === 'bereit' ? 'run' : 'bad');",
     "    return '<li><a href=\"/e/' + encodeURIComponent(q.slug) + '?token=' + encodeURIComponent(TOKEN) + '\">'",
@@ -298,9 +475,20 @@ function studioScript() {
     "      lastVideo = url;",
     "      setHtml($('preview'), '<video controls playsinline preload=\"metadata\" src=\"' + url + '\"></video>');",
     "    }",
+    "    /* P7.5 — Der Weg in die grosse Vorschau und von dort weiter. Ohne den",
+    "       Link muesste man den Clip erst herunterladen, um ihn zu pruefen. */",
+    "    var ready = (s.queue || []).filter(function (q) { return q.status !== 'unvollstaendig'; });",
+    "    var slug = ready.length ? ready[ready.length - 1].slug : null;",
+    "    if (slug) {",
+    "      setHtml($('previewLink'), '<a href=\"/p/' + encodeURIComponent(slug) + '?token='",
+    "        + encodeURIComponent(TOKEN) + '\">Groesse Vorschau mit allen Angaben</a>');",
+    "    } else {",
+    "      setHtml($('previewLink'), 'Die grosse Vorschau erscheint, sobald der Lauf in der Warteschlange steht.');",
+    "    }",
     "  } else if (lastVideo) {",
     "    lastVideo = '';",
     "    setHtml($('preview'), '<p class=\"note\">Noch kein Clip vorhanden.</p>');",
+    "    setHtml($('previewLink'), '');",
     "  }",
     "}",
     "function poll() {",
@@ -325,10 +513,7 @@ function studioScript() {
 
 function renderStudio(opts) {
   const tokenQuery = "token=" + encodeURIComponent(opts.token);
-  return [
-    "<!doctype html><html lang=\"de\"><head><meta charset=\"utf-8\">",
-    "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">",
-    "<title>Mathemit — Videowerkstatt</title>",
+  const body = [
     "<style>",
     ":root{--bg:#f2f5f9;--card:#fff;--ink:#1f2e45;--muted:#5b6b82;--line:#dde4ee;",
     "--go:#1f7a4d;--stop:#b4341f;--warn:#8a5a0b}",
@@ -364,34 +549,49 @@ function renderStudio(opts) {
     ".note{font-size:13px;color:var(--muted);margin-top:10px}",
     "</style></head><body>",
     "<header><h1>Mathemit — Videowerkstatt</h1>",
-    "<span class=\"muted\" id=\"state\"></span>",
-    "<a href=\"/freigabe?" + tokenQuery + "\">Zur Freigabeliste</a></header>",
+    "<span class=\"pill\" id=\"state\"></span></header>",
     "<div class=\"grid\"><div>",
     "<section class=\"card\"><h2>Neuen Clip erzeugen</h2>",
     "<form id=\"startForm\">",
-    "<label for=\"seed\">Seed (leer lassen = heute)</label>",
-    "<input id=\"seed\" name=\"seed\" placeholder=\"gui-20260927\" autocomplete=\"off\">",
-    "<label for=\"hook\">Hook-Vorlage</label><select id=\"hook\" name=\"hook\"></select>",
-    "<div class=\"row\"><div><label for=\"count\">Aufgaben</label>",
-    "<select id=\"count\" name=\"count\"><option>3</option><option>4</option><option>5</option></select></div>",
-    "<div><label for=\"index\">Aufgabe</label>",
-    "<select id=\"index\" name=\"index\"><option>0</option><option>1</option><option>2</option></select></div></div>",
+    /* Jedes Feld benennt, was es tut. "Seed" und "Index" sagen einem
+       Menschen nichts — der Hilfstext darunter schon. */
+    "<label for=\"seed\">Seed — bestimmt den Aufgaben-Inhalt</label>",
+    "<input id=\"seed\" name=\"seed\" placeholder=\"leer lassen = heutiges Datum\" autocomplete=\"off\">",
+    "<p class=\"note\">Gleicher Seed erzeugt denselben Clip. Leer bedeutet: einer für heute.</p>",
+    "<label for=\"hook\">Hook — der erste Eindruck</label>",
+    "<select id=\"hook\" name=\"hook\"></select>",
+    "<p class=\"note\">Legt Überschrift, Einstieg und Länge des Clips fest.</p>",
+    "<div class=\"row\"><div>",
+    "<label for=\"count\">Aufgaben in der Episode</label>",
+    "<select id=\"count\" name=\"count\"><option>3</option><option>4</option><option>5</option></select>",
+    "<p class=\"note\">Wählt der Reihenfolge nach, welche davon im Clip landen.</p></div>",
+    "<div><label for=\"index\">Davon im Clip zeigen</label>",
+    "<select id=\"index\" name=\"index\"><option value=\"0\">die 1.</option>",
+    "<option value=\"1\">die 2.</option><option value=\"2\">die 3.</option></select>",
+    "<p class=\"note\">Das Clip zeigt genau eine dieser Aufgaben.</p></div></div>",
     "<button type=\"submit\" id=\"go\">Clip erzeugen</button>",
     "<button type=\"button\" class=\"stop\" id=\"kill\" hidden>Lauf abbrechen</button>",
     "</form><p class=\"note\">Dauert etwa eine Minute. Es läuft immer nur ein Auftrag.</p></section>",
     "<section class=\"card\"><h2>Vorschau</h2>",
-    "<div id=\"preview\"><p class=\"note\">Noch kein Clip vorhanden.</p></div></section>",
+    "<div id=\"preview\"><p class=\"note\">Noch kein Clip vorhanden.</p></div>",
+    "<p class=\"note\" id=\"previewLink\"></p></section>",
     "<section class=\"card\"><h2>Protokoll</h2><pre id=\"log\">(noch nichts)</pre></section>",
     "</div><div>",
-    "<section class=\"card\"><h2>Zustand</h2><dl id=\"facts\"></dl></section>",
-    "<section class=\"card\"><h2>Werkzeug</h2><dl id=\"tools\"></dl></section>",
-    "<section class=\"card\"><h2>Queue</h2><ul id=\"queue\"><li class=\"note\">leer</li></ul></section>",
+    "<section class=\"card\"><h2>Zustand des letzten Laufs</h2><dl id=\"facts\"></dl></section>",
+    "<section class=\"card\"><h2>Werkzeug auf diesem Rechner</h2><dl id=\"tools\"></dl></section>",
+    "<section class=\"card\"><h2>Warteschlange</h2>",
+    "<p class=\"note\">Nach jedem Lauf landet der Clip hier. Klick führt zur Freigabe.</p>",
+    "<ul id=\"queue\"><li class=\"note\">leer</li></ul></section>",
     "</div></div>",
     "<script>",
     "var TOKEN=" + JSON.stringify(opts.token) + ";",
     studioScript(),
-    "</script></body></html>"
+    "</script>"
   ].join("");
+  /* Die Werkstatt nutzt page(), damit die Navigation aus derselben Quelle
+     kommt wie auf den Freigabeseiten. Ihr eigenes CSS steht als erster
+     Block im Rumpf und ueberschreibt das der Seite. */
+  return page(opts, body, "studio");
 }
 /* Nur MP4 wird ausgeliefert — keine beliebigen Dateien aus dem Queue-Ordner. */
 function sendVideo(opts, res, slug) {
@@ -499,6 +699,12 @@ function createServer(opts) {
       }
       if (req.method === "GET" && url.pathname.startsWith("/e/")) {
         sendHtml(res, 200, renderEpisode(opts, decodeURIComponent(url.pathname.slice(3))));
+        return;
+      }
+      /* P7.5 — Die grosse Vorschau. Bewusst vor /e/, damit "/p/x" nicht
+         versehentlich als Episodenname "p" missverstanden wuerde. */
+      if (req.method === "GET" && url.pathname.startsWith("/p/")) {
+        sendHtml(res, 200, renderPreview(opts, decodeURIComponent(url.pathname.slice(3))));
         return;
       }
       if (req.method === "GET" && url.pathname.startsWith("/v/")) {

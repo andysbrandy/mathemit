@@ -116,12 +116,27 @@ npm run review
 Im Browser (Link aus dem Terminal, funktioniert auch am Handy im WLAN):
 
 - **Clip erzeugen** — Seed (leer = heute), Hook-Vorlage, Aufgabenzahl. Dauert etwa eine Minute.
-- **Status** — läuft / bereit / kein Clip, dazu ffmpeg- und Chrome-Verfügbarkeit, Frame-Zahl, Dauer, Format und ob gegengeprüft wurde.
-- **Vorschau** — der fertige Clip läuft direkt im Player, ohne ihn erst herunterladen zu müssen.
+- **Status** — läuft / bereit / kein Clip, dazu Frame-Zahl, Dauer, Format und ob gegengeprüft wurde. Die Karte „Werkzeug" erscheint nur, wenn ffmpeg oder Chrome fehlen.
+- **Vorschau** — der fertige Clip läuft direkt im Player, ohne ihn erst herunterladen zu müssen. Darunter führt ein Link zur großen Vorschau.
 - **Protokoll** — die Ausgabe des Laufs, live mitlaufend.
-- **Queue** — alle Episoden mit Status, Klick führt zur Freigabeseite.
+- **Warteschlange** — alle Episoden mit Status, Klick führt zur Freigabeseite.
+
+Jedes Eingabefeld trägt eine Bezeichnung, die sagt, was es bewirkt, und darunter einen Hilfetext. „Seed", „Index" oder „Hook" allein sagen einem Menschen nichts; „Davon im Clip zeigen" mit dem Wert „die 1." schon.
 
 Nach dem Lauf liegt das Material automatisch in der Queue; freigegeben wird weiterhin **manuell** auf der Freigabeseite.
+
+### Drei Seiten, immer zurück
+
+| Seite | Adresse | Inhalt |
+| --- | --- | --- |
+| Werkstatt | `/` | Lauf starten, Status, Vorschau, Protokoll, Warteschlange |
+| Freigabeliste | `/freigabe` | alle Episoden mit zwei Wegen je Zeile: Vorschau und Freigabe |
+| Vorschau | `/p/<slug>` | Clip groß, alle Angaben, Aufbau-Zeitleiste, Caption, Hashtags |
+| Freigabe | `/e/<slug>` | Clip, Caption, Hashtags, Angaben, Freigabeknopf |
+
+Oben auf jeder Seite steht dieselbe Leiste mit „Werkstatt" und „Freigabeliste"; der aktuelle Eintrag ist markiert. Von jeder Seite kommt man damit direkt zur Werkstatt zurück — auch wenn jemand einen Episodenlink direkt öffnet. Ohne diese Leiste wäre die Episodenseite eine Sackgasse, weil der einzige Rückweg über die Freigabeliste führte.
+
+Die große Vorschau zeigt zusätzlich den **Aufbau** des Clips als Balken im Verhältnis der tatsächlichen Dauer: Frage, Reveal, Denkpause, Auflösung, Endcard. Damit lässt sich der Rhythmus prüfen, ohne den Clip Bild für Bild durchzugehen. Der Ton startet nicht von selbst.
 
 Drei Eigenschaften, die bewusst so gebaut sind:
 

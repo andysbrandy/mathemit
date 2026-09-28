@@ -34,9 +34,13 @@ function makeQueue(dir) {
 }
 
 /* Startet den Server auf einem freien Port und liefert eine Anfrage-Hilfe. */
-function withServer(dir, body) {
+function withServer(dir, body, withStudio) {
   return new Promise(function (resolve, reject) {
-    const opts = { queue: dir, port: 0, host: "127.0.0.1", token: TOKEN };
+    /*
+     * withStudio schaltet die Laufsteuerung frei. Ohne sie liefert "/" die
+     * Freigabeliste — das ist gewollt (--list-only) und wird getestet.
+     */
+    const opts = { queue: dir, port: 0, host: "127.0.0.1", token: TOKEN, open: !!withStudio };
     const server = review.createServer(opts);
     server.on("error", reject);
     server.listen(0, "127.0.0.1", function () {
@@ -139,8 +143,14 @@ function testRendersEpisode() {
     assert.equal(detail.status, 200);
     assert.match(detail.body, /Testcaption/, "die Caption fehlt");
     assert.match(detail.body, /#a/, "die Hashtags fehlen");
-    assert.match(detail.body, /1080x1920/, "die Technikdaten fehlen");
+    /* P7.5 — Die Felder sind benannt statt als Fachbegriff ausgewiesen. */
+    assert.match(detail.body, /1080x1920|1080 × 1920/, "die Aufloesung fehlt");
+    assert.match(detail.body, /Format/, "die Felder haben keine Bezeichnung");
+    assert.match(detail.body, /Dauer/, "die Dauer hat keine Bezeichnung");
     assert.match(detail.body, /Freigeben/, "die Freigabemoeglichkeit fehlt");
+    /* Von jeder Seite kommt man ueber die Leiste zurueck. */
+    assert.match(detail.body, /class="nav"/, "die Navigation fehlt auf der Episodenseite");
+    assert.match(detail.body, /href="\/\?token=/, "die Navigation fuehrt nicht zur Werkstatt");
 
     const video = await request("GET", "/v/voll?token=" + TOKEN);
     assert.equal(video.status, 200);
@@ -175,6 +185,53 @@ function testReleaseRules() {
 }
 
 /* 6 — HTML wird entschaerft und fremde Slugs abgewiesen. */
+
+/* 7 — P7.5: Von jeder Seite kommt man zurueck zur Werkstatt. */
+function testNavigationReturnsHome() {
+  const dir = makeQueue(fs.mkdtempSync(path.join(os.tmpdir(), "mathemit-rev-nav-")));
+  return withServer(dir, async function (request) {
+    /* true = mit Laufsteuerung. Ohne sie waere "/" nur die Freigabeliste. */
+    const start = await request("GET", "/?token=" + TOKEN);
+    assert.equal(start.status, 200, "die Werkstatt liefert keinen Erfolg");
+    assert.match(start.body, /<h1[^>]*>Mathemit — Videowerkstatt</,
+      "die Werkstatt rendert nicht");
+    assert.match(start.body, /class="nav"/, "die Werkstatt hat keine Leiste");
+    assert.match(start.body, />Werkstatt</, "der Eintrag zur Werkstatt fehlt");
+    assert.match(start.body, />Freigabeliste</, "der Eintrag zur Freigabeliste fehlt");
+    /* Die Formularfelder muessen benannt sein, nicht nur technisch heissen. */
+    ["Seed", "Hook", "Aufgaben in der Episode", "Davon im Clip zeigen"].forEach(function (label) {
+      assert.ok(start.body.indexOf(label) !== -1, "die Felderbezeichnung fehlt: " + label);
+    });
+    assert.match(start.body, /previewLink/, "der Weg in die grosse Vorschau fehlt");
+
+    const list = await request("GET", "/freigabe?token=" + TOKEN);
+    assert.match(list.body, /href="\/\?token=/, "von der Freigabeliste geht es nicht zurueck");
+    assert.match(list.body, /href="\/freigabe\?token=/, "der Listeneintrag markiert sich nicht selbst");
+
+    const episode = await request("GET", "/e/voll?token=" + TOKEN);
+    assert.match(episode.body, /href="\/\?token=/,
+      "von der Episodenseite geht es nicht zurueck");
+
+    /* Und die grosse Vorschau ist von beiden Seiten erreichbar. */
+    const preview = await request("GET", "/p/voll?token=" + TOKEN);
+    assert.equal(preview.status, 200, "die grosse Vorschau fehlt");
+    assert.match(preview.body, /class="nav"/, "die Vorschau hat keine Leiste");
+    assert.match(preview.body, /href="\/e\/voll\?token=/, "von der Vorschau geht es nicht zur Freigabe");
+    assert.match(preview.body, /Testcaption/, "die Vorschau zeigt die Caption nicht");
+  }, true).then(function () { fs.rmSync(dir, { recursive: true, force: true }); });
+}
+
+/* 8 — Die Vorschau einer lueckenhaften Episode sagt das auch. */
+function testPreviewWithoutVideo() {
+  const dir = makeQueue(fs.mkdtempSync(path.join(os.tmpdir(), "mathemit-rev-pv-")));
+  return withServer(dir, async function (request) {
+    const preview = await request("GET", "/p/kaputt?token=" + TOKEN);
+    assert.equal(preview.status, 200, "die Vorschau bricht statt zu erklaeren ab");
+    assert.match(preview.body, /kein MP4/, "es wird nicht gesagt, dass der Clip fehlt");
+    assert.doesNotMatch(preview.body, /<video/, "es wird ein Player ohne Datei gezeigt");
+  }).then(function () { fs.rmSync(dir, { recursive: true, force: true }); });
+}
+
 function testEscapesHtml() {
   assert.equal(review.escapeHtml("<script>"), "&lt;script&gt;");
   assert.equal(review.escapeHtml("a & b"), "a &amp; b");
@@ -194,7 +251,9 @@ const tests = [
   testPathSafety,
   testRendersEpisode,
   testReleaseRules,
-  testEscapesHtml
+  testEscapesHtml,
+  testNavigationReturnsHome,
+  testPreviewWithoutVideo
 ];
 
 (async function () {

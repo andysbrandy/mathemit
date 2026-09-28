@@ -191,6 +191,8 @@ queue-episode.js     ──▶  work/queue/<slug>/        Caption, Hashtags, See
 6. Video + Caption + Hashtag-Set in eine **Warteschlange** ablegen → ✅ `queue-episode.js`
 7. **Kurze manuelle Freigabe** (30 Sek. anschauen, ok?) → dann auf **allen 3 Kanälen gleichzeitig** posten (gleiches Asset, kein Mehraufwand) → ⬜ manuell, 7.5
 
+**Bedienoberfläche (P7.5):** `npm run review` bündelt alles in einer lokalen Werkstatt — Lauf starten, Status, Vorschau, Protokoll und Warteschlange auf einer Seite; die Freigabe mit dem Clip daneben. Vier Seiten, auf allen eine Leiste zurück zur Werkstatt, damit kein Link eine Sackgasse ist. Die große Vorschau zeigt den Clip mit allen technischen Angaben und dem Aufbau als Zeitleiste, damit der Rhythmus ohne Durchsehen prüfbar ist. Jedes Feld ist für Menschen beschriftet, nicht nach seinem internen Namen. Bewusst ohne Framework und ohne Build: das Werkzeug läuft neben dem Server aus einem Quellbaum, eine Abhängigkeit nur für eine Seite wäre Aufwand ohne Gegenwert.
+
 **Stack:** Puppeteer + ffmpeg, alles kostenlos — kein bezahlter Dienst nötig.
 
 #### 🪝 Hook-Formate (für 10–14 nachweislich wirksam)

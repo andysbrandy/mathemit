@@ -261,11 +261,29 @@ function buildRecord(opts, episode, report, clipManifest, frameManifest) {
       frameSetSha256: report.frameSetSha256,
       clipSha256: report.clipSha256,
       clipBytes: report.clipBytes,
+      fps: report.fps || (clipManifest && clipManifest.fps) || null,
       stage: report.stage,
       codecs: report.codecs,
       measuredSegments: report.measuredSegments,
       verified: report.verified
     },
+    /*
+     * P7.5 — Die Segmentaufteilung wandert mit in die Queue. Ohne sie kann die
+     * Vorschau nicht zeigen, was wann passiert, und der Nutzer muesste den
+     * Aufbau des Clips am Bild abzaehlen.
+     */
+    segments: frameManifest && Array.isArray(frameManifest.segments)
+      ? frameManifest.segments.map(function (segment) {
+        return {
+          id: segment.id,
+          label: segment.label,
+          seconds: segment.seconds,
+          fromFrame: segment.fromFrame,
+          toFrame: segment.toFrame
+        };
+      })
+      : [],
+    hook: frameManifest && frameManifest.hook ? frameManifest.hook : null,
     artifacts: { video: VIDEO_NAME, manifest: MANIFEST_NAME },
     gaps: gaps
   };

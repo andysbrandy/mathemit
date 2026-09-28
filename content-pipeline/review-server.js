@@ -56,7 +56,7 @@ function usage() {
     "  --port <nummer>        Port (Standard: " + DEFAULT_PORT + ")",
     "  --host <adresse>       Nur an diese Adresse binden (Standard: alle)",
     "  --token <text>         Freigabe-Token; ohne Angabe wird eines erzeugt",
-    "  --open                Browser-Oberflaeche (Standard: nur die Freigabeliste)",
+    "  --open                Oberflaeche mit Laufsteuerung (Standard: an)",
     "  --help                 Diese Hilfe anzeigen"
   ].join("\n");
 }

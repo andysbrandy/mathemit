@@ -204,23 +204,24 @@ function testNavigationReturnsHome() {
     ["Seed", "Hook", "Aufgaben in der Episode", "Davon im Clip zeigen"].forEach(function (label) {
       assert.ok(start.body.indexOf(label) !== -1, "die Felderbezeichnung fehlt: " + label);
     });
-    assert.match(start.body, /previewLink/, "der Weg in die grosse Vorschau fehlt");
-    assert.match(start.body, /previewRest/, "der Ausbau der Vorschau fehlt");
-    /* Die Vorschau hat eine eigene Spalte. Vorher stand sie unter dem
-       Formular und war erst nach langem Scrollen zu sehen. */
-    assert.match(start.body, /class="player" id="preview"/,
-      "die Vorschau hat keine eigene Player-Flaeche");
-    assert.match(start.body, /function preview\(s\)/,
-      "die Vorschau zeichnet ihre Angaben nicht selbst");
-    assert.match(start.body, /SEGNAMEN/, "die Segmentbezeichnungen fehlen");
-    assert.match(start.body, /<div class="col3">/,
-      "die dritte Spalte fehlt");
-    assert.match(start.body, /<div class="col2">/,
-      "die Vorschau hat keine eigene Spalte");
-    assert.match(start.body, /class="leer"/,
-      "es fehlt ein Platzhalter fuer den Zustand ohne Clip");
-    assert.match(start.body, /max-height:min\(66vh/,
-      "die Player-Hoehe haengt nicht am Sichtbereich");
+    /*
+     * P7.5 — Auf der Startseite gibt es keinen Player mehr. Der Clip wird
+     * ueber die Warteschlange angesehen. Diese Pruefungen halten fest, dass
+     * die Vorschau dort auch nicht zurueckkehrt.
+     */
+    assert.doesNotMatch(start.body, /id="preview"/,
+      "die Vorschau ist auf der Startseite wieder da");
+    assert.doesNotMatch(start.body, /<video/,
+      "die Startseite liefert wieder einen Player aus");
+    assert.doesNotMatch(start.body, /previewRest|previewLink|SEGNAMEN/,
+      "Reste der Vorschau sind noch im Skript");
+    assert.doesNotMatch(start.body, /function preview\(/,
+      "die Vorschau zeichnet sich noch selbst");
+    assert.doesNotMatch(start.body, /col2|col3/,
+      "die Spalten der Vorschau sind noch da");
+    /* Der Weg zum Clip muss trotzdem offen bleiben: ueber die Warteschlange. */
+    assert.match(start.body, /\/p\//,
+      "von der Startseite fuehrt kein Weg mehr zum Clip");
 
     const list = await request("GET", "/freigabe?token=" + TOKEN);
     assert.match(list.body, /href="\/\?token=/, "von der Freigabeliste geht es nicht zurueck");

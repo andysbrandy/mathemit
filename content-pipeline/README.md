@@ -116,7 +116,6 @@ npm run review
 Im Browser (Link aus dem Terminal, funktioniert auch am Handy im WLAN):
 
 - **Clip erzeugen** — Seed (leer = heute), Hook-Vorlage, Aufgabenzahl. Dauert etwa eine Minute.
-- **Vorschau** — der fertige Clip läuft direkt im Player, ohne ihn erst herunterladen zu müssen. Die Karte steht in der **mittleren Spalte**, nicht unter dem Formular: der Clip ist das Ergebnis des Laufs und soll ohne Scrollen im Bild sein. Unter dem Player folgen der Aufbau als Zeitleiste, die Kennzahlen, Caption und Hashtags — dazu die Wege „Alle Angaben", „Zur Freigabe" und „MP4 laden".
 - **Protokoll** — die Ausgabe des Laufs, live mitlaufend.
 - **Zustand und Warteschlange** — rechte Spalte: Frame-Zahl, Dauer, Format, ob gegengeprüft wurde. Die Karte „Werkzeug" erscheint nur, wenn ffmpeg oder Chrome fehlen.
 
@@ -124,25 +123,15 @@ Jedes Eingabefeld trägt eine Bezeichnung, die sagt, was es bewirkt, und darunte
 
 Nach dem Lauf liegt das Material automatisch in der Queue; freigegeben wird weiterhin **manuell** auf der Freigabeseite.
 
-### Wie die Werkstatt aufgebaut ist
+### Kein Player auf der Startseite
 
-Drei Spalten, damit nichts untereinander verschwindet:
+Die Startseite zeigt **keinen Videoplayer**. Sie startet Läufe und zeigt den Zustand; den Clip sieht man über die Warteschlange auf `/p/<slug>`. Bewusst so: die Startseite bleibt eine reine Steuerung, und der Clip ist an einer Stelle zu prüfen statt an zweien.
 
-| Breite | Anordnung |
-| --- | --- |
-| über 1280 px | Formular · Vorschau · Zustand + Warteschlange |
-| 900–1280 px | Formular · Vorschau — Zustand darunter über die volle Breite |
-| unter 900 px (Handy) | **Vorschau zuerst**, dann Formular, dann Zustand |
-
-Die Höhe des Players hängt am Sichtbereich (`min(66vh, 620px)`). Ohne diese Begrenzung reicht der Clip auf dem Handy über den Bildschirm hinaus und man sieht nur die oberste Hälfte. Auf dem Handy steht die Vorschau bewusst oben: nach einem Lauf will man das Ergebnis sehen, nicht erst das Formular darüber wegschieben.
-
-Ohne fertigen Clip zeigt die Vorschau einen Platzhalter und sagt, dass die weiteren Angaben erscheinen, sobald der Lauf in der Warteschlange steht.
-
-### Drei Seiten, immer zurück
+### Vier Seiten, immer zurück
 
 | Seite | Adresse | Inhalt |
 | --- | --- | --- |
-| Werkstatt | `/` | Lauf starten, Status, Vorschau, Protokoll, Warteschlange |
+| Werkstatt | `/` | Lauf starten, Protokoll, Zustand, Warteschlange — **ohne Player** |
 | Freigabeliste | `/freigabe` | alle Episoden mit zwei Wegen je Zeile: Vorschau und Freigabe |
 | Vorschau | `/p/<slug>` | Clip groß, alle Angaben, Aufbau-Zeitleiste, Caption, Hashtags |
 | Freigabe | `/e/<slug>` | Clip, Caption, Hashtags, Angaben, Freigabeknopf |

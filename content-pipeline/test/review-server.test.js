@@ -19,7 +19,9 @@ function makeQueue(dir) {
     schemaVersion: 1, slug: "voll", status: "bereit", releasedAt: null, releasedBy: null,
     caption: "Testcaption", hashtags: ["#a", "#b"],
     source: { seed: "s1", exerciseCount: 1 },
-    technical: { durationSeconds: 16, frameCount: 480, stage: { width: 1080, height: 1920 } },
+    technical: { durationSeconds: 16, frameCount: 480, fps: 30, stage: { width: 1080, height: 1920 },
+      codecs: { video: "h264", pixFmt: "yuv420p", audio: false }, verified: true },
+    segments: [{ id: "hook", seconds: 3 }, { id: "solution", seconds: 4 }],
     artifacts: { video: "clip.mp4", manifest: "episode.json" }, gaps: []
   }));
 
@@ -203,6 +205,22 @@ function testNavigationReturnsHome() {
       assert.ok(start.body.indexOf(label) !== -1, "die Felderbezeichnung fehlt: " + label);
     });
     assert.match(start.body, /previewLink/, "der Weg in die grosse Vorschau fehlt");
+    assert.match(start.body, /previewRest/, "der Ausbau der Vorschau fehlt");
+    /* Die Vorschau hat eine eigene Spalte. Vorher stand sie unter dem
+       Formular und war erst nach langem Scrollen zu sehen. */
+    assert.match(start.body, /class="player" id="preview"/,
+      "die Vorschau hat keine eigene Player-Flaeche");
+    assert.match(start.body, /function preview\(s\)/,
+      "die Vorschau zeichnet ihre Angaben nicht selbst");
+    assert.match(start.body, /SEGNAMEN/, "die Segmentbezeichnungen fehlen");
+    assert.match(start.body, /<div class="col3">/,
+      "die dritte Spalte fehlt");
+    assert.match(start.body, /<div class="col2">/,
+      "die Vorschau hat keine eigene Spalte");
+    assert.match(start.body, /class="leer"/,
+      "es fehlt ein Platzhalter fuer den Zustand ohne Clip");
+    assert.match(start.body, /max-height:min\(66vh/,
+      "die Player-Hoehe haengt nicht am Sichtbereich");
 
     const list = await request("GET", "/freigabe?token=" + TOKEN);
     assert.match(list.body, /href="\/\?token=/, "von der Freigabeliste geht es nicht zurueck");

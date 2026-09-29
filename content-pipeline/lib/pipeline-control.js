@@ -231,6 +231,29 @@ function status() {
   }
 
   /*
+   * P7.5 — Die Vorschau auf der Startseite braucht mehr als den Zustand:
+   * Aufbau, Caption und Hashtags des zuletzt erzeugten Clips. Sie kommen aus
+   * der Queue-Episode, weil der Arbeitsordner nur das gerade Gelaufene kennt
+   * und beim naechsten Lauf ueberschrieben wird.
+   */
+  let latest = null;
+  const usable = queue.filter(function (row) { return row.status !== "unvollstaendig"; });
+  if (usable.length) {
+    const slug = usable[usable.length - 1].slug;
+    const record = readJson(path.join(QUEUE_DIR, slug, "episode.json"));
+    if (record) {
+      latest = {
+        slug: slug,
+        segments: record.segments || [],
+        caption: record.caption || "",
+        hashtags: record.hashtags || [],
+        hook: record.hook || "",
+        technical: record.technical || {}
+      };
+    }
+  }
+
+  /*
    * Der Hook kommt aus den Belegen, nicht aus der Oberflaeche: so zeigt die
    * Seite die Vorlage, mit der der Clip wirklich erzeugt wurde.
    */
@@ -252,6 +275,7 @@ function status() {
     episodeCount: episode && episode.exercises ? episode.exercises.length : 0,
     hook: hook,
     queue: queue,
+    latest: latest,
     hooks: timeline.HOOK_IDS.map(function (id) {
       return {
         id: id,

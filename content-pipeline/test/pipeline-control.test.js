@@ -27,6 +27,16 @@ function testStatusReadsEvidence() {
   assert.doesNotThrow(function () { JSON.parse(JSON.stringify(state)); },
     "der Zustand laesst sich nicht als JSON verschicken");
   assert.ok(Array.isArray(state.queue), "die Queue fehlt im Zustand");
+  /* P7.5 — Die Vorschau auf der Startseite braucht Aufbau, Caption und
+     Hashtags des letzten Clips. Ohne "latest" muesste sie diese Angaben
+     erfinden oder weglassen. */
+  assert.ok("latest" in state, "latest fehlt im Zustand");
+  if (state.latest) {
+    assert.ok(state.latest.slug, "latest ohne slug");
+    assert.ok(Array.isArray(state.latest.segments), "latest.segments fehlt");
+    assert.equal(typeof state.latest.caption, "string", "latest.caption fehlt");
+    assert.ok(Array.isArray(state.latest.hashtags), "latest.hashtags fehlt");
+  }
 
   /* Die Werkzeugkette wird gemeldet, damit die Oberflaeche einen Fehler
      vor dem Lauf zeigen kann statt danach. */

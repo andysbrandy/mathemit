@@ -116,14 +116,27 @@ npm run review
 Im Browser (Link aus dem Terminal, funktioniert auch am Handy im WLAN):
 
 - **Clip erzeugen** — Seed (leer = heute), Hook-Vorlage, Aufgabenzahl. Dauert etwa eine Minute.
-- **Status** — läuft / bereit / kein Clip, dazu Frame-Zahl, Dauer, Format und ob gegengeprüft wurde. Die Karte „Werkzeug" erscheint nur, wenn ffmpeg oder Chrome fehlen.
-- **Vorschau** — der fertige Clip läuft direkt im Player, ohne ihn erst herunterladen zu müssen. Darunter führt ein Link zur großen Vorschau.
+- **Vorschau** — der fertige Clip läuft direkt im Player, ohne ihn erst herunterladen zu müssen. Die Karte steht in der **mittleren Spalte**, nicht unter dem Formular: der Clip ist das Ergebnis des Laufs und soll ohne Scrollen im Bild sein. Unter dem Player folgen der Aufbau als Zeitleiste, die Kennzahlen, Caption und Hashtags — dazu die Wege „Alle Angaben", „Zur Freigabe" und „MP4 laden".
 - **Protokoll** — die Ausgabe des Laufs, live mitlaufend.
-- **Warteschlange** — alle Episoden mit Status, Klick führt zur Freigabeseite.
+- **Zustand und Warteschlange** — rechte Spalte: Frame-Zahl, Dauer, Format, ob gegengeprüft wurde. Die Karte „Werkzeug" erscheint nur, wenn ffmpeg oder Chrome fehlen.
 
 Jedes Eingabefeld trägt eine Bezeichnung, die sagt, was es bewirkt, und darunter einen Hilfetext. „Seed", „Index" oder „Hook" allein sagen einem Menschen nichts; „Davon im Clip zeigen" mit dem Wert „die 1." schon.
 
 Nach dem Lauf liegt das Material automatisch in der Queue; freigegeben wird weiterhin **manuell** auf der Freigabeseite.
+
+### Wie die Werkstatt aufgebaut ist
+
+Drei Spalten, damit nichts untereinander verschwindet:
+
+| Breite | Anordnung |
+| --- | --- |
+| über 1280 px | Formular · Vorschau · Zustand + Warteschlange |
+| 900–1280 px | Formular · Vorschau — Zustand darunter über die volle Breite |
+| unter 900 px (Handy) | **Vorschau zuerst**, dann Formular, dann Zustand |
+
+Die Höhe des Players hängt am Sichtbereich (`min(66vh, 620px)`). Ohne diese Begrenzung reicht der Clip auf dem Handy über den Bildschirm hinaus und man sieht nur die oberste Hälfte. Auf dem Handy steht die Vorschau bewusst oben: nach einem Lauf will man das Ergebnis sehen, nicht erst das Formular darüber wegschieben.
+
+Ohne fertigen Clip zeigt die Vorschau einen Platzhalter und sagt, dass die weiteren Angaben erscheinen, sobald der Lauf in der Warteschlange steht.
 
 ### Drei Seiten, immer zurück
 

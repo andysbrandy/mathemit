@@ -50,6 +50,9 @@ const state = {
   pid: null,
   seed: "",
   hook: "",
+  /* P7.5.2 — Der Index wird mitgehalten, damit die Queue nach dem Lauf
+     dieselbe Aufgabe beschreibt wie der Clip. */
+  index: null,
   startedAt: null,
   finishedAt: null,
   exitCode: null,
@@ -87,10 +90,15 @@ function defaultSeed() {
   return "gui-" + stamp;
 }
 
-/* Die Queue ist ein eigener Schritt nach dem Lauf. */
-function fillQueue() {
+/* Die Queue ist ein eigener Schritt nach dem Lauf. Der Index wird
+   mitgegeben, damit die Caption nicht von einem anderen Aufgabenindex
+   ausgeht als der, der gerendert wurde — queue-episode.js gleicht ihn
+   zusaetzlich mit dem Frame-Manifest ab. */
+function fillQueue(index) {
   try {
-    const result = childProcess.spawnSync(process.execPath, [QUEUE_SCRIPT], {
+    const args = [];
+    if (Number.isInteger(index)) args.push("--index", String(index));
+    const result = childProcess.spawnSync(process.execPath, [QUEUE_SCRIPT].concat(args), {
       cwd: REPO_ROOT,
       encoding: "utf8"
     });
@@ -140,6 +148,7 @@ function start(options) {
   state.pid = null;
   state.seed = seed;
   state.hook = known.id;
+  state.index = index;
   state.startedAt = new Date().toISOString();
   state.finishedAt = null;
   state.exitCode = null;
@@ -195,7 +204,7 @@ function start(options) {
     state.exitCode = code;
     state.finishedAt = new Date().toISOString();
     if (code === 0) {
-      fillQueue();
+      fillQueue(state.index);
     } else {
       pushLog("FEHLER: Der Lauf endete mit Code " + code + ".");
     }

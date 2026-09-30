@@ -18,7 +18,7 @@ function makeQueue(dir) {
   fs.writeFileSync(path.join(dir, "voll", "episode.json"), JSON.stringify({
     schemaVersion: 1, slug: "voll", status: "bereit", releasedAt: null, releasedBy: null,
     caption: "Testcaption", hashtags: ["#a", "#b"],
-    source: { seed: "s1", exerciseCount: 1 },
+    source: { seed: "s1", exerciseCount: 1, exerciseIndex: 0, shownPrompt: "Wie viel ist das?" },
     technical: { durationSeconds: 16, frameCount: 480, fps: 30, stage: { width: 1080, height: 1920 },
       codecs: { video: "h264", pixFmt: "yuv420p", audio: false }, verified: true },
     segments: [{ id: "hook", seconds: 3 }, { id: "solution", seconds: 4 }],
@@ -150,6 +150,9 @@ function testRendersEpisode() {
     assert.match(detail.body, /Format/, "die Felder haben keine Bezeichnung");
     assert.match(detail.body, /Dauer/, "die Dauer hat keine Bezeichnung");
     assert.match(detail.body, /Freigeben/, "die Freigabemoeglichkeit fehlt");
+    /* P7.5.2 — Die Seite nennt die Aufgabe, die im Clip steht. Ohne diesen
+       Beleg blieb nur eine geratene "1." und damit die falsche Caption. */
+    assert.match(detail.body, /Wie viel ist das\?/, "die Frage aus dem Clip fehlt auf der Seite");
     /* Von jeder Seite kommt man ueber die Leiste zurueck. */
     assert.match(detail.body, /class="nav"/, "die Navigation fehlt auf der Episodenseite");
     assert.match(detail.body, /href="\/\?token=/, "die Navigation fuehrt nicht zur Werkstatt");
@@ -203,6 +206,15 @@ function testNavigationReturnsHome() {
     /* Die Formularfelder muessen benannt sein, nicht nur technisch heissen. */
     ["Seed", "Hook", "Aufgaben in der Episode", "Davon im Clip zeigen"].forEach(function (label) {
       assert.ok(start.body.indexOf(label) !== -1, "die Felderbezeichnung fehlt: " + label);
+    });
+    /*
+     * P7.5.2 — Oben sind bis zu fuenf Aufgaben waehlbar, also muss auch
+     * jede davon als "Davon im Clip zeigen" auswaehlbar sein. Vorher endete
+     * die Liste bei der dritten.
+     */
+    [0, 1, 2, 3, 4].forEach(function (value) {
+      assert.ok(start.body.indexOf("<option value=\"" + value + "\">die " + (value + 1) + ".</option>") !== -1,
+        "die Auswahl der Aufgabe " + (value + 1) + " fehlt im Formular");
     });
     /*
      * P7.5 — Auf der Startseite gibt es keinen Player mehr. Der Clip wird

@@ -249,12 +249,19 @@ function renderPreview(opts, slug) {
   });
 
   const shown = source.exerciseIndex === undefined ? (record.index || 0) : source.exerciseIndex;
+  /* P7.5.2 — Gezeigt wird die Aufgabe aus dem Bild. Ohne Beleg wird nichts
+     behauptet: eine erfundene "1." ist genau der Fehler, der zur falschen
+     Caption gefuehrt hat. */
+  const shownLabel = Number.isInteger(shown) && source.exerciseIndex !== undefined
+    ? (shown + 1) + ". von " + (source.exerciseCount || "?")
+    : "unbekannt";
 
   const rows = [
     ["Seed (Wiederholbar)", String(source.seed)],
     ["Schwierigkeitsstufe", String(source.difficulty)],
     ["Aufgaben in der Episode", String(source.exerciseCount)],
-    ["Gezeigte Aufgabe", (Number(shown) + 1) + ". von " + (source.exerciseCount || "?")],
+    ["Gezeigte Aufgabe", shownLabel],
+    ["Frage im Clip", String(source.shownPrompt || "—")],
     ["Hook-Vorlage", String(record.hook || source.hook || "frage")],
     ["Format", tech.stage ? tech.stage.width + " × " + tech.stage.height : "—"],
     ["Dauer", String(tech.durationSeconds) + " s"],
@@ -353,13 +360,17 @@ function renderEpisode(opts, slug) {
   /* Jedes Feld wird benannt, statt es dem Fachbegriff zu ueberlassen:
      "stage", "verified" oder "frameSetSha256" sagt einem Menschen nichts. */
   const shown = source.exerciseIndex === undefined ? (record.index || 0) : source.exerciseIndex;
-  const shownLabel = (Number(shown) + 1) + ". von " + (source.exerciseCount || "?");
+  /* P7.5.2 — Ohne Beleg wird nichts behauptet; siehe die Vorschau. */
+  const shownLabel = Number.isInteger(shown) && source.exerciseIndex !== undefined
+    ? (shown + 1) + ". von " + (source.exerciseCount || "?")
+    : "unbekannt";
 
   const rows = [
     ["Seed (Wiederholbar)", String(source.seed)],
     ["Schwierigkeitsstufe", String(source.difficulty)],
     ["Aufgaben in der Episode", String(source.exerciseCount)],
     ["Gezeigte Aufgabe", shownLabel],
+    ["Frage im Clip", String(source.shownPrompt || "—")],
     ["Hook-Vorlage", String(record.hook || source.hook || "frage")],
     ["Format", tech.stage ? tech.stage.width + " × " + tech.stage.height : "—"],
     ["Dauer", String(tech.durationSeconds) + " s"],
@@ -498,6 +509,16 @@ function studioScript() {
   ].join("\n");
 }
 
+/*
+ * P7.5.2 — Alle Indizes anbieten, die die Epischengroesse erlaubt. Vorher
+ * endete die Liste bei der dritten Aufgabe, obwohl oben bis zu fuenf
+ * Aufgaben gewaehlt werden koennen: die vierte und fuenfte waren gar nicht
+ * auswaehlbar.
+ */
+const INDEX_OPTIONS = [0, 1, 2, 3, 4].map(function (value) {
+  return "<option value=\"" + value + "\">die " + (value + 1) + ".</option>";
+}).join("");
+
 function renderStudio(opts) {
   const tokenQuery = "token=" + encodeURIComponent(opts.token);
   const body = [
@@ -559,9 +580,8 @@ function renderStudio(opts) {
     "<select id=\"count\" name=\"count\"><option>3</option><option>4</option><option>5</option></select>",
     "<p class=\"note\">Wählt der Reihenfolge nach, welche davon im Clip landen.</p></div>",
     "<div><label for=\"index\">Davon im Clip zeigen</label>",
-    "<select id=\"index\" name=\"index\"><option value=\"0\">die 1.</option>",
-    "<option value=\"1\">die 2.</option><option value=\"2\">die 3.</option></select>",
-    "<p class=\"note\">Das Clip zeigt genau eine dieser Aufgaben.</p></div></div>",
+    "<select id=\"index\" name=\"index\">" + INDEX_OPTIONS + "</select>",
+    "<p class=\"note\">Das Clip zeigt genau eine dieser Aufgaben — sie steht später in der Caption.</p></div></div>",
     "<button type=\"submit\" id=\"go\">Clip erzeugen</button>",
     "<button type=\"button\" class=\"stop\" id=\"kill\" hidden>Lauf abbrechen</button>",
     "</form><p class=\"note\">Dauert etwa eine Minute. Es läuft immer nur ein Auftrag.</p></section>",

@@ -64,6 +64,8 @@ function usage() {
     "  --episode <datei.json>   Auswahl mit Seed und Aufgaben",
     "  --queue <verzeichnis>    Ziel der Queue (Standard: content-pipeline/work/queue)",
     "  --slug <text>            Verzeichnisname der Episode (Standard: aus Seed und Index)",
+    "  --index <n>             Aufgabe aus der Episode, die der Clip zeigt",
+    "                          (Standard: aus dem Frame-Manifest)",
     "  --release <verzeichnis>  Bestehende Queue-Episode als freigegeben markieren",
     "  --list <verzeichnis>     Queue mit Status auflisten",
     "  --help                   Diese Hilfe anzeigen"
@@ -78,10 +80,11 @@ function parseArgs(argv) {
     episode: "content-pipeline/work/episode.json",
     queue: "content-pipeline/work/queue",
     slug: "",
+    index: null,
     release: "",
     list: ""
   };
-  const known = ["--clip", "--frames", "--report", "--episode", "--queue", "--slug", "--release", "--list"];
+  const known = ["--clip", "--frames", "--report", "--episode", "--queue", "--slug", "--index", "--release", "--list"];
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === "--help" || arg === "-h") {
@@ -97,8 +100,14 @@ function parseArgs(argv) {
     else if (arg === "--episode") opts.episode = value;
     else if (arg === "--queue") opts.queue = value;
     else if (arg === "--slug") opts.slug = value;
+    else if (arg === "--index") opts.index = Number(value);
     else if (arg === "--release") opts.release = value;
     else if (arg === "--list") opts.list = value;
+  }
+  /* Der Index wird nicht still korrigiert: eine Zahl, die keine ist, ist ein
+     Tippfehler und wird als solcher gemeldet. */
+  if (opts.index !== null && (!Number.isInteger(opts.index) || opts.index < 0)) {
+    fail("Aufgabenindex muss eine ganze Zahl ab 0 sein.");
   }
   if (!opts.release && !opts.list) {
     /* Nur die reinen Lese- und Schreibwege brauchen die Vorgabepfade. */
@@ -143,19 +152,47 @@ function buildSlug(seed, index, given) {
 }
 
 /*
+ * Welche Aufgabe steht im Clip? Der Beleg dafuer ist das Frame-Manifest:
+ * render-frames.js schreibt dort exerciseIndex und generator der Aufgabe, die
+ * tatsaechlich gerendert wurde. Ein --index auf der Kommandozeile darf davon
+ * abweichen — dann wird die Abweichung zur Luecke, statt die Caption still
+ * auf eine andere Aufgabe umzuschreiben.
+ *
+ * Ohne Manifest gibt es keinen Beleg. Dann zaehlt die angegebene Nummer, und
+ * der fehlende Beleg wird als Luecke gemeldet: eine Caption, die sich nicht
+ * belegen laesst, ist keine Grundlage fuer eine Freigabe.
+ */
+function shownExercise(frameManifest, episode, requested) {
+  const count = episode.exercises.length;
+  const fromManifest = frameManifest && Number.isInteger(frameManifest.exerciseIndex)
+    ? frameManifest.exerciseIndex : null;
+  const index = fromManifest === null ? (requested === null ? 0 : requested) : fromManifest;
+  return {
+    index: index,
+    fromManifest: fromManifest,
+    exercise: episode.exercises[index] || null,
+    count: count
+  };
+}
+
+/*
  * Caption. Der Text beschreibt, was im Clip passiert, und endet mit dem
  * App-Hinweis. Bewusst ohne Emoji und ohne Rufzeichen: die Caption ist
  * Arbeitsergebnis, nicht Marketingtext, und soll sich mit der Zeit ohne
  * Nacharbeit lesen lassen.
+ *
+ * Massgeblich ist die Aufgabe, die im Bild steht — nicht die erste der
+ * Auswahl. Der Clip zeigt genau eine Aufgabe, also beschreibt die Caption
+ * genau diese und nennt ihren Platz in der Auswahl mit.
  */
-function buildCaption(episode, report) {
-  const first = episode.exercises[0];
+function buildCaption(shown, episode, report) {
+  const exercise = shown.exercise || episode.exercises[0];
+  const place = shown.count > 1 ? " (Aufgabe " + (shown.index + 1) + " von " + shown.count + ")" : "";
   const lines = [];
-  lines.push(first.prompt);
+  lines.push(exercise.prompt);
   lines.push("");
-  lines.push("In diesem Clip: " + episode.exercises.length + " Aufgabe"
-    + (episode.exercises.length === 1 ? "" : "n")
-    + " aus dem Bereich " + (first.topic || first.category || "Mathe")
+  lines.push("Im Clip: eine Aufgabe" + place + " aus dem Bereich "
+    + (exercise.topic || exercise.category || "Mathe")
     + ", aufgeschluesselt mit Denkpause und vollstaendiger Loesung.");
   lines.push("");
   lines.push(APP_NAME + " — " + APP_URL);
@@ -166,14 +203,12 @@ function buildCaption(episode, report) {
 }
 
 /* Themen der Aufgaben als eigene Tags; doppelte fallen weg. */
-function buildHashtags(episode) {
+function buildHashtags(shown) {
   const tags = BASE_HASHTAGS.slice();
-  episode.exercises.forEach(function (exercise) {
-    const topic = String(exercise.topic || exercise.category || "").trim();
-    if (!topic) return;
-    const tag = "#" + topic.replace(/\s+/g, "");
-    if (tags.indexOf(tag) === -1) tags.push(tag);
-  });
+  const topic = String((shown.exercise.topic || shown.exercise.category) || "").trim();
+  if (!topic) return tags;
+  const tag = "#" + topic.replace(/\s+/g, "");
+  if (tags.indexOf(tag) === -1) tags.push(tag);
   return tags;
 }
 
@@ -188,7 +223,7 @@ function buildHashtags(episode) {
  * sind neu, der Bericht stammt aus einem aelteren Lauf, und die Queue
  * veroeffentlicht Zahlen zu einem Clip, den es so nie gab.
  */
-function collectGaps(episode, report, clipManifest, paths) {
+function collectGaps(episode, report, clipManifest, paths, shown) {
   const gaps = [];
   if (!episode.seed) gaps.push("Auswahl ohne Seed");
   if (!episode.exercises || !episode.exercises.length) gaps.push("Auswahl ohne Aufgaben");
@@ -196,6 +231,29 @@ function collectGaps(episode, report, clipManifest, paths) {
   if (paths.clipMissing) gaps.push("MP4 fehlt");
   if (paths.manifestMissing) gaps.push("Clip-Manifest fehlt auf der Platte");
   if (paths.framesMissing) gaps.push("Frame-Manifest fehlt");
+
+  /*
+   * Die Caption muss die Aufgabe beschreiben, die im Bild steht. Ohne Beleg
+   * ist das nicht nachweisbar; bei Abweichung widerspricht die Caption dem
+   * Clip sichtbar — beides ist keine Freigabegrundlage.
+   */
+  if (shown) {
+    if (shown.fromManifest === null) {
+      gaps.push("Frame-Manifest nennt keinen Aufgabenindex — welche Aufgabe im Clip steht, ist unbelegt");
+    }
+    if (!shown.exercise) {
+      gaps.push("Aufgabe " + (shown.index + 1) + " liegt ausserhalb der Auswahl ("
+        + shown.count + " Aufgaben)");
+    }
+    /* Der Generator im Manifest muss zu der gezeigten Aufgabe passen. Sonst
+       stammt der Clip aus einer anderen Auswahl als die, die daneben liegt. */
+    const shownGenerator = paths.frameGenerator;
+    if (shown.exercise && shownGenerator && shownGenerator !== shown.exercise.generator) {
+      gaps.push("Clip zeigt den Generator " + shownGenerator
+        + ", die Auswahl an dieser Stelle " + shown.exercise.generator
+        + " — Caption und Bild widersprechen sich");
+    }
+  }
 
   const clipFrames = clipManifest ? clipManifest.sourceFrameSetSha256 : null;
   const reportFrames = report.frameSetSha256;
@@ -228,13 +286,15 @@ function writeAtomic(file, content) {
  * Abnahme ohne Dateien auskommt.
  */
 function buildRecord(opts, episode, report, clipManifest, frameManifest) {
-  const slug = buildSlug(episode.seed, opts.index || 0, opts.slug);
+  const shown = shownExercise(frameManifest, episode, opts.index);
+  const slug = buildSlug(episode.seed, shown.index, opts.slug);
   const gaps = collectGaps(episode, report, clipManifest, {
     clipMissing: opts.clipMissing,
     manifestMissing: opts.manifestMissing,
     framesMissing: !frameManifest,
-    frameSetSha256: frameManifest ? frameManifest.frameSetSha256 : null
-  });
+    frameSetSha256: frameManifest ? frameManifest.frameSetSha256 : null,
+    frameGenerator: frameManifest ? frameManifest.generator : null
+  }, shown);
 
   return {
     schemaVersion: 1,
@@ -244,14 +304,19 @@ function buildRecord(opts, episode, report, clipManifest, frameManifest) {
     releasedAt: null,
     releasedBy: null,
     app: { name: APP_NAME, url: APP_URL },
-    caption: buildCaption(episode, report),
-    hashtags: buildHashtags(episode),
+    caption: buildCaption(shown, episode, report),
+    hashtags: buildHashtags(shown),
     source: {
       seed: episode.seed,
       seedUint32: episode.seedUint32,
       difficulty: episode.difficulty,
       generatorSource: episode.generatorSource,
       exerciseCount: episode.exercises.length,
+      /* P7.5.2 — Welche Aufgabe der Clip zeigt, steht als Beleg im Manifest,
+         damit die Vorschau nicht raten muss. */
+      exerciseIndex: shown.index,
+      shownPrompt: shown.exercise ? shown.exercise.prompt : null,
+      shownGenerator: shown.exercise ? shown.exercise.generator : null,
       generators: episode.exercises.map(function (exercise) { return exercise.generator; }),
       episodeSha256: sha256(opts.episode)
     },
@@ -407,6 +472,7 @@ if (require.main === module) {
 module.exports = {
   parseArgs: parseArgs,
   buildSlug: buildSlug,
+  shownExercise: shownExercise,
   buildCaption: buildCaption,
   buildHashtags: buildHashtags,
   collectGaps: collectGaps,

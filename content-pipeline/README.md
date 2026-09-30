@@ -123,6 +123,8 @@ Jedes Eingabefeld trägt eine Bezeichnung, die sagt, was es bewirkt, und darunte
 
 Nach dem Lauf liegt das Material automatisch in der Queue; freigegeben wird weiterhin **manuell** auf der Freigabeseite.
 
+**Clip und Caption können nicht auseinanderlaufen.** Das Feld „Davon im Clip zeigen" bestimmt die Aufgabe im Bild, und genau diese Aufgabe steht anschließend in Caption und Tags. Die Queue liest den Index aus dem Frame-Manifest, also aus dem Beleg des Laufs — nicht aus einer Annahme. Widersprechen sich Manifest und Auswahl, gilt die Episode als unvollständig und lässt sich nicht freigeben. Vorschau und Freigabeseite nennen zusätzlich die Frage, die im Clip steht.
+
 ### Kein Player auf der Startseite
 
 Die Startseite zeigt **keinen Videoplayer**. Sie startet Läufe und zeigt den Zustand; den Clip sieht man über die Warteschlange auf `/p/<slug>`. Bewusst so: die Startseite bleibt eine reine Steuerung, und der Clip ist an einer Stelle zu prüfen statt an zweien.
@@ -156,6 +158,9 @@ Aus einem belegten Lauf entsteht eine Queue-Episode mit Caption, Hashtags, Quell
 # Episode anlegen (liest Vorgaben aus work/)
 npm run queue
 
+# Die Aufgabe festlegen, die der Clip zeigt — sonst zaehlt der Index im Frame-Manifest
+npm run queue -- --index 1
+
 # Status ansehen
 npm run queue -- --list content-pipeline/work/queue
 
@@ -165,10 +170,11 @@ npm run queue -- --release content-pipeline/work/queue/<slug>
 
 **Es wird nichts veröffentlicht.** Das Skript kennt keinen Netzwerkpfad und keinen Upload; es schreibt ausschließlich Dateien unter `work/queue/`.
 
-Drei Punkte, die die Abnahme tragen:
+Vier Punkte, die die Abnahme tragen:
 
 - **Unvollständig heißt nicht freigegeben.** Fehlt das MP4, ist der Lauf nicht gegengeprüft oder stimmt die Hash-Kette nicht, lautet der Status `unvollstaendig`, die Gründe stehen in `gaps`, und `--release` wird abgelehnt.
 - **Die Hash-Kette wird an drei Gliedern geprüft** — Frames, Clip und Laufbericht müssen denselben Framesatz nennen. Sonst würde die Queue Zahlen zu einem Clip veröffentlichen, den es so nie gab.
+- **Die Caption beschreibt die Aufgabe, die im Bild steht.** Der Clip zeigt genau eine Aufgabe, nicht die ganze Auswahl. Maßgeblich ist der `exerciseIndex` aus dem Frame-Manifest — er entsteht beim Rendern und nennt die Aufgabe, die tatsächlich auf der Bühne war. Ein abweichendes `--index` wird nicht still übernommen, sondern als Lücke gemeldet. Steht im Manifest kein Index oder ein Generator, der nicht zur Aufgabenliste passt, ist die Episode ebenfalls nicht freigabefähig: eine Caption, die sich nicht belegen lässt, ist keine Grundlage für eine Freigabe.
 - **Geschrieben wird atomar** (erst temporär, dann umbenannt). Ein Abbruch hinterlässt keine halbe Episode.
 
 Aufbau einer Episode:

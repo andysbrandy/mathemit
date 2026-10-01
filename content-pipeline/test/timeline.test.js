@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 "use strict";
 
+
+// @block pipeline — Orchestrierung und Timeline
+// Blockzuordnung: siehe test/runs.js (node test/runs.js --bloecke)
 /*
  * P7.3.3/7.3.5 — Zeitachse der 9:16-Bühne: reine Mathematik, kein Browser.
  * Geprüft werden feste Bühne, feste Bildrate, Segmentordnung, die

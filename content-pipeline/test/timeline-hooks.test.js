@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 "use strict";
 
+
+// @block pipeline — Orchestrierung und Timeline
+// Blockzuordnung: siehe test/runs.js (node test/runs.js --bloecke)
 /*
  * P7.4.1–7.4.3 — Hook-Vorlagen und Countdown.
  * Reine Mathematik, kein Browser: geprüft werden Auswahl, Bytegleichheit des

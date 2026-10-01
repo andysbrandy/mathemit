@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 "use strict";
 
+
+// @block video — Video-Assembling und Clip-Pruefung
+// Blockzuordnung: siehe test/runs.js (node test/runs.js --bloecke)
 /*
  * P7.3.4 — Video-Montage: Manifest-Prüfung, ffmpeg-Argumente und Messung.
  * Der Lauf mit echtem ffmpeg läuft nur, wenn ffmpeg/ffprobe vorhanden sind;

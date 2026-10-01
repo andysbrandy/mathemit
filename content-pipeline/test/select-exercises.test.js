@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 "use strict";
 
+
+// @block app — App-Logik: laedt app-base.js per require() und prueft die MB-API
+// Blockzuordnung: siehe test/runs.js (node test/runs.js --bloecke)
 const assert = require("node:assert/strict");
 const childProcess = require("node:child_process");
 const fs = require("node:fs");

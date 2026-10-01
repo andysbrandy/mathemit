@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 "use strict";
 
+
+// @block frontend — Frontend-Struktur: Preview/Renderer duerfen app-active.js nicht einbinden
+// Blockzuordnung: siehe test/runs.js (node test/runs.js --bloecke)
 /*
  * P7.3.2 — Isolierter Renderer: Prüft die Vorschau gegen echte Aufgaben-Generatoren.
  * Ohne Browser lauffähig (Validierung/Template); der Browserteil wird nur

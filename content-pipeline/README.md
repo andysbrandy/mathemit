@@ -2,6 +2,58 @@
 
 Dieser Ordner erzeugt lokal und ohne Netzwerkzugriff reproduzierbare Aufgabenpakete für die spätere Video-Pipeline. **Die Pipeline veröffentlicht nichts automatisch.**
 
+## Tests: nach Bereich getrennt, nur Geändertes prüfen
+
+`npm test` läuft **alle 12 Suiten durch und braucht ~230 Sekunden** — davon allein
+143s für `render-frames`. Wer eine Farbe in `style-base.css` änderte, zahlte damit
+vier Minuten für Tests, die den Code gar nicht kennen.
+
+Deshalb sind die Suiten in **Blöcke** gruppiert, und `test:changed` rechnet aus den
+tatsächlich geänderten Dateien heraus, welche Blöcke überhaupt betroffen sind.
+
+```bash
+npm run test:bloecke     # Übersicht: Blöcke, Dauer, enthaltene Suiten
+npm run test:changed     # nur die Blöcke, die zu den Änderungen passen
+npm run test:app         # ein Block gezielt
+npm test                 # weiterhin alles (unverändert, für vor dem Release)
+```
+
+| Block | Dauer | Suiten | Ausgelöst durch |
+|---|---|---|---|
+| `app` | ~1,4s | select-exercises | `app-base.js`, `index.html` |
+| `frontend` | ~4,8s | render-preview, png-probe | `app-active.js`, `style-*.css`, Renderer |
+| `frames` | **~143s** | render-frames | `render-frames.js`, `content-pipeline/lib/` |
+| `video` | ~16s | assemble-video, verify-clip | Video-Tools |
+| `pipeline` | ~62s | run-pipeline, timeline, timeline-hooks | Pipeline + Timeline |
+| `queue` | ~2,5s | queue-episode, pipeline-control | Queue/Veröffentlichung |
+| `review` | ~4,2s | review-server | Review-Server |
+
+Gemessene Einsparung, gleiche Abdeckung:
+
+| Änderung | vorher | jetzt |
+|---|---|---|
+| Rechenlogik (`app-base.js`) | 230s | **1,4s** |
+| Garten/UI (`app-active.js`, `style-base.css`) | 230s | **4,8s** |
+| Doku (`ROADMAP.md`), `VERSION` | 230s | **0s** |
+| Video-Werkstatt | 230s | **16s** |
+
+**Neue Suite anlegen:** In den ersten 12 Zeilen `// @block <name>` eintragen und
+in `test/runs.js` dem Block zuordnen. `test/runs.js` prüft beides beim Start und
+bricht mit einer klaren Meldung ab, wenn die Zuordnung fehlt oder auseinanderläuft —
+eine Suite kann also nicht unbemerkt im falschen Block landen.
+
+**Zwei bewusste Ausnahmen, beide gemessen begründet:**
+- `app-base.js` löst **nicht** `frames` aus. `render-frames.js` bettet die Datei
+  nur per `readFileSync` als Text in die Bühne ein (Zeile 272) und führt sie nie
+  aus. Rechenlogik fängt der Block `app` in 1,4s ab.
+- `index.html` löst `app` aus, obwohl keine Suite die Datei liest: sie bindet
+  `app-base.js`/`app-active.js` per `<script>` ein, und ein Tippfehler dort lässt
+  die komplette App tot aussehen.
+
+`test:changed` vergleicht gegen `origin/main` **und** die noch nicht committete
+Arbeitszone. Ist beides leer, läuft nichts — das ist der Normalfall direkt nach
+einem Push.
+
 ## 7.3.1 — Aufgaben auswählen
 
 Voraussetzung: Node.js (im Projekt bereits vorhanden; alternativ eine aktuelle LTS-Version).

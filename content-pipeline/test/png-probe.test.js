@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 "use strict";
 
+
+// @block frontend — Frontend-Struktur: Preview/Renderer duerfen app-active.js nicht einbinden
+// Blockzuordnung: siehe test/runs.js (node test/runs.js --bloecke)
 /*
  * P7.3.3 — PNG-Leser der Frame-Prüfung.
  * Geprüft wird, dass Renderer-Frames als 1080x1920 erkannt werden und

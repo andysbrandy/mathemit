@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 "use strict";
 
+
+// @block frames — Frame-Rendering: der langsame Block (~143s)
+// Blockzuordnung: siehe test/runs.js (node test/runs.js --bloecke)
 /*
  * P7.3.3 — Deterministisches 9:16-Rendering von Frames.
  * Geprüft werden die feste 1080x1920-Bühne, das Manifest, die

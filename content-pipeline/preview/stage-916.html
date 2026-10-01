@@ -104,6 +104,89 @@
       white-space: nowrap;
     }
     .stage-pause[hidden] { display: none; }
+    /*
+      P7.4.3 — Schulweg- und Nachher-Karte.
+      Bewusst nüchtern: heller Hintergrund, duenne Linie, kein Farbverlauf.
+      Der Kontrast zur Blueprint-Figur IST der Vergleich — die Schulweg-Seite
+      darf nicht hübscher aussehen als die App-Seite.
+    */
+    .stage-vorher,
+    .stage-nachher {
+      position: absolute;
+      left: 34px;
+      right: 34px;
+      top: 96px;
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      padding: 22px 26px;
+      border-radius: 14px;
+      background: #f4f1e8;
+      border: 2px solid rgba(120, 106, 80, 0.42);
+      text-align: left;
+    }
+    /* Der Schulweg ersetzt die Figur, die dann ausgeblendet ist. Ohne diese
+       Mitte waere die Karte oben geklebt und darunter stuende leere Flaeche. */
+    .stage-vorher {
+      top: 50%;
+      transform: translateY(-50%);
+      align-items: center;
+    }
+    .stage-vorher[hidden],
+    .stage-nachher[hidden] { display: none; }
+    .stage-vorher-label,
+    .stage-nachher-label {
+      flex: 0 0 auto;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: rgba(120, 106, 80, 0.16);
+      color: #6b5f45;
+      font-size: 24px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    /* Die Nachher-Seite traegt die App-Farbe, sonst ist der Unterschied
+       zwischen beiden Karten nur die Beschriftung. */
+    .stage-nachher {
+      background: var(--gold-soft);
+      border-color: rgba(176, 122, 22, 0.5);
+    }
+    .stage-nachher-label {
+      background: rgba(176, 122, 22, 0.18);
+      color: var(--textaufgabe);
+    }
+    .stage-vorher-text {
+      font-size: 27px;
+      line-height: 1.35;
+      color: #4d4433;
+    }
+    /* P7.4.3 — Streak-Leiste: synthetische Beispieltage, sichtbar gezaehlt. */
+    .stage-streak {
+      position: absolute;
+      left: 50%;
+      bottom: 74px;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 24px;
+      border-radius: 999px;
+      background: var(--gold-soft);
+      color: var(--textaufgabe);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .stage-streak[hidden] { display: none; }
+    .stage-streak-label { font-size: 26px; }
+    .stage-streak-dots { display: flex; gap: 8px; }
+    .stage-streak-dots i {
+      display: block;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--textaufgabe);
+    }
+    .stage-streak-dots i[data-off="1"] { background: rgba(176, 122, 22, 0.22); }
     /* P7.4.2 — Countdown: grosse Zahl plus Balken ueber der Denkpause. */
     .stage-countdown {
       position: absolute;
@@ -296,6 +379,24 @@
     <section class="stage-figure" data-measure="figure">
       <span class="topic-badge" id="topicBadge"></span>
       <div id="figureHost"></div>
+      <!--
+        P7.4.3 — Vorher/Nachher. Zwei Karten an derselben Stelle: der
+        Schulweg (Worte) und der Blueprint-Weg (Bild). Sie teilen sich den
+        Platz, damit der Vergleich nicht durch zwei gleichzeitige Karten
+        verwässert wird.
+      -->
+      <div class="stage-vorher" id="stageVorher" hidden>
+        <span class="stage-vorher-label" id="stageVorherLabel"></span>
+        <span class="stage-vorher-text" id="stageVorherText"></span>
+      </div>
+      <div class="stage-nachher" id="stageNachher" hidden>
+        <span class="stage-nachher-label" id="stageNachherLabel"></span>
+      </div>
+      <!-- P7.4.3 — Streak-Flex: synthetische Beispieltage sichtbar. -->
+      <div class="stage-streak" id="stageStreak" hidden>
+        <span class="stage-streak-label">Streak</span>
+        <span class="stage-streak-dots" id="stageStreakDots"></span>
+      </div>
       <p class="stage-pause" id="stagePause" hidden>2 Sekunden zum Nachdenken</p>
       <p class="stage-countdown" id="stageCountdown" hidden>
         <span class="stage-countdown-value" id="stageCountdownValue">3</span>
@@ -412,6 +513,39 @@
         hookLine.textContent = "";
       }
       if (timeline && timeline.pauseText) pauseHint.textContent = timeline.pauseText;
+      /*
+       * P7.4.3 — Vorher/Nachher und Streak.
+       *
+       * Beides wird nur befuellt, wenn die Zeitachse es mitbringt. Ohne
+       * --hook bleibt timeline === null, dann bleiben die Karten leer und
+       * versteckt — der Standardlauf rendert exakt wie vorher.
+       */
+      var vorherEl = document.getElementById("stageVorher");
+      var nachherEl = document.getElementById("stageNachher");
+      var streakEl = document.getElementById("stageStreak");
+      if (timeline && timeline.vorherLabel) {
+        document.getElementById("stageVorherLabel").textContent = timeline.vorherLabel;
+        /*
+         * Der Schulweg-Text ist der Hinweis der Aufgabe, nicht die Loesung:
+         * so steht in der Schule etwas da, ohne dass die Antwort verraten
+         * wird. Fuellt der Hinweis leer, waere die Karte ein leeres Kästchen
+         * — dann faellt sie ersatzlos weg, statt etwas zu behaupten.
+         */
+        var schulweg = (exercise.hint || "").trim();
+        document.getElementById("stageVorherText").textContent = schulweg;
+        vorherEl.hidden = !schulweg;
+      }
+      if (timeline && timeline.nachherLabel) {
+        document.getElementById("stageNachherLabel").textContent = timeline.nachherLabel;
+      }
+      if (timeline && timeline.streakDays) {
+        var dots = "";
+        for (var d = 0; d < timeline.streakDays; d += 1) {
+          dots += '<i></i>';
+        }
+        document.getElementById("stageStreakDots").innerHTML = dots;
+        streakEl.hidden = false;
+      }
       window.MB.renderFigure(exercise.svg, exercise.badge, exercise.badgeColor);
 
       /* Reveal-Zustand wird von außen gesetzt, nie über CSS-Übergänge. */
@@ -472,6 +606,19 @@
 
       function apply(state) {
         var reveal = clamp01(state.revealProgress);
+        /*
+         * P7.4.3 — Im Schulweg wird die Figur nicht nur ungezeichnet, sondern
+         * ausgeblendet. Sonst steht das leere Diagramm-Geruest neben der
+         * Schulweg-Karte und beide wirken gleichzeitig.
+         *
+         * Reihenfolge zwingend: erst den Zustand aus dem Frame uebernehmen,
+         * DANN ueber die Figur entscheiden. Vorher stand die Abfrage vor dem
+         * Setzen und nutzte damit den Wert des vorigen Frames.
+         */
+        if (vorherEl) vorherEl.hidden = !state.vorherVisible;
+        if (nachherEl) nachherEl.hidden = !state.nachherVisible;
+        var figureHost = document.getElementById("figureHost");
+        figureHost.style.visibility = vorherEl.hidden ? "visible" : "hidden";
         outlines.forEach(function (entry) {
           if (!entry.drawable) return;
           entry.node.style.strokeDashoffset = String(entry.length * (1 - reveal));

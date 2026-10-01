@@ -201,10 +201,22 @@ queue-episode.js     ──▶  work/queue/<slug>/        Caption, Hashtags, See
 
 | Hook | Wirkmechanik | Status |
 |---|---|---|
-| „Kannst du das in 10 Sekunden lösen?“ | Countdown-Timer eingeblendet, Auflösung als Reveal | ✅ umgesetzt in 7.3.5 |
-| „Können Erwachsene das? (Mittelschul-Niveau)“ | Doppelter Effekt: Kids teilen's stolz bei Erfolg; Erwachsene, die scheitern, ist von Natur aus shareable | ⬜ 7.4 |
-| „Mein Streak: 47 🔥“ | Screen-Recording der Gamification — Kids lieben Flex-Content | ⬜ 7.4 |
-| Vorher/Nachher | „So erklärt's die Schule“ vs. „So macht's die App“ (Blueprint-Zeichnung) | ⬜ 7.4 |
+| „Kannst du das in 5 Sekunden lösen?“ | Countdown-Timer eingeblendet, Auflösung als Reveal | ✅ 7.4.2 |
+| „Können Erwachsene das?“ (Mittelschul-Niveau) | Doppelter Effekt: Kids teilen's stolz bei Erfolg; Erwachsene, die scheitern, ist von Natur aus shareable | ✅ 7.4.3 |
+| „Schaffst du 7 Tage in Folge?“ | Streak-Leiste mit 7 sichtbaren Tagespunkten, synthetischer Beispielwert | ✅ 7.4.3 |
+| Vorher/Nachher | „So erklärt's die Schule“ (Hinweis als Textkarte, Figur ausgeblendet) vs. „So macht's die App“ (Blueprint-Zeichnung) | ✅ 7.4.3 |
+
+**Drei ehrliche Abweichungen von der ursprünglichen Formulierung:**
+
+1. **5 statt 10 Sekunden.** Der Countdown zählt sichtbar von 5 herunter. Ein Hook, der „10 Sekunden“ verspricht, während im Bild 5 heruntergezählt wird, ist der meistgelesene Fehler in solchen Clips. Zehn Sekunden *stille* Pause wären zwar im Zeitfenster, aber ein echter Retention-Killer — deshalb 5 s Pause und 19 s Gesamtclip.
+2. **Streak ohne Screen-Recording.** Die Leiste mit 7 Tagespunkten ist umgesetzt, ein echtes Screen-Recording der App-Gamification **nicht** — die Pipeline rendert eine 916×1080-Bühne, nicht die App-Oberfläche. Der Wert ist ein synthetischer Beispielwert ohne Nutzerbezug (7.4.3).
+3. **Erwachsenen-Challenge rein als Text.** Der Doppel-Effekt entsteht beim Teilen, nicht im Clip. Im Bild steht die Herausforderung mit Mittelschul-Niveau; mehr gibt der Clip her nicht her, und eine erfundene „Erwachsene scheitert“-Szene wäre Behauptung statt Beleg.
+
+**Stand der Nacharbeit (7.4.3 war als ✅ markiert, war es aber nicht):** Die Tabelle behauptete bis jetzt ⬜ für drei Hooks, obwohl `lib/timeline.js` alle fünf Vorlagen seit 7.4.1 enthielt. Bei der Prüfung im gerenderten Clip zeigte sich: **Vorher/Nachher war sichtbar nicht umgesetzt.** Das Segment `vorher` gab `revealProgress = 1`, die Figur war dort also bereits fertig gezeichnet — Schulweg, Denkpause und Auflösung waren pixelgleich (gleiche MD5). Zusätzlich wurde `vorher` als unbekanntes Segment behandelt und deshalb durchgehend mit 1 versehen. Nachgeholt: Figur wird im Schulweg ausgeblendet und nicht gezeichnet, es erscheinen zwei beschriftete Karten mit echtem Text.
+
+**Der Fehler, den die Nacharbeit selbst einbrachte** — und warum er auffiel: `nachherVisible` war an kein Feld gekoppelt und dadurch auch im Standardlauf wahr. Ab dem ersten Reveal-Frame stand eine leere goldene Karte im Bild; **253 von 480 Frames** des Standardlaufs hatten sich unbemerkt verändert. Kein Zustandstest sah das — erst der Pixelvergleich gegen den Altstand (`frameSetSha256 1dd3f1a0…` → wiederhergestellt). Abgesichert durch `testCardsBoundToTheirHook`.
+
+**Vorsicht bei künftigen Vorlagenfeldern:** `buildDocument()` in `lib/isolated-scene.js` lässt nur eine Whitelist an Feldern zur Bühne durch. Ein fehlender Eintrag dort bedeutet: das Feld existiert in der Zeitachse, die Anzeige bleibt aber **still leer, ohne Fehlermeldung**. Genau das ist beim ersten Bauen der Karten passiert.
 
 #### ⚠️ Zwei operative Punkte (unabhängig von der Strategie-Entscheidung)
 
@@ -229,9 +241,31 @@ queue-episode.js     ──▶  work/queue/<slug>/        Caption, Hashtags, See
 |---|---|---|---|
 | **7.4.1** | `lib/timeline.js` von festen Segmenten auf **Vorlagen** umstellen: je Vorlage Segmentfolge, Dauern, Reveal-Art und Countdown-Text. Auswahl per `--hook <name>`, Standard bleibt der bestehende Ablauf. | Jede Vorlage ergibt einen gültigen 15–25-s-Clip; der bestehende Lauf bleibt byteidentisch; unbekannter Hook-Name ist ein klarer Fehler, kein stiller Fallback. | ✅ `lib/timeline.js` + 6 Tests |
 | **7.4.2** | **Countdown** („Kannst du das in 5 Sekunden lösen?“): sichtbarer Timer über der Denkpause, exakt auf die Pause abgestimmt, deterministisch pro Frame. | Timer läuft synchron zur Denkpause, endet bei 1 statt 0; nie `0` oder abgeschnitten im Bild; **die Zahl im Hook-Text ist die Zahl, die sichtbar heruntergezählt wird.** | ✅ `stage-916.html`, als Test festgeschrieben |
-| **7.4.3** | **Die drei weiteren Hooks** als Vorlagen: Erwachsenen-Challenge, Streak-Flex, Vorher/Nachher. Nur was ohne echte Nutzerdaten geht — der Streak-Hook nutzt synthetische Beispielwerte, keine echten Konten. | Pro Hook ein geprüfter Clip; `verify-clip.js` besteht für alle vier; jede Vorlage einzeln anwählbar. | ✅ alle 5 Vorlagen mit `PIPELINE_OK` |
+| **7.4.3** | **Die drei weiteren Hooks** als Vorlagen: Erwachsenen-Challenge, Streak-Flex, Vorher/Nachher. Nur was ohne echte Nutzerdaten geht — der Streak-Hook nutzt synthetische Beispielwerte, keine echten Konten. | Pro Hook ein geprüfter Clip; `verify-clip.js` besteht für alle vier; jede Vorlage einzeln anwählbar. | ✅ nachträglich eingeholt, 9 Tests |
 
-**Ergebnis Teil A:** Fünf Vorlagen, alle zwischen 15 und 25 s, alle mit `PIPELINE_OK` und `CLIP_CHECK_OK` belegt. `frage` ist der bisherige Ablauf und bytegleich — ohne `--hook` ändert sich nichts.
+**Nachtrag zu 7.4.3 — der Eintrag war zu früh abgehakt.** Die fünf Vorlagen existierten zwar in `lib/timeline.js`, aber **nicht im fertigen Bild**: Vorher/Nachher war ein Segment ohne Wirkung (Schulweg, Denkpause und Auflösung pixelgleich), beim Streak-Hook existierte keine Zahl und kein 🔥, und die Erwachsenen-Challenge war nur eine Textzeile. Erst `verify-clip.js` hätte das zeigen können — die Abnahme „ein geprüfter Clip pro Hook“ war nie gelaufen.
+
+**Jetzt nachgemessen, nicht behauptet.** Alle vier Vorlagen durch die volle Kette (`run-pipeline.js` → Frames → MP4 → `verify-clip.js`), jeweils mit demselben Seed:
+
+| Vorlage | Laufzeit | `verify-clip.js` | Urteil |
+|---|---|---|---|
+| `countdown` | 19 s | `CLIP_CHECK_OK` (22 Frames) | ✅ |
+| `erwachsenen` | 16 s | `CLIP_CHECK_OK` (19 Frames) | ✅ |
+| `streak` | 16 s | `CLIP_CHECK_OK` (19 Frames) | ✅ |
+| `vorher-nachher` | 18 s | `CLIP_CHECK_OK` (21 Frames) | ✅ |
+| `frage` (Standard) | 16 s | `CLIP_CHECK_OK` (19 Frames) | ✅ |
+
+Der entscheidende Beleg für den Vorher/Nachher-Fix steht in `verify-clip.js`:
+
+```
+frame  90 vorher   reveal=0.00 solution=0.00 endcard=nein   OK
+frame 120 vorher   reveal=0.00 solution=0.00 endcard=nein   OK
+frame 149 vorher   reveal=0.00 solution=0.00 endcard=nein   OK
+```
+
+`reveal=0.00` im Schulweg heißt: dort ist nichts aufgedeckt. Vor der Nacharbeit stand dort `reveal=1.00` — die fertige Lösung, zwei Sekunden vor der Denkpause.
+
+**Ergebnis Teil A:** Fünf Vorlagen, alle zwischen 15 und 25 s, alle mit `PIPELINE_OK` und `CLIP_CHECK_OK` belegt. `frage` ist der bisherige Ablauf und **bytegleich** — ohne `--hook` ändert sich nichts (belegt über `frameSetSha256`, nicht über Augenschein).
 
 ##### ➕ Zusätzlich: Freigabe per Link (`review-server.js`)
 

@@ -148,7 +148,19 @@ function buildDocument(template, cssBase, cssActive, appBase, episode, index, pl
     pauseMode: plan.pauseMode,
     pauseText: plan.pauseText,
     pauseSeconds: plan.pauseSeconds,
-    countdownSeconds: plan.countdownSeconds
+    countdownSeconds: plan.countdownSeconds,
+    /*
+     * P7.4.3 — Vorher/Nachher und Streak.
+     *
+     * Diese Liste ist bewusst eine Whitelist: die Buehne soll nur kriegen,
+     * was sie wirklich anzeigt. Sie ist aber die einzige Stelle, an der
+     * neue Vorlagenfelder durchgelassen werden — fehlt ein Feld hier,
+     * bleibt die Anzeige im Bild still leer, ohne Fehlermeldung. Genau das
+     * ist beim ersten Bauen passiert.
+     */
+    vorherLabel: plan.vorherLabel || null,
+    nachherLabel: plan.nachherLabel || null,
+    streakDays: plan.streakDays || 0
   };
 
   let html = template

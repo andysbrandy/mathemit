@@ -213,13 +213,126 @@ function testDeterministic() {
     timeline.allFrameStates(timeline.buildTimeline(30)));
 }
 
+/* 7 — P7.4.3 (nachgeholt) — Die Karten sind an ihre Vorlage gebunden.
+ *
+ * Regression: nachherVisible war an kein Feld gekoppelt und dadurch im
+ * Standardlauf wahr. Ab dem ersten Reveal-Frame stand eine leere goldene
+ * Karte im Bild — 253 von 480 Frames unbemerkt veraendert. Die
+ * Zustandstests hatten das nicht gesehen, erst der Pixelvergleich.
+ */
+function testCardsBoundToTheirHook() {
+  /*
+   * Die beiden Karten gehoeren ausschliesslich zur Vorher/Nachher-Vorlage,
+   * die Streak-Leiste ausschliesslich zum Streak-Hook. Beide Zusatzfelder
+   * duerfen nicht in die uebrigen Vorlagen durchsickern — dort wuerden sie
+   * leere Kaesten ins Bild stellen.
+   */
+  timeline.HOOK_IDS.filter(function (id) { return id !== "vorher-nachher"; }).forEach(function (id) {
+    const plan = timeline.buildTimeline(30, id);
+    assert.equal(plan.vorherLabel, null, id + " hat eine Schulweg-Ueberschrift");
+    assert.equal(plan.nachherLabel, null, id + " hat eine Nachher-Ueberschrift");
+    timeline.allFrameStates(plan).forEach(function (state) {
+      assert.equal(state.vorherVisible, false, id + ": Schulweg sichtbar (Frame " + state.frame + ")");
+      assert.equal(state.nachherVisible, false, id + ": Nachher-Karte sichtbar (Frame " + state.frame + ")");
+    });
+  });
+
+  /* Die Streak-Leiste gehoert nur zum Streak-Hook. */
+  timeline.HOOK_IDS.filter(function (id) { return id !== "streak"; }).forEach(function (id) {
+    assert.equal(timeline.buildTimeline(30, id).streakDays, 0,
+      id + " zeigt eine Streak-Zahl");
+  });
+
+  /* Und im Standardlauf darf sich gar nichts aendern. */
+  const base = timeline.buildTimeline(30, "frage");
+  assert.equal(base.vorherLabel, null);
+  assert.equal(base.nachherLabel, null);
+  assert.equal(base.streakDays, 0);
+}
+
+/* 8 — P7.4.3 (nachgeholt) — Der Schulweg zeigt die Schule, nicht die Loesung.
+ *
+ * Vorher galt fuer jedes unbekannte Segment revealProgress = 1, also war
+ * im Schulweg die Zeichnung fertig: der Betrachter sah die fertige Loesung
+ * 2 Sekunden VOR der Denkpause. Im gerenderten Clip waren vorher, Denkpause
+ * und Aufloesung pixelgleich.
+ */
+function testVorherDoesNotSpoil() {
+  const plan = timeline.buildTimeline(30, "vorher-nachher");
+  const states = timeline.allFrameStates(plan);
+
+  const vorher = states.filter(function (s) { return s.segment === "vorher"; });
+  assert.ok(vorher.length > 0, "die Vorher/Nachher-Vorlage hat kein Schulweg-Segment");
+  vorher.forEach(function (state) {
+    assert.equal(state.revealProgress, 0,
+      "im Schulweg ist die Zeichnung sichtbar (Frame " + state.frame + ")");
+    assert.equal(state.vorherVisible, true, "Schulweg nicht sichtbar");
+    assert.equal(state.nachherVisible, false,
+      "die Nachher-Karte steht gleichzeitig mit dem Schulweg (Frame " + state.frame + ")");
+    assert.equal(state.solutionVisible, false, "die Aufloesung erscheint im Schulweg");
+  });
+
+  /*
+   * Der Reveal danach zeichnet wirklich — sonst waere der Schulweg
+   * sinnlos und der Clip zeigte zweimal dasselbe.
+   *
+   * Das Ende ist "fast 1" und nicht exakt 1: bei 30 fps faellt der letzte
+   * Frame auf 8967 ms, das Reveal-Segment endet aber erst bei 9000 ms.
+   * Diese Quantisierung steckt schon im Standardlauf und wird im
+   * Denkpausen-Test (dort exakt 1) und hier bewusst unterschiedlich
+   * geprueft — beide Werte sind korrekt, je nach Segmentgrenze.
+   */
+  const reveal = states.filter(function (s) { return s.segment === "reveal"; });
+  assert.ok(reveal.length > 0, "kein Reveal-Segment");
+  assert.ok(reveal[0].revealProgress < 1, "der Reveal startet bereits fertig");
+  assert.ok(reveal[reveal.length - 1].revealProgress >= 0.999,
+    "der Reveal endet nicht fertig gezeichnet: " + reveal[reveal.length - 1].revealProgress);
+  assert.equal(reveal[0].vorherVisible, false, "der Schulweg bleibt ueber den Reveal hinaus stehen");
+
+  /* Und der Fortschritt waechst ueber den Reveal hinweg monoton. */
+  for (let i = 1; i < reveal.length; i += 1) {
+    assert.ok(reveal[i].revealProgress >= reveal[i - 1].revealProgress,
+      "die Zeichnung springt zurueck bei Frame " + reveal[i].frame);
+  }
+
+  /* Die Nachher-Karte erscheint mit dem Blueprint und dauerhaft. */
+  const spaeter = states.filter(function (s) { return s.segment === "solution" || s.segment === "endcard"; });
+  assert.ok(spaeter.length > 0);
+  spaeter.forEach(function (state) {
+    assert.equal(state.nachherVisible, true,
+      "die Nachher-Karte fehlt bei Loesung/Endcard (Frame " + state.frame + ")");
+  });
+
+  /* Beide Ueberschriften sind echter Text, keine leeren Labels. */
+  assert.ok(plan.vorherLabel && plan.vorherLabel.length > 5, "Schulweg ohne Ueberschrift");
+  assert.ok(plan.nachherLabel && plan.nachherLabel.length > 5, "Nachher ohne Ueberschrift");
+  assert.notEqual(plan.vorherLabel, plan.nachherLabel,
+    "beide Seiten tragen dieselbe Beschriftung — dann ist es kein Vergleich");
+}
+
+/* 9 — P7.4.3 (nachgeholt) — Die Streak-Zahl ist sichtbar und synthetisch. */
+function testStreakIsVisible() {
+  const streak = timeline.buildTimeline(30, "streak");
+  assert.equal(streak.streakDays, 7, "die Streak-Vorlage zeigt keine 7 Tage");
+  assert.ok(streak.streakDays > 0 && streak.streakDays <= 31,
+    "unplausible Streak-Laenge: " + streak.streakDays);
+  /* Synthetisch: keine Kontodaten, keine Mail, keine extrem grosse Zahl. */
+  assert.doesNotMatch(JSON.stringify(streak), /@[a-z0-9.-]+\.[a-z]{2,}/i,
+    "im Streak-Hook steckt eine E-Mail-Adresse");
+  assert.doesNotMatch(JSON.stringify(streak), /streakDays":\s*\d{3,}/,
+    "die Streak-Zahl ist unplausibel konkret");
+}
+
 const tests = [
   testAllHooks,
   testDefaultStaysIdentical,
   testCountdown,
   testHookText,
   testInvalidHooks,
-  testDeterministic
+  testDeterministic,
+  testCardsBoundToTheirHook,
+  testVorherDoesNotSpoil,
+  testStreakIsVisible
 ];
 
 tests.forEach(function (test) {

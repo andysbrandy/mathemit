@@ -76,7 +76,7 @@ const HOOKS = {
     id: "countdown",
     label: "Countdown",
     eyebrow: "5 Sekunden Challenge",
-    hookLine: "Kannst du das in 5 Sekunden loesen?",
+    hookLine: "Kannst du das in 5 Sekunden lösen?",
     pauseSeconds: 5,
     pauseMode: "countdown",
     pauseText: null,
@@ -93,7 +93,7 @@ const HOOKS = {
     id: "erwachsenen",
     label: "Erwachsenen-Challenge",
     eyebrow: "Mittelschul-Niveau",
-    hookLine: "Koennen Erwachsene das?",
+    hookLine: "Können Erwachsene das?",
     pauseSeconds: 2,
     pauseMode: "hint",
     pauseText: "2 Sekunden zum Nachdenken",
@@ -101,15 +101,24 @@ const HOOKS = {
   },
   /*
    * Streak-Flex: der Einstieg ist ein Konkurrenzmoment, nicht eine Frage.
-   * Die Streak-Zahl ist bewusst synthetisch (kein Nutzerkonto, keine echten
-   * Daten) und wird aus der Aufgabenschwierigkeit abgeleitet, damit der Clip
-   * ohne Personenbezug bleibt.
+   *
+   * streakDays ist ein SYNTHETISCHER Beispielwert (7.4.3: keine echten
+   * Nutzerdaten, keine Konten). Er wird sichtbar als Leiste von Tagen
+   * angezeigt, damit der Flex-Charakter im Bild da ist und nicht nur im
+   * Text behauptet wird.
+   *
+   * Frueher stand hier im Kommentar "wird aus der Aufgabenschwierigkeit
+   * abgeleitet" — das war falsch, es gab ueberhaupt kein Zahlenfeld und
+   * damit auch keine Anzeige. Jetzt ist es eine feste, dokumentierte
+   * Vorlagenzahl; eine echte App-Ableitung gehoert nicht in die Pipeline,
+   * weil sie hier ohne Nutzerdaten gar nicht stattfinden kann.
    */
   streak: {
     id: "streak",
     label: "Streak-Flex",
     eyebrow: "Streak",
     hookLine: "Schaffst du 7 Tage in Folge?",
+    streakDays: 7,
     pauseSeconds: 2,
     pauseMode: "hint",
     pauseText: "2 Sekunden zum Nachdenken",
@@ -128,6 +137,12 @@ const HOOKS = {
     pauseSeconds: 2,
     pauseMode: "hint",
     pauseText: "2 Sekunden zum Nachdenken",
+    /* P7.4.3 — Die zwei Ueberschriften des Vergleichs. "vorher" ist der
+     * Schulweg (Worte, Tabelle, fertige Loesungsformel), "nachher" der
+     * Blueprint-Weg der App. Ohne diese Beschriftung sahen beide Seiten
+     * gleich aus — der Vergleich war dann keiner. */
+    vorherLabel: "So erklärt's die Schule",
+    nachherLabel: "So macht's die App",
     segments: [
       { id: "hook", label: "Frage", seconds: 3 },
       { id: "vorher", label: "Schulweg", seconds: 2 },
@@ -216,6 +231,12 @@ function buildTimeline(fps, hookId) {
     pauseText: hook.pauseText,
     pauseSeconds: hook.pauseSeconds,
     countdownSeconds: hook.pauseMode === "countdown" ? Math.round(hook.pauseSeconds) : 0,
+    /* P7.4.3 — Nur die Vorher/Nachher-Vorlage hat diese beiden Felder.
+     * Fehlen sie (alle uebrigen Vorlagen), rendert die Buehne den
+     * Schulweg nicht. Der Standardlauf bleibt damit unberuehrt. */
+    vorherLabel: hook.vorherLabel || null,
+    nachherLabel: hook.nachherLabel || null,
+    streakDays: hook.streakDays || 0,
     segments: segments,
     solutionFadeSeconds: SOLUTION_FADE_SECONDS,
     endcardFadeSeconds: ENDCARD_FADE_SECONDS,
@@ -256,7 +277,17 @@ function frameState(timeline, frame) {
   const segmentTimeMs = timeMs - segment.fromTimeMs;
 
   const revealSpan = segment.toTimeMs + 1 - segment.fromTimeMs;
-  const revealProgress = segment.id === "hook" ? 0 : (segment.id === "reveal" ? easeOutCubic((segmentTimeMs + 1) / revealSpan) : 1);
+  /*
+   * P7.4.3 — "vorher" (Schulweg) zeichnet die Figur bewusst NICHT.
+   *
+   * Vorher stand fuer jedes unbekannte Segment eine 1, also war die
+   * Zeichnung im Schulweg bereits fertig: der Betrachter sah die fertige
+   * Loesung 2 Sekunden VOR der Denkpause und der eigentliche Reveal
+   * danach war nur noch Wiederholung. Genau das war im gerenderten Clip
+   * zu sehen — vorher, Denkpause und Aufloesung waren pixelgleich.
+   */
+  const nochNichtGezeichnet = segment.id === "hook" || segment.id === "vorher";
+  const revealProgress = nochNichtGezeichnet ? 0 : (segment.id === "reveal" ? easeOutCubic((segmentTimeMs + 1) / revealSpan) : 1);
 
   const fadeFrames = Math.max(1, Math.round(SOLUTION_FADE_SECONDS * timeline.fps));
   const solutionIndex = timeline.segments.findIndex(function (entry) { return entry.id === "solution"; });
@@ -310,6 +341,20 @@ function frameState(timeline, frame) {
     solutionProgress: solutionProgress,
     solutionVisible: solutionProgress > 0,
     pauseActive: segment.id === "pause",
+    /* P7.4.3 — Nur im Segment "vorher" sichtbar. Die Buehne schaltet
+     * damit die Schulweg-Karte ein und die Blueprint-Figur aus. */
+    vorherVisible: segment.id === "vorher",
+    /*
+     * Sichtbar, sobald gezeichnet wird — fuer die "Nachher"-Beschriftung.
+     *
+     * WICHTIG: an das Vorhandensein von nachherLabel gekoppelt. Ohne diese
+     * Bedingung war nachherVisible auch im Standardlauf wahr, wodurch ab dem
+     * ersten Reveal-Frame eine leere goldene Karte im Bild stand. Das fiel
+     * nur im Pixelvergleich auf, nicht in den Zustandstests: 253 von 480
+     * Frames des Standardlaufs hatten sich unbemerkt geaendert.
+     */
+    nachherVisible: Boolean(timeline.nachherLabel) && segment.id !== "hook"
+      && segment.id !== "vorher" && segment.id !== "pause",
     /* P7.4.2 — Countdown-Element der Denkpause. */
     countdownVisible: countdownVisible,
     countdownValue: countdownValue,

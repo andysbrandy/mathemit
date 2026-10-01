@@ -1280,26 +1280,61 @@ function wwZeigeTuff(key){
 }
 function wwpSchild(x, top, b, idx){
   var neig = (idx % 2 === 0) ? -1.5 : 1.5;
-  var sub = b.pct + "% · " + (b.status === "gold" ? "🏆 golden" : (b.status === "rot" ? b.dueCount + " fällig" : (b.status === "neu" ? "🌱 unberührt" : "🌿 " + b.geuebt + "/" + b.total + " im Wuchs")));
+  /*
+   * Statuszeile: bewusst OHNE "im Wuchs" und ohne Sprössling-Emoji.
+   *
+   * Gemessen bei 16px: "47% 9/14 im Wuchs" = 154.3px — das lief sichtbar
+   * aus dem Brett. "47% 9/14" dagegen nur 73.7px. "im Wuchs" kostete also
+   * 80px, obwohl die Zeile darüber (das Thema) und der Prozentsatz den
+   * Zustand längst verraten. "0% · 🌱 unberührt" war mit 141.3px der
+   * zweitte Brocken; "0% unberührt" sind es 107.9px.
+   */
+  var status = (b.status === "gold") ? "🏆 golden" : (b.status === "rot" ? b.dueCount + " fällig"
+    : (b.status === "neu" ? "unberührt" : b.geuebt + "/" + b.total));
+  var sub = b.pct + "% " + status;
   var s = "";
   /*
-   * Brettbreite 158 bei Slotabstand 162: der breiteste Titel ("Struktur-Baum"
-   * bei 16px) misst 133.7px. Mit 140 war er 10px zu breit und lief links
-   * und rechts aus dem Brett — bei großer Schrift fiel das sofort auf.
-   * 158 passt, weil zwischen zwei Brettern 4px Luft bleiben.
+   * Drei Zeilen je Brett: Name / Thema / Status.
+   *
+   * Das Brett ist dafür 72 hoch (vorher 34) und 140 breit (vorher 158).
+   * Der Grund für die Breite ist die Enge: bei Slotabstand 162 blieben
+   * zwischen zwei Brettern nur 4px Luft — sie wirkten aneinandergereiht.
+   * Mit 140 sind es 22px, das Brett steht sichtbar frei.
+   *
+   * Die Breite ist gemessen, nicht geraten. Auf dem Handy skaliert die
+   * 1000er-Bühne auf 0.387, eine 12px-Zeile wird real 4.6px — unlesbar.
+   * Deshalb 17/15/16px, und dafür müssen die Zeilen kurz bleiben:
+   *   Name   "📏 Flächen-Baum"     137px (mit Icon, Worst Case)
+   *   Thema  "Sachaufgaben"        104.9px
+   *   Status "0% unberührt"       107.9px  (Worst Case, ohne Symbol)
+   * 137px + 12px Rand = 149 → bei 140 wäre die Namenszeile 9px zu breit.
+   * Das Brett ist deshalb bewusst 150 breit (hw=75) statt 140: das kostet
+   * 12px Luft zwischen den Brettern, lässt aber alle drei Zeilen mit
+   * Reserve stehen, statt Text abzuschneiden. 150 + 12 Luft bleibt immer
+   * noch 5x mehr Abstand als die 4px von vorher.
    */
-  var hw = 79;
-  /* Bodenschatten: verankert das Schild auf der Wiese (bleibt innerhalb der Bühne) */
-  s += '<ellipse cx="' + x + '" cy="' + (top + 42) + '" rx="70" ry="5" fill="#7BAF6B" opacity=".5"/>';
+  var hw = 75, hh = 72;
+  /* Bodenschatten: verankert das Schild auf der Wiese */
+  s += '<ellipse cx="' + x + '" cy="' + (top + hh + 8) + '" rx="66" ry="5" fill="#7BAF6B" opacity=".5"/>';
   /* zwei Pfosten (liegen hinter dem Brett, reichen in die Wiese) */
-  s += '<rect x="' + (x - 54) + '" y="' + (top + 8) + '" width="6" height="32" rx="2" fill="#7A4E26"/>';
-  s += '<rect x="' + (x + 48) + '" y="' + (top + 8) + '" width="6" height="32" rx="2" fill="#7A4E26"/>';
-  s += '<g transform="rotate(' + neig + ' ' + x + ' ' + (top + 17) + ')">';
-  s += '<rect x="' + (x - hw) + '" y="' + top + '" width="' + (hw * 2) + '" height="34" rx="9" fill="#D2A56E" stroke="#8A5A2B" stroke-width="2.5"/>';
-  s += '<circle cx="' + (x - 68) + '" cy="' + (top + 17) + '" r="2.2" fill="#8A5A2B"/>';
-  s += '<circle cx="' + (x + 68) + '" cy="' + (top + 17) + '" r="2.2" fill="#8A5A2B"/>';
-  s += '<text class="wwp-boardtext" x="' + x + '" y="' + (top + 15) + '" text-anchor="middle">' + b.icon + ' ' + escHtml(b.name) + '</text>';
-  s += '<text class="wwp-boardsub" x="' + x + '" y="' + (top + 29) + '" text-anchor="middle">' + escHtml(sub) + '</text>';
+  s += '<rect x="' + (x - 50) + '" y="' + (top + 10) + '" width="6" height="' + (hh + 8) + '" rx="2" fill="#7A4E26"/>';
+  s += '<rect x="' + (x + 44) + '" y="' + (top + 10) + '" width="6" height="' + (hh + 8) + '" rx="2" fill="#7A4E26"/>';
+  s += '<g transform="rotate(' + neig + ' ' + x + ' ' + (top + hh / 2) + ')">';
+  s += '<rect x="' + (x - hw) + '" y="' + top + '" width="' + (hw * 2) + '" height="' + hh + '" rx="9" fill="#D2A56E" stroke="#8A5A2B" stroke-width="2.5"/>';
+  /* Nieten oben und unten — bei der Hoehe sonst kein Bezugspunkt mehr */
+  s += '<circle cx="' + (x - hw + 9) + '" cy="' + (top + 11) + '" r="2.2" fill="#8A5A2B"/>';
+  s += '<circle cx="' + (x + hw - 9) + '" cy="' + (top + 11) + '" r="2.2" fill="#8A5A2B"/>';
+  s += '<circle cx="' + (x - hw + 9) + '" cy="' + (top + hh - 11) + '" r="2.2" fill="#8A5A2B"/>';
+  s += '<circle cx="' + (x + hw - 9) + '" cy="' + (top + hh - 11) + '" r="2.2" fill="#8A5A2B"/>';
+  /*
+   * Das Icon liegt MITTEN auf dem Brett, in der Zeile des Namens — nicht
+   * links daneben: links ragte es beim ersten Baum 17px aus der Bühne
+   * (x = -17.3), weil Slot 1 bei x=78 sitzt und 70px Halbbreite + Icon
+   * die Szenenkante über schreiten.
+   */
+  s += '<text class="wwp-boardtext" x="' + x + '" y="' + (top + 21) + '" text-anchor="middle">' + b.icon + ' ' + escHtml(b.name) + '</text>';
+  s += '<text class="wwp-boardthema" x="' + x + '" y="' + (top + 42) + '" text-anchor="middle">' + escHtml(b.thema) + '</text>';
+  s += '<text class="wwp-boardsub" x="' + x + '" y="' + (top + 61) + '" text-anchor="middle">' + escHtml(sub) + '</text>';
   s += '</g>';
   return s;
 }
@@ -1319,7 +1354,18 @@ function renderWissensgarten(){
   gartenLetzterStatus = garten.baeume.map(function(b){ return b.status; });
   if(neueGold.length){ spawnConfetti(); showGartenBanner(neueGold); }
   /* --- Szene: Himmel, Sonne, Wolken, Wiese — 6 Bäume je auf eigenem Hügel --- */
-  var W = 1000, H = 534, groundY = H - 66;
+  /*
+   * Bühne 1000x566 (vorher 534).
+   *
+   * Das Brett braucht 72px Höhe und liegt bei wwSignTop = groundY + 10, dazu
+   * kommen Pfostenfüße und Bodenschatten. Mit groundY = H - 66 ging bei 534
+   * der Platz unten aus: das Brett samt Füßen lief aus der Bühne.
+   * Rechnung: 10 (Abstand zum Boden) + 72 (Brett) + 16 (Füße+Schatten) = 98
+   *            → groundY = H - 98, also H = 534 + 32 = 566.
+   * Das Seitenverhältnis wird damit 1,74 statt 1,87 — auf dem Handy etwas
+   * weniger breit, dafür stehen die Bretter vollständig im Bild.
+   */
+  var W = 1000, H = 566, groundY = H - 98;
   var s = "", i, j;
   s += '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" style="display:block;">';
   s += '<defs>'

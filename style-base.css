@@ -418,10 +418,20 @@
   .wwp-body{ max-width:960px; margin:0 auto; }
   .wwp-scene{ background:#fff; border:1px solid var(--line); border-radius:18px; padding:10px; box-shadow:0 8px 0 var(--line); }
   .wwp-scene > svg{ display:block; width:100%; height:auto; }
-  /* P4.1 — Größere Schrift: die Schilder und die Legende waren auf dem Handy
-     kaum lesbar. Bewusst nur vergrößert, nicht umgestaltet. */
-  .wwp-boardtext{ font-size:16px; font-weight:700; fill:#4A3319; font-family:'Fredoka',sans-serif; }
-  .wwp-boardsub{ font-size:13px; font-weight:600; fill:#6B4A2B; }
+  /*
+   * P4.1 — Größere Schrift: die Schilder und die Legende waren auf dem Handy
+   * kaum lesbar. Bewusst nur vergrößert, nicht umgestaltet.
+   * Drei Zeilen je Brett (Name / Thema / Status) — dafür ist die Höhe da,
+   * die Breite konnte dadurch von 158 auf 140 zurück, sonst stehen die
+   * Bretter bei Slotabstand 162 nur 4px auseinander.
+   *
+   * Die Themen- und Statuszeile sind nicht 12/13px, sondern 15/16px: bei
+   * 390px Breite skaliert die 1000er-Bühne auf 0.387, aus 12px werden
+   * real 4.6px — unlesbar. Mit 15px bleiben 5.8px, mit 16px 6.2px.
+   */
+  .wwp-boardtext{ font-size:17px; font-weight:700; fill:#4A3319; font-family:'Fredoka',sans-serif; }
+  .wwp-boardthema{ font-size:15px; font-weight:600; fill:#7A5A34; }
+  .wwp-boardsub{ font-size:16px; font-weight:600; fill:#6B4A2B; }
   .wwp-frucht{ cursor:pointer; transition:transform .15s ease, opacity .15s ease; transform-box:fill-box; transform-origin:center; }
   .wwp-frucht:hover{ transform:scale(1.3); }
   .wwp-frucht:focus-visible{ outline:2px solid var(--gold); outline-offset:1px; }

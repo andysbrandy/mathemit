@@ -2226,12 +2226,12 @@
    * Spaced-Repetition-Leiter (state.spaced): Level 0 = unberührt, 1-2 = im Bau,
    * 3-4 = sicher, 5 = gemeistert (golden), fällig = rot. Keine neuen Persistenzfelder. */
   var GARTEN_BEREICHE = [
-    { id:"brueche",  icon:"🌰", name:"Bruch-Baum",    untertitel:"Zahlen & Brüche (H1.I1)",  generatoren:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal"] },
-    { id:"prozente", icon:"🪙", name:"Prozent-Baum",  untertitel:"Prozente & Verhältnisse (H1.I2, H2.I2)", generatoren:["prozentVonZahl","prozentAnteil","zinsrechnung","proportionalitaet"] },
-    { id:"formen",   icon:"📐", name:"Formen-Baum",   untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck"] },
-    { id:"messen",   icon:"📏", name:"Mess-Baum",     untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },
-    { id:"alltag",   icon:"🧺", name:"Alltags-Baum",  untertitel:"Sachaufgaben aus dem Alltag (I1.M1)", generatoren:["textaufgabeGarten","textaufgabePizza","textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSkikurs","textaufgabeWandertag","textaufgabeSchulheft","textaufgabeEiscafe","mehrstufig"] },
-    { id:"struktur", icon:"🔗", name:"Struktur-Baum", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","tabelleLesen","diagrammBalken"] }
+    { id:"brueche",  icon:"🌰", name:"Bruch-Baum",    thema:"Brüche",     untertitel:"Zahlen & Brüche (H1.I1)",  generatoren:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal"] },
+    { id:"prozente", icon:"🪙", name:"Prozent-Baum",  thema:"Prozente",   untertitel:"Prozente & Verhältnisse (H1.I2, H2.I2)", generatoren:["prozentVonZahl","prozentAnteil","zinsrechnung","proportionalitaet"] },
+    { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck"] },
+    { id:"messen",   icon:"📏", name:"Flächen-Baum",  thema:"Maße",       untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },
+    { id:"alltag",   icon:"🧺", name:"Alltags-Baum",  thema:"Sachaufgaben", untertitel:"Sachaufgaben aus dem Alltag (I1.M1)", generatoren:["textaufgabeGarten","textaufgabePizza","textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSkikurs","textaufgabeWandertag","textaufgabeSchulheft","textaufgabeEiscafe","mehrstufig"] },
+    { id:"struktur", icon:"🔗", name:"Daten-Baum",    thema:"Gleichungen", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","tabelleLesen","diagrammBalken"] }
   ];
   function bereichFuerKey(key){
     var i;
@@ -2266,7 +2266,7 @@
       else if(geuebt === 0) status = "neu";
       else if(geuebt === tuffs.length && tuffs.every(function(t){ return t.level >= 3; })) status = "gruen";
       else status = "gelb";
-      return { id:b.id, icon:b.icon, name:b.name, untertitel:b.untertitel, tuffs:tuffs, total:tuffs.length, dueCount:dueCount, meister:meister, geuebt:geuebt, pct:pct, status:status };
+      return { id:b.id, icon:b.icon, name:b.name, thema:b.thema, untertitel:b.untertitel, tuffs:tuffs, total:tuffs.length, dueCount:dueCount, meister:meister, geuebt:geuebt, pct:pct, status:status };
     });
     var pct = Math.round(baeume.reduce(function(a, b){ return a + b.pct; }, 0) / baeume.length);
     var goldene = baeume.filter(function(b){ return b.status === "gold"; }).length;

@@ -368,7 +368,8 @@ Fertige Clips liegen nach `npm run queue` in `work/queue/`. `npm run review` sta
 - Der Eulenhain wird dauerhaft gespeichert – als Gast im Browser, angemeldet geräteübergreifend.
 
 ### Wissensgarten (🌳) — P4.1
-- Über die 🌳-Pille in der Statistikzeile öffnet sich der **Wissensgarten als eigene Seite** (wie der Eulenhain): eine Wiese mit Sonne, Wolken und **6 Kompetenz-Bäumen** — je Lehrplanbereich: 🌰 Bruch-Baum, 🪙 Prozent-Baum, 📐 Formen-Baum, 📏 Mess-Baum, 🧺 Alltags-Baum, 🔗 Struktur-Baum.
+- Über die 🌳-Pille in der Statistikzeile öffnet sich der **Wissensgarten als eigene Seite** (wie der Eulenhain): eine Wiese mit Sonne, Wolken und **6 Kompetenz-Bäumen** — je Lehrplanbereich: 🌰 Bruch-Baum, 🪙 Prozent-Baum, 📐 Winkel-Baum, 📏 Flächen-Baum, 🧺 Alltags-Baum, 🔗 Daten-Baum.
+- Jeder Baum steht auf einem **dreizeiligen Holzschild** (Name / Thema / Status, z. B. „Sachaufgaben" oder „Gleichungen"). Die Höhe von 34 auf 72px ermöglichte eine zweite Zeile und zugleich mehr Luft zwischen den Brettern (12px statt 4px) — vorher standen sie aneinandergereiht. Schrift 17/15/16px statt 12/13px, weil die 1000er-Bühne auf dem Handy auf ~0.39 skaliert und kleine Angaben sonst unter 5px realer Größe landen.
 - Jeder **Apfel** in der Krone ist eine genaue Mathe-Kompetenz (alle 47 Übungstypen). Einheitlich Äpfel statt einer Mischung — auf Abstand war die Birne nicht als Obst erkennbar, sondern nur als weiterer Kreis.
 - Die **Farbe ist die Reife**, wie bei einer echten Frucht: 🟢 hellgrün = noch nie geübt · 🟡 gelb = im Wuchs (Stufe 1–2) · 🟠 orange = reif (Stufe 3–4) · 🔴 rot = gemeistert (Stufe 5). Die Rampe läuft bewusst von hellgrün nach rot, damit „dunkler = besser" einen Blick genügt.
 - Eine **Wiederholung fällig** ist kein eigener Farbton (Rot gehört der Reife), sondern ein **weicher Hellgrün-Lichtschein** hinter dem Apfel. Er färbt ihn nicht ein und wächst mit seinem Radius, statt eine feste Größe zu haben. Die ⏰-Uhr als Zeichen am Baum ist entfallen.

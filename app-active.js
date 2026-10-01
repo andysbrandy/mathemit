@@ -1111,10 +1111,11 @@ var WWP_FORM_SET = {
   flach: [[0,0.05,0.92],[-0.55,0.10,0.60],[0.55,0.08,0.62]]
 };
 /*
- * P4.1 (Wissensgarten) — Jede Kompetenz ist eine Frucht am Baum, kein Punkt.
- * Abwechselnd Apfel und Birne, damit der Garten nach Obst aussieht und nicht
- * nach einer Ampel. Der Aufbau bleibt eine reine Funktion: übergeben werden
- * Position, Radius, Farbe und Status; zurück kommt fertiges SVG-Markup.
+ * P4.1 (Wissensgarten) — Jede Kompetenz ist ein Apfel am Baum, kein Punkt.
+ * Einheitlich Äpfel: eine gemischte Obstkiste (Apfel und Birne) war auf
+ * Abstand nicht als Obst erkennbar, sondern nur als bunte Kreise. Der
+ * Aufbau bleibt eine reine Funktion: übergeben werden Position, Radius,
+ * Farbe und Status; zurück kommt fertiges SVG-Markup.
  *
  * Bewusste Entscheidungen:
  * - Der Fruchtkörper bleibt ein Kreis. Er ist die anklickbare Fläche und
@@ -1132,12 +1133,31 @@ function wwpFrucht(x, y, r, col, status, attrs, due){
   var hang = klein ? 0 : r * 0.22;             /* seitlicher Versatz des Stiels */
   var s = "";
   /*
-   * P4.1 — "fällig" als pulsierender Hellgrün-Glow. Er liegt HINTER der
-   * Frucht und ändert ihre Farbe nicht: die Rampe bleibt damit eindeutig
-   * ("dunkler = reifer"), und der Glow sagt nur "pflück mich".
+   * P4.1 — "fällig" als weicher Lichtschein statt als Ring.
+   *
+   * Vorher war es ein Kreis mit sichtbarer Kontur, der per
+   * transform:scale() pulsierte. Zwei Fehler kamen dadurch zusammen:
+   * - Die Kontur blieb sichtbar — ein Ring, kein Licht.
+   * - Für transform fehlte transform-box:fill-box. SVG skaliert dann um den
+   *   Ursprung der Bühne (0,0) statt um die Frucht. Je höher der Apfel im
+   *   Baum saß, desto weiter wanderte der Schein nach oben und passte
+   *   nicht mehr zur Größe des Apfels.
+   *
+   * Jetzt: eine gefüllte Fläche mit radialem Verlauf und Weichzeichnung.
+   * Sie wird NICHT skaliert — nur ihre Deckkraft pulsiert. Damit kann sie
+   * sich gar nicht von der Frucht lösen, und der Schein wächst mit dem
+   * Radius des Apfels statt eine feste Größe zu haben.
    */
   if(due){
-    s += '<circle class="wwp-due-glow" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (r * 1.5).toFixed(1) + '" fill="none" stroke="#7ED957" stroke-width="' + (r * 0.26).toFixed(1) + '" opacity=".6"/>';
+    /*
+     * Zwei Ebenen statt einem Kreis: ein weicher, grosser Halo plus ein
+     * kompakter heller Kern direkt hinter dem Apfel. Ohne den Kern verschwindet
+     * der Schein auf der dunklen Krone — der Verlauf allein ist dort zu fein.
+     */
+    s += '<circle class="wwp-due-glow" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1)
+       + '" r="' + (r * 1.9).toFixed(1) + '" fill="url(#wwpGlow)" pointer-events="none"/>';
+    s += '<circle class="wwp-due-kern" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1)
+       + '" r="' + (r * 1.12).toFixed(1) + '" fill="url(#wwpGlowKern)" pointer-events="none"/>';
   }
   /* Stiel: leicht gebogen, damit der Baum nicht wie ein Nagelbrett wirkt */
   s += '<path d="M' + x.toFixed(1) + ' ' + (y - r + 0.6).toFixed(1)
@@ -1148,21 +1168,13 @@ function wwpFrucht(x, y, r, col, status, attrs, due){
      + '" r="' + r.toFixed(1) + '" fill="' + col + '" stroke="#3F6B37" stroke-width="' + (status === "neu" ? 1.2 : 2) + '"'
      + ' opacity="' + (status === "neu" ? 0.85 : 1) + '"/>';
   if(!klein){
-    /* Birne ist oben schmal und unten breit → das Blatt sitzt links höher */
-    var birne = status === "birne";
-    var bl = birne ? -r * 0.62 : -r * 0.48;
-    s += '<ellipse cx="' + (x + hang * 0.72).toFixed(1) + '" cy="' + (y + bl).toFixed(1)
+    /* Blatt links oben am Stiel */
+    s += '<ellipse cx="' + (x + hang * 0.72).toFixed(1) + '" cy="' + (y - r * 0.48).toFixed(1)
        + '" rx="' + (r * 0.42).toFixed(1) + '" ry="' + (r * 0.24).toFixed(1)
-       + '" fill="#5FA653" transform="rotate(-24 ' + (x + hang * 0.72).toFixed(1) + ' ' + (y + bl).toFixed(1) + ')"/>';
+       + '" fill="#5FA653" transform="rotate(-24 ' + (x + hang * 0.72).toFixed(1) + ' ' + (y - r * 0.48).toFixed(1) + ')"/>';
     /* Glanzlicht: gibt der Frucht Volumen, sonst wirkt die Fläche flach */
     s += '<circle cx="' + (x - r * 0.32).toFixed(1) + '" cy="' + (y - r * 0.34).toFixed(1)
        + '" r="' + (r * 0.22).toFixed(1) + '" fill="#fff" opacity=".45"/>';
-    /* Birnen sind unten breiter: ein Keil macht die Silhouette erkennbar */
-    if(birne){
-      s += '<path d="M' + (x - r * 0.72).toFixed(1) + ' ' + (y + r * 0.34).toFixed(1)
-         + ' q ' + (r * 0.36).toFixed(1) + ' ' + (r * 0.46).toFixed(1) + ' ' + (r * 0.72).toFixed(1) + ' 0'
-         + ' q ' + (r * 0.36).toFixed(1) + ' ' + (-r * 0.46).toFixed(1) + ' ' + (r * 0.72).toFixed(1) + ' 0 Z" fill="' + col + '"/>';
-    }
   }
   return s;
 }
@@ -1270,15 +1282,22 @@ function wwpSchild(x, top, b, idx){
   var neig = (idx % 2 === 0) ? -1.5 : 1.5;
   var sub = b.pct + "% · " + (b.status === "gold" ? "🏆 golden" : (b.status === "rot" ? b.dueCount + " fällig" : (b.status === "neu" ? "🌱 unberührt" : "🌿 " + b.geuebt + "/" + b.total + " im Wuchs")));
   var s = "";
+  /*
+   * Brettbreite 158 bei Slotabstand 162: der breiteste Titel ("Struktur-Baum"
+   * bei 16px) misst 133.7px. Mit 140 war er 10px zu breit und lief links
+   * und rechts aus dem Brett — bei großer Schrift fiel das sofort auf.
+   * 158 passt, weil zwischen zwei Brettern 4px Luft bleiben.
+   */
+  var hw = 79;
   /* Bodenschatten: verankert das Schild auf der Wiese (bleibt innerhalb der Bühne) */
-  s += '<ellipse cx="' + x + '" cy="' + (top + 42) + '" rx="64" ry="5" fill="#7BAF6B" opacity=".5"/>';
+  s += '<ellipse cx="' + x + '" cy="' + (top + 42) + '" rx="70" ry="5" fill="#7BAF6B" opacity=".5"/>';
   /* zwei Pfosten (liegen hinter dem Brett, reichen in die Wiese) */
-  s += '<rect x="' + (x - 48) + '" y="' + (top + 8) + '" width="6" height="32" rx="2" fill="#7A4E26"/>';
-  s += '<rect x="' + (x + 42) + '" y="' + (top + 8) + '" width="6" height="32" rx="2" fill="#7A4E26"/>';
+  s += '<rect x="' + (x - 54) + '" y="' + (top + 8) + '" width="6" height="32" rx="2" fill="#7A4E26"/>';
+  s += '<rect x="' + (x + 48) + '" y="' + (top + 8) + '" width="6" height="32" rx="2" fill="#7A4E26"/>';
   s += '<g transform="rotate(' + neig + ' ' + x + ' ' + (top + 17) + ')">';
-  s += '<rect x="' + (x - 70) + '" y="' + top + '" width="140" height="34" rx="9" fill="#D2A56E" stroke="#8A5A2B" stroke-width="2.5"/>';
-  s += '<circle cx="' + (x - 60) + '" cy="' + (top + 17) + '" r="2.2" fill="#8A5A2B"/>';
-  s += '<circle cx="' + (x + 60) + '" cy="' + (top + 17) + '" r="2.2" fill="#8A5A2B"/>';
+  s += '<rect x="' + (x - hw) + '" y="' + top + '" width="' + (hw * 2) + '" height="34" rx="9" fill="#D2A56E" stroke="#8A5A2B" stroke-width="2.5"/>';
+  s += '<circle cx="' + (x - 68) + '" cy="' + (top + 17) + '" r="2.2" fill="#8A5A2B"/>';
+  s += '<circle cx="' + (x + 68) + '" cy="' + (top + 17) + '" r="2.2" fill="#8A5A2B"/>';
   s += '<text class="wwp-boardtext" x="' + x + '" y="' + (top + 15) + '" text-anchor="middle">' + b.icon + ' ' + escHtml(b.name) + '</text>';
   s += '<text class="wwp-boardsub" x="' + x + '" y="' + (top + 29) + '" text-anchor="middle">' + escHtml(sub) + '</text>';
   s += '</g>';
@@ -1306,6 +1325,27 @@ function renderWissensgarten(){
   s += '<defs>'
     + '<linearGradient id="wwpSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BFE3F7"/><stop offset="1" stop-color="#EFF8EE"/></linearGradient>'
     + '<linearGradient id="wwpTrunk" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7A4E26"/><stop offset=".55" stop-color="#93613A"/><stop offset="1" stop-color="#6E4423"/></linearGradient>'
+    /* P4.1 — Radialer Verlauf fuer den "faellig"-Schein.
+       Die Mitte liegt UNTER dem Apfel und ist nie sichtbar, deshalb liegt
+       das Hellste am Apfelrand. Fast Weiss in der Mitte des Hofes, weil
+       nur ein sehr heller Ton sich vom Kronengruen (#4C8C3F) sichtbar
+       abhebt — ein Gruenton wie #7ED957 verschwand dort vollstaendig. */
+    + '<radialGradient id="wwpGlow">'
+    + '<stop offset="0" stop-color="#F4FFE0" stop-opacity="1"/>'
+    + '<stop offset=".38" stop-color="#EAFFC4" stop-opacity="1"/>'
+    + '<stop offset=".58" stop-color="#C8F58E" stop-opacity=".95"/>'
+    + '<stop offset=".8" stop-color="#9BE86A" stop-opacity=".55"/>'
+    + '<stop offset="1" stop-color="#7ED957" stop-opacity="0"/>'
+    + '</radialGradient>'
+    /* Kompakter Kern: heller Saum direkt am Apfelrand, damit der Schein
+       sich vom dunklen Kronengruen abhebt, ohne die Reife-Farbe zu
+       ueberstrahlen. Auch hier liegt die Mitte unter dem Apfel. */
+    + '<radialGradient id="wwpGlowKern">'
+    + '<stop offset="0" stop-color="#C8F58C" stop-opacity=".25"/>'
+    + '<stop offset=".55" stop-color="#DCFFA8" stop-opacity=".45"/>'
+    + '<stop offset=".85" stop-color="#FFFFFF" stop-opacity=".95"/>'
+    + '<stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>'
+    + '</radialGradient>'
     + '</defs>';
   s += '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="url(#wwpSky)"/>';
   s += '<g transform="translate(' + (W - 110) + ',84)"><g class="ehp-rays">' + ehpStrahlen(10, 46, 70) + '</g><circle r="40" fill="#FFD75E" stroke="#F2B93B" stroke-width="3"/></g>';
@@ -1373,13 +1413,10 @@ function renderWissensgarten(){
       var reife = (t.status === "due") ? (t.level >= 5 ? "meister" : (t.level >= 3 ? "sicher" : "bau")) : t.status;
       var col = WWP_FRUCHT_FARBEN[reife] || WWP_FRUCHT_FARBEN.neu;
       var cls = "wwp-frucht" + (t.status === "meister" ? " wwp-gold" : "");
-      /* Abwechselnd Apfel und Birne. Die Art wechselt mit dem Index, nicht mit
-         dem Status: der Garten soll nach Obst aussehen, die Farbe bleibt die
-         Bedeutung. */
-      var birne = ((ti + idx) % 2) === 1;
+      /* P4.1 — Nur noch Äpfel: alle 47 Kompetenzen sind Äpfel. */
       var attrs = ' class="' + cls + '" data-key="' + t.key + '" role="button" tabindex="0"'
-        + ' aria-label="' + escHtml(t.name) + (birne ? " (Birne)" : " (Apfel)") + '"';
-      s += wwpFrucht(p[0], cy + p[1], tR, col, birne ? "birne" : "apfel", attrs, t.due);
+        + ' aria-label="' + escHtml(t.name) + '"';
+      s += wwpFrucht(p[0], cy + p[1], tR, col, "apfel", attrs, t.due);
       if(t.status === "meister"){
         s += '<text class="wwp-sparkle" x="' + (p[0]).toFixed(1) + '" y="' + (cy + p[1] + 4).toFixed(1) + '" text-anchor="middle" font-size="11">✨</text>';
       }

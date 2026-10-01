@@ -418,8 +418,10 @@
   .wwp-body{ max-width:960px; margin:0 auto; }
   .wwp-scene{ background:#fff; border:1px solid var(--line); border-radius:18px; padding:10px; box-shadow:0 8px 0 var(--line); }
   .wwp-scene > svg{ display:block; width:100%; height:auto; }
-  .wwp-boardtext{ font-size:13.5px; font-weight:700; fill:#4A3319; font-family:'Fredoka',sans-serif; }
-  .wwp-boardsub{ font-size:11px; font-weight:600; fill:#6B4A2B; }
+  /* P4.1 — Größere Schrift: die Schilder und die Legende waren auf dem Handy
+     kaum lesbar. Bewusst nur vergrößert, nicht umgestaltet. */
+  .wwp-boardtext{ font-size:16px; font-weight:700; fill:#4A3319; font-family:'Fredoka',sans-serif; }
+  .wwp-boardsub{ font-size:13px; font-weight:600; fill:#6B4A2B; }
   .wwp-frucht{ cursor:pointer; transition:transform .15s ease, opacity .15s ease; transform-box:fill-box; transform-origin:center; }
   .wwp-frucht:hover{ transform:scale(1.3); }
   .wwp-frucht:focus-visible{ outline:2px solid var(--gold); outline-offset:1px; }
@@ -427,30 +429,48 @@
   /* statischer Glow (bewusst ohne Animation → kein Flackern): gemeisterte Blätter & fällige Marker */
   .wwp-gold{ filter:drop-shadow(0 0 3.5px rgba(255,213,74,.95)); }
   /*
-   * P4.1 — "fällig" ist ein pulsierender Hellgrün-Ring. Er liegt hinter der
-   * Frucht und faerbt sie nicht: die Reife-Rampe bleibt eindeutig lesbar.
+   * P4.1 — "fällig" ist ein weicher Lichtschein, kein Ring.
+   *
+   * Bewusst NUR opacity: eine Skalierung würde den Schein von der Frucht
+   * lösen (SVG transformiert um den Bühnen-Ursprung, solange
+   * transform-box:fill-box fehlt) — genau das war der springende Schein.
+   * Der Verlauf macht die weiche Kante, die Deckkraft den Puls.
+   *
+   * Farbton: KEIN Knallgrün. Ein gesättigtes #7ED957 hebt sich auf dem
+   * Kronengrün (#4C8C3F) kaum ab — gemessen war der Unterschied nur 2 von 255
+   * und damit für das Auge unsichtbar. Es braucht einen deutlich helleren,
+   * fast weißen Kern, damit es wie Licht wirkt und nicht wie ein Fleck.
    */
-  .wwp-due-glow{ animation:wwpGlow 2.2s ease-in-out infinite; }
-  @keyframes wwpGlow{ 0%,100%{ opacity:.25; transform:scale(.94); } 50%{ opacity:.95; transform:scale(1.06); } }
+  .wwp-due-glow{ animation:wwpGlow 2.4s ease-in-out infinite; filter:blur(2px); pointer-events:none; }
+  .wwp-due-kern{ animation:wwpGlowKern 2.4s ease-in-out infinite; pointer-events:none; }
+  /* Deutlicher Puls zwischen "kaum sichtbar" und "klarer Lichthof".
+     Der Ruhewert liegt absichtlich hoch: der Hinweis darf im Alltag nicht
+     wegblinken. */
+  @keyframes wwpGlow{ 0%,100%{ opacity:.75; } 50%{ opacity:1; } }
+  @keyframes wwpGlowKern{ 0%,100%{ opacity:.8; } 50%{ opacity:1; } }
   @keyframes wwpFloat{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-5px); } }
   .wwp-sparkle{ animation:wwpTwinkle 1.8s ease-in-out infinite; }
   @keyframes wwpTwinkle{ 0%,100%{ opacity:.3; } 50%{ opacity:1; } }
-  .ww-caption{ text-align:center; margin-top:10px; font-size:.88rem; min-height:46px; }
-  .ww-leg{ display:inline-flex; align-items:center; gap:5px; margin:0 7px; font-size:.76rem; color:var(--muted); font-weight:600; }
+  .ww-caption{ text-align:center; margin-top:10px; font-size:1rem; min-height:46px; }
+  .ww-leg{ display:inline-flex; align-items:center; gap:5px; margin:0 8px; font-size:.88rem; color:var(--muted); font-weight:600; }
   .ww-leg i{ width:11px; height:11px; border-radius:50%; display:inline-block; border:1.5px solid #3F6B37; }
   /* P4.1 — Die Legende folgt der Reife-Rampe: hellgrün → gelb → orange → rot. */
   .ww-leg .lg-neu{ background:#A9CE8B; }
   .ww-leg .lg-bau{ background:#F0C24B; }
   .ww-leg .lg-sicher{ background:#EE8A3C; }
   .ww-leg .lg-meister{ background:#D33A2C; }
-  .ww-leg .lg-due{ background:transparent; border:2px solid #7ED957; }
+  /* P4.1 — Der Hinweis "Wiederholung fällig" ist ein weicher Lichthof, kein
+     Ring. Die Legende zeigt deshalb einen hellen, weichen Fleck statt einer
+     Kontur — sonst widerspricht sie dem Baum. */
+  .ww-leg .lg-due{ background:radial-gradient(circle, #F0FFD2 0%, #C8F58C 55%, rgba(126,217,87,0) 100%); border:1px solid #9BE86A; box-shadow:0 0 4px 1px rgba(203,247,158,.9); }
   .wwp-codes{ font-size:.7rem; color:var(--muted); }
   .wwp-ueben{ margin-left:6px; }
-  .ww-hint{ text-align:center; margin-top:6px; font-size:.78rem; color:var(--muted); }
+  .ww-hint{ text-align:center; margin-top:8px; font-size:.92rem; color:var(--muted); }
   .stat-pill.garten{ cursor:pointer; }
   @media (prefers-reduced-motion: reduce){
-    .wwp-animal, .wwp-sparkle, .wwp-due-glow{ animation:none; }
-    /* Ohne Puls bleibt ein ruhiger, aber sichtbarer Ring — der Hinweis
-       darf durch die Einstellung nicht verschwinden. */
-    .wwp-due-glow{ opacity:.7; }
+    .wwp-animal, .wwp-sparkle, .wwp-due-glow, .wwp-due-kern{ animation:none; }
+    /* Ohne Puls bleibt der Lichtschein ruhig sichtbar — der Hinweis darf
+       durch die Einstellung nicht verschwinden. */
+    .wwp-due-glow{ opacity:.85; }
+    .wwp-due-kern{ opacity:.75; }
   }

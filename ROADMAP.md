@@ -17,7 +17,7 @@
 - **Endlose Stufen + Eulenhain** (P6): Jede Stufe schaltet eine eigene Eule frei (eigene Farbwelt + eigene kleine Animation) — gesammelt auf einem wachsenden Baum im 🦉-Menü; dauerhaft gespeichert
 - **Spaced Repetition (Wissens-Ampel)** — P4.3: Jeder Generator bekommt eine Ampel: 🔴 (≥1 fällige Wiederholung) > 🟡 (Einträge vorhanden) > 🟢 (keine). Rote Modi haben Priorität bei der Aufgabenwahl.
 - **Dynamische Lobsprüche** — P4.4: Serien-Meilensteine, Level-Ehrung und Wiederholungs-Triumph-Feedback via `getMotd()`.
-- **Wissensgarten (Kompetenz-Bäume)** — P4.1: 6 Bäume je Lehrplanbereich, Äpfel und Birnen färben sich nach Reife (hellgrün → gelb → orange → rot), goldene Bäume ziehen Tiere an; Klick auf eine Frucht startet gezieltes Training.
+- **Wissensgarten (Kompetenz-Bäume)** — P4.1: 6 Bäume je Lehrplanbereich, Äpfel färben sich nach Reife (hellgrün → gelb → orange → rot), goldene Bäume ziehen Tiere an; Klick auf eine Frucht startet gezieltes Training.
 - **Streaks, Basis-Badges, Auth-System**
 - **Comic-SVG-Engine** (gerundete Silhouetten, dynamische Skizzen)
 - **Geometrisches Eulen-Logo**: blinkt, die Pupillen folgen dem Cursor, die Flügel wedeln bei richtigen Aufgaben („Bewegung reduzieren" wird respektiert)
@@ -68,7 +68,7 @@
 
 | # | Schritt | Status |
 |---|---------|--------|
-| 4.1 | **Wissensgarten** (Kompetenz-Bäume je Lehrplanbereich, eigene Seite wie der Eulenhain) | ✅ 6 Bäume (Brüche, Prozente, Formen, Messen, Alltag, Struktur) — 47 Generatoren als Äpfel und Birnen, Reife-Färbung aus der Spaced-Leiter (hellgrün/gelb/orange/rot), „fällig" als pulsierender Hellgrün-Glow statt Uhr, Baum wächst mit Beherrschung, Tiere ziehen in goldene Bäume, Klick auf eine Frucht = gezielter Fokus-Übungsmodus; keine neuen DB-Felder (lebt von `progress.spaced`) |
+| 4.1 | **Wissensgarten** (Kompetenz-Bäume je Lehrplanbereich, eigene Seite wie der Eulenhain) | ✅ 6 Bäume (Brüche, Prozente, Formen, Messen, Alltag, Struktur) — 47 Generatoren als Äpfel, Reife-Färbung aus der Spaced-Leiter (hellgrün/gelb/orange/rot), „fällig" als weicher Hellgrün-Lichtschein statt Uhr, Baum wächst mit Beherrschung, Tiere ziehen in goldene Bäume, Klick auf eine Frucht = gezielter Fokus-Übungsmodus; keine neuen DB-Felder (lebt von `progress.spaced`) |
 | 4.2 | Wöchentliche Ziele | ✅ 3 Ziele (🎯 50 Punkte · 📚 20 Aufgaben · 🔁 5 Wiederholungen), ISO-Wochenstart montags, Fortschrittsbalken, +30 Bonus-Punkte bei allen 3 Zielen; gespeichert lokal + DB (`progress.goals`) |
 | 4.3 | Wiederholungstraining (falsch gelöste Aufgaben exakt wiederholen) | ✅ (Instanz-Speicherung inkl. Original-Grafik, lokal + DB, 🔁-Chip, Erfolgsmeldung) |
 
@@ -369,9 +369,9 @@ Fertige Clips liegen nach `npm run queue` in `work/queue/`. `npm run review` sta
 
 ### Wissensgarten (🌳) — P4.1
 - Über die 🌳-Pille in der Statistikzeile öffnet sich der **Wissensgarten als eigene Seite** (wie der Eulenhain): eine Wiese mit Sonne, Wolken und **6 Kompetenz-Bäumen** — je Lehrplanbereich: 🌰 Bruch-Baum, 🪙 Prozent-Baum, 📐 Formen-Baum, 📏 Mess-Baum, 🧺 Alltags-Baum, 🔗 Struktur-Baum.
-- Jede **Frucht** in der Krone ist eine genaue Mathe-Kompetenz (alle 47 Übungstypen), abwechselnd **Apfel und Birne** — der Garten soll nach Obst aussehen, nicht nach einer Ampel.
+- Jeder **Apfel** in der Krone ist eine genaue Mathe-Kompetenz (alle 47 Übungstypen). Einheitlich Äpfel statt einer Mischung — auf Abstand war die Birne nicht als Obst erkennbar, sondern nur als weiterer Kreis.
 - Die **Farbe ist die Reife**, wie bei einer echten Frucht: 🟢 hellgrün = noch nie geübt · 🟡 gelb = im Wuchs (Stufe 1–2) · 🟠 orange = reif (Stufe 3–4) · 🔴 rot = gemeistert (Stufe 5). Die Rampe läuft bewusst von hellgrün nach rot, damit „dunkler = besser" einen Blick genügt.
-- Eine **Wiederholung fällig** ist kein eigener Farbton mehr (Rot gehört der Reife), sondern ein **pulsierender Hellgrün-Glow** hinter der Frucht. Er färbt sie nicht ein und verschwindet bei „Bewegung reduzieren" nicht ganz — dort bleibt ein ruhiger Ring stehen. Die ⏰-Uhr als Zeichen am Baum ist entfallen.
+- Eine **Wiederholung fällig** ist kein eigener Farbton (Rot gehört der Reife), sondern ein **weicher Hellgrün-Lichtschein** hinter dem Apfel. Er färbt ihn nicht ein und wächst mit seinem Radius, statt eine feste Größe zu haben. Die ⏰-Uhr als Zeichen am Baum ist entfallen.
 - Der **Stamm wächst** mit der Beherrschung des Baums — je mehr du sicher kannst, desto höher ragt er. Über jedem **goldenen Baum** zieht ein Tier ein (Eichhörnchen, Papagei, Biene …).
 - **Tippe eine Frucht an**: du siehst den genauen Kompetenztext, den Lehrplan-Code und deine Leiter-Stufe. Ein Klick auf **„🌿 Jetzt üben"** startet sofort den gezielten Fokus-Modus — oben in der Leiste erscheint der 🎯-Fokus-Chip (Antippen beendet ihn wieder).
 - Wird ein Baum komplett golden, gibt es Konfetti und einen Banner — Bewegung reduzieren wird respektiert. Der Wissensgarten wird **automatisch** aus deinem Wiederholungs-Fortschritt berechnet (keine Extra-Speicherung, geräteübergreifend über dein Konto).

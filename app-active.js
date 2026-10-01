@@ -61,8 +61,8 @@ var owlInner = MB.owlInner;
 var WOCHENZIELE = MB.WOCHENZIELE;
 var wochenSchluessel = MB.wochenSchluessel;
 var CURRICULUM_MAP = MB.CURRICULUM_MAP;
-var WALD_BEREICHE = MB.WALD_BEREICHE;
-var waldStatus = MB.waldStatus;
+var GARTEN_BEREICHE = MB.GARTEN_BEREICHE;
+var gartenStatus = MB.gartenStatus;
 var bereichFuerKey = MB.bereichFuerKey;
 function currentLevel(){
   var s = stufeVonPunkten(state.points);
@@ -361,7 +361,7 @@ repeatChip.addEventListener("click", function(){
   nextExercise();
 });
 chipsHost.appendChild(repeatChip);
-/* P4.1: Fokus-Chip — gezieltes Üben EINES Generators (aus dem Wissenswald) */
+/* P4.1: Fokus-Chip — gezieltes Üben EINES Generators (aus dem Wissensgarten) */
 var focusChip = document.createElement("button");
 focusChip.className = "chip";
 focusChip.id = "focusChip";
@@ -501,8 +501,8 @@ function updateStatsUI(){
   if(owlCountEl) owlCountEl.textContent = state.owls.length;
   document.getElementById("sessionStat").textContent = state.solved+" Aufgaben gelöst · "+state.correct+" richtig";
   renderWochenziele();
-  /* P4.1: Wald-Fortschritt in der Baum-Pill */
-  if(waldPctValEl){ waldPctValEl.textContent = waldStatus(state.spaced, Math.floor(Date.now()/1000)).pct + "%"; }
+  /* P4.1: Garten-Fortschritt in der Baum-Pill */
+  if(gartenPctValEl){ gartenPctValEl.textContent = gartenStatus(state.spaced, Math.floor(Date.now()/1000)).pct + "%"; }
   renderBadges();
 }
 
@@ -537,7 +537,7 @@ var eyebrowMap = {
 };
 
 function poolForCurrentFilters(){
-  /* P4.1: Fokus aus dem Wissenswald — gezielt EINEN Generator üben */
+  /* P4.1: Fokus aus dem Wissensgarten — gezielt EINEN Generator üben */
   if(state.focusKey && GEN[state.focusKey]){ return [state.focusKey]; }
   var mode = MODES.filter(function(m){return m.id===state.mode;})[0];
   var pool = mode.pool;
@@ -677,8 +677,8 @@ function finishRound(isCorrect, explanation){
   checkBadges();
   updateStatsUI();
   updateModeAmpel();
-  /* P4.1: Wissenswald offen? Baeume sofort aktualisieren (Gold-Feier inklusive) */
-  if(wwpViewEl && wwpViewEl.style.display !== "none") renderWissenswald();
+  /* P4.1: Wissensgarten offen? Baeume sofort aktualisieren (Gold-Feier inklusive) */
+  if(wwpViewEl && wwpViewEl.style.display !== "none") renderWissensgarten();
   saveProgress();
 
   var fb = document.getElementById("feedback");
@@ -1055,23 +1055,23 @@ if(eulenhainBackEl) eulenhainBackEl.addEventListener("click", closeEulenhain);
 document.addEventListener("keydown", function(e){
   if(e.key === "Escape") closeEulenhain();
 });
-/* ---------- P4.1: Wissenswald — 6 Kompetenz-Bäume (eigene Seite, wie der Eulenhain) ---------- */
-var wwpViewEl = document.getElementById("wissenswaldView");
+/* ---------- P4.1: Wissensgarten — 6 Kompetenz-Bäume (eigene Seite, wie der Eulenhain) ---------- */
+var wwpViewEl = document.getElementById("wissensgartenView");
 var wwpSceneEl = document.getElementById("wwpScene");
 var wwpStatsEl = document.getElementById("wwpStats");
 var wwHintEl = document.getElementById("wwHint");
 var wwCaptionEl = document.getElementById("wwCaption");
-var waldBtnEl = document.getElementById("waldBtn");
-var waldPctValEl = document.getElementById("waldPctVal");
-var waldLetzterStatus = null;
+var gartenBtnEl = document.getElementById("gartenBtn");
+var gartenPctValEl = document.getElementById("gartenPctVal");
+var gartenLetzterStatus = null;
 var WWP_TIERE = ["🐿️","🦜","🐝","🦔","🦋","🐞"];
 var WWP_TUFF_FARBEN = { neu:"#A8CBA0", bau:"#F0A03C", due:"#E15759", sicher:"#74C95E", meister:"#FFD54A" };
-function openWissenswald(){
-  renderWissenswald();
+function openWissensgarten(){
+  renderWissensgarten();
   if(wwpViewEl) wwpViewEl.style.display = "block";
   window.scrollTo(0, 0);
 }
-function closeWissenswald(){ if(wwpViewEl) wwpViewEl.style.display = "none"; }
+function closeWissensgarten(){ if(wwpViewEl) wwpViewEl.style.display = "none"; }
 /* P4.1: Baum-Formen je Wissensbereich — die Krone wächst mit der Zahl der Kompetenzen.
    f = Größenfaktor · form = Kronen-Silhouette · WWP_FORM_HW = Halbbreite (× rM) ·
    WWP_FORM_ASPECT = Höhe/Breite der Frucht-Verteilung */
@@ -1092,6 +1092,54 @@ var WWP_FORM_SET = {
   busch: [[0,0.05,0.88],[-0.50,0.14,0.66],[0.50,0.12,0.68],[-0.28,-0.30,0.50],[0.30,-0.28,0.52]],
   flach: [[0,0.05,0.92],[-0.55,0.10,0.60],[0.55,0.08,0.62]]
 };
+/*
+ * P4.1 (Wissensgarten) — Jede Kompetenz ist eine Frucht am Baum, kein Punkt.
+ * Abwechselnd Apfel und Birne, damit der Garten nach Obst aussieht und nicht
+ * nach einer Ampel. Der Aufbau bleibt eine reine Funktion: übergeben werden
+ * Position, Radius, Farbe und Status; zurück kommt fertiges SVG-Markup.
+ *
+ * Bewusste Entscheidungen:
+ * - Der Fruchtkörper bleibt ein Kreis. Er ist die anklickbare Fläche und
+ *   muss auch als Symbol erkennbar bleiben — ein Path wäre bei 47 kleinen
+ *   Kompetenzen schlechter lesbar.
+ * - Die Farbe bleibt die Bedeutung (ungeübt/…/gemeistert/fällig). Das Obst
+ *   macht die Seite freundlicher, ohne die Information zu verschluckern.
+ * - Stiel und Blatt werden nur bei ausreichendem Radius gezeichnet: bei
+ *   11 px wäre ein 3-px-Stiel nur Pixelrauschen.
+ * - Die Frucht hängt am Stiel, der leicht seitlich versetzt ist — das gibt
+ *   ihr die typisch hängende Silhouette statt einer Kugel auf einem Strich.
+ */
+function wwpFrucht(x, y, r, col, status, attrs){
+  var klein = r < 12;
+  var hang = klein ? 0 : r * 0.22;             /* seitlicher Versatz des Stiels */
+  var s = "";
+  /* Stiel: leicht gebogen, damit der Baum nicht wie ein Nagelbrett wirkt */
+  s += '<path d="M' + x.toFixed(1) + ' ' + (y - r + 0.6).toFixed(1)
+     + ' q ' + hang.toFixed(1) + ' ' + (-r * 0.42).toFixed(1) + ' ' + (hang * 1.35).toFixed(1) + ' ' + (-r * 0.72).toFixed(1)
+     + '" fill="none" stroke="#6B4224" stroke-width="' + (klein ? 1.4 : 2.2).toFixed(1) + '" stroke-linecap="round"/>';
+  /* Körper */
+  s += '<circle class="wwp-frucht"' + attrs + ' cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1)
+     + '" r="' + r.toFixed(1) + '" fill="' + col + '" stroke="#3F6B37" stroke-width="' + (status === "neu" ? 1.2 : 2) + '"'
+     + ' opacity="' + (status === "neu" ? 0.85 : 1) + '"/>';
+  if(!klein){
+    /* Birne ist oben schmal und unten breit → das Blatt sitzt links höher */
+    var birne = status === "birne";
+    var bl = birne ? -r * 0.62 : -r * 0.48;
+    s += '<ellipse cx="' + (x + hang * 0.72).toFixed(1) + '" cy="' + (y + bl).toFixed(1)
+       + '" rx="' + (r * 0.42).toFixed(1) + '" ry="' + (r * 0.24).toFixed(1)
+       + '" fill="#5FA653" transform="rotate(-24 ' + (x + hang * 0.72).toFixed(1) + ' ' + (y + bl).toFixed(1) + ')"/>';
+    /* Glanzlicht: gibt der Frucht Volumen, sonst wirkt die Fläche flach */
+    s += '<circle cx="' + (x - r * 0.32).toFixed(1) + '" cy="' + (y - r * 0.34).toFixed(1)
+       + '" r="' + (r * 0.22).toFixed(1) + '" fill="#fff" opacity=".45"/>';
+    /* Birnen sind unten breiter: ein Keil macht die Silhouette erkennbar */
+    if(birne){
+      s += '<path d="M' + (x - r * 0.72).toFixed(1) + ' ' + (y + r * 0.34).toFixed(1)
+         + ' q ' + (r * 0.36).toFixed(1) + ' ' + (r * 0.46).toFixed(1) + ' ' + (r * 0.72).toFixed(1) + ' 0'
+         + ' q ' + (r * 0.36).toFixed(1) + ' ' + (-r * 0.46).toFixed(1) + ' ' + (r * 0.72).toFixed(1) + ' 0 Z" fill="' + col + '"/>';
+    }
+  }
+  return s;
+}
 /* Solide Krone (kein Transparenz-Schaum): Silhouette + Schattenband + Lichtreflex */
 function wwpKrone(form, rM, cy){
   var set = WWP_FORM_SET[form] || WWP_FORM_SET.rund;
@@ -1161,7 +1209,7 @@ function wwpTuffPosis(n, R, aspect){
   }
   return out;
 }
-function showWaldBanner(baeume){
+function showGartenBanner(baeume){
   var fb = document.getElementById("feedback");
   if(!fb) return;
   var div = document.createElement("div");
@@ -1188,7 +1236,7 @@ function wwZeigeTuff(key){
   var b = wwCaptionEl.querySelector(".wwp-ueben");
   if(b) b.addEventListener("click", function(){
     setFocusKey(key);
-    closeWissenswald();
+    closeWissensgarten();
     nextExercise();
   });
 }
@@ -1210,21 +1258,21 @@ function wwpSchild(x, top, b, idx){
   s += '</g>';
   return s;
 }
-function renderWissenswald(){
+function renderWissensgarten(){
   if(!wwpSceneEl) return;
   var nowSec = Math.floor(Date.now() / 1000);
-  var wald = waldStatus(state.spaced, nowSec);
-  if(wwpStatsEl) wwpStatsEl.innerHTML = '<strong>' + wald.pct + '%</strong> gewachsen · <strong>' + wald.goldene + '/' + wald.total + '</strong> Bäume golden';
-  if(wwHintEl) wwHintEl.innerHTML = wald.goldene === wald.total
-    ? '🏆 Fantastisch! Dein ganzer Wissenswald ist golden — deine Eulen wohnen im schönsten Hain!'
-    : '🌳 Tippe ein Blatt an, um genau diese Kompetenz zu üben · ⏰ rote Blätter warten auf Wiederholung';
+  var garten = gartenStatus(state.spaced, nowSec);
+  if(wwpStatsEl) wwpStatsEl.innerHTML = '<strong>' + garten.pct + '%</strong> gewachsen · <strong>' + garten.goldene + '/' + garten.total + '</strong> Bäume golden';
+  if(wwHintEl) wwHintEl.innerHTML = garten.goldene === garten.total
+    ? '🏆 Fantastisch! Dein ganzer Wissensgarten ist golden — deine Eulen wohnen im schönsten Hain!'
+    : '🌳 Tippe eine Frucht an, um genau diese Kompetenz zu üben · ⏰ rote Früchte warten auf Wiederholung';
   /* Gold-Feier: nur beim Übergang (nicht beim ersten Öffnen) */
   var neueGold = [];
-  wald.baeume.forEach(function(b, i){
-    if(b.status === "gold" && waldLetzterStatus && waldLetzterStatus[i] !== "gold") neueGold.push(b);
+  garten.baeume.forEach(function(b, i){
+    if(b.status === "gold" && gartenLetzterStatus && gartenLetzterStatus[i] !== "gold") neueGold.push(b);
   });
-  waldLetzterStatus = wald.baeume.map(function(b){ return b.status; });
-  if(neueGold.length){ spawnConfetti(); showWaldBanner(neueGold); }
+  gartenLetzterStatus = garten.baeume.map(function(b){ return b.status; });
+  if(neueGold.length){ spawnConfetti(); showGartenBanner(neueGold); }
   /* --- Szene: Himmel, Sonne, Wolken, Wiese — 6 Bäume je auf eigenem Hügel --- */
   var W = 1000, H = 534, groundY = H - 66;
   var s = "", i, j;
@@ -1262,7 +1310,7 @@ function renderWissenswald(){
      Größe & Kronenform je Wissensbereich → jeder Baum ist sofort erkennbar. */
   var BAUM_X = [78, 240, 402, 564, 726, 888];
   var wwSignTop = groundY + 10;                     /* Schilder als Tafelreihe unterhalb der Bäume */
-  wald.baeume.forEach(function(b, idx){
+  garten.baeume.forEach(function(b, idx){
     var hinten = (idx % 2 === 0);
     var x = BAUM_X[idx];
     var sk = hinten ? 0.9 : 1.0;
@@ -1291,8 +1339,14 @@ function renderWissenswald(){
     posis.forEach(function(p, ti){
       var t = b.tuffs[ti];
       var col = WWP_TUFF_FARBEN[t.status] || WWP_TUFF_FARBEN.neu;
-      var cls = "wwp-tuff" + (t.status === "meister" ? " wwp-gold" : "");
-      s += '<circle class="' + cls + '" data-key="' + t.key + '" cx="' + (p[0]).toFixed(1) + '" cy="' + (cy + p[1]).toFixed(1) + '" r="' + tR + '" fill="' + col + '" stroke="#3F6B37" stroke-width="' + (t.status === "neu" ? 1.2 : 2) + '" opacity="' + (t.status === "neu" ? 0.85 : 1) + '" role="button" tabindex="0" aria-label="' + escHtml(t.name) + '"/>';
+      var cls = "wwp-frucht" + (t.status === "meister" ? " wwp-gold" : "");
+      /* Abwechselnd Apfel und Birne. Die Art wechselt mit dem Index, nicht mit
+         dem Status: der Garten soll nach Obst aussehen, die Farbe bleibt die
+         Bedeutung. */
+      var birne = ((ti + idx) % 2) === 1;
+      var attrs = ' class="' + cls + '" data-key="' + t.key + '" role="button" tabindex="0"'
+        + ' aria-label="' + escHtml(t.name) + (birne ? " (Birne)" : " (Apfel)") + '"';
+      s += wwpFrucht(p[0], cy + p[1], tR, col, birne ? "birne" : "apfel", attrs);
       if(t.status === "meister"){
         s += '<text class="wwp-sparkle" x="' + (p[0]).toFixed(1) + '" y="' + (cy + p[1] + 4).toFixed(1) + '" text-anchor="middle" font-size="11">✨</text>';
       }
@@ -1308,18 +1362,18 @@ function renderWissenswald(){
   });
   s += '</svg>';
   wwpSceneEl.innerHTML = s;
-  Array.prototype.forEach.call(wwpSceneEl.querySelectorAll(".wwp-tuff"), function(el){
+  Array.prototype.forEach.call(wwpSceneEl.querySelectorAll(".wwp-frucht"), function(el){
     el.addEventListener("click", function(){ wwZeigeTuff(el.getAttribute("data-key")); });
     el.addEventListener("keydown", function(ev){
       if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); wwZeigeTuff(el.getAttribute("data-key")); }
     });
   });
 }
-if(waldBtnEl) waldBtnEl.addEventListener("click", openWissenswald);
-var waldBackEl = document.getElementById("waldBack");
-if(waldBackEl) waldBackEl.addEventListener("click", closeWissenswald);
+if(gartenBtnEl) gartenBtnEl.addEventListener("click", openWissensgarten);
+var gartenBackEl = document.getElementById("gartenBack");
+if(gartenBackEl) gartenBackEl.addEventListener("click", closeWissensgarten);
 document.addEventListener("keydown", function(ev){
-  if(ev.key === "Escape" && wwpViewEl && wwpViewEl.style.display !== "none") closeWissenswald();
+  if(ev.key === "Escape" && wwpViewEl && wwpViewEl.style.display !== "none") closeWissensgarten();
 });
 
 if(legalModalEl){

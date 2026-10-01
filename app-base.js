@@ -2221,11 +2221,11 @@
     return t.getUTCFullYear() + "-W" + (woche < 10 ? "0" : "") + woche;
   }
 
-  /* ============ P4.1: Wissenswald — 6 Kompetenz-Bäume je Lehrplanbereich ============
+  /* ============ P4.1: Wissensgarten — 6 Kompetenz-Bäume je Lehrplanbereich ============
    * Jeder Baum bündelt Generatoren zu einem Themenbereich. Die Färbung kommt aus der
    * Spaced-Repetition-Leiter (state.spaced): Level 0 = unberührt, 1-2 = im Bau,
    * 3-4 = sicher, 5 = gemeistert (golden), fällig = rot. Keine neuen Persistenzfelder. */
-  var WALD_BEREICHE = [
+  var GARTEN_BEREICHE = [
     { id:"brueche",  icon:"🌰", name:"Bruch-Baum",    untertitel:"Zahlen & Brüche (H1.I1)",  generatoren:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal"] },
     { id:"prozente", icon:"🪙", name:"Prozent-Baum",  untertitel:"Prozente & Verhältnisse (H1.I2, H2.I2)", generatoren:["prozentVonZahl","prozentAnteil","zinsrechnung","proportionalitaet"] },
     { id:"formen",   icon:"📐", name:"Formen-Baum",   untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck"] },
@@ -2235,14 +2235,14 @@
   ];
   function bereichFuerKey(key){
     var i;
-    for(i = 0; i < WALD_BEREICHE.length; i++){
-      if(WALD_BEREICHE[i].generatoren.indexOf(key) !== -1) return WALD_BEREICHE[i];
+    for(i = 0; i < GARTEN_BEREICHE.length; i++){
+      if(GARTEN_BEREICHE[i].generatoren.indexOf(key) !== -1) return GARTEN_BEREICHE[i];
     }
     return null;
   }
-  function waldStatus(spaced, nowSec){
+  function gartenStatus(spaced, nowSec){
     var s = spacedSanitize(spaced || {});
-    var baeume = WALD_BEREICHE.map(function(b){
+    var baeume = GARTEN_BEREICHE.map(function(b){
       var tuffs = b.generatoren.map(function(k){
         var e = s[k];
         var cm = CURRICULUM_MAP[k];
@@ -2285,6 +2285,6 @@
     GRADE_GROUPS, GRADE_TAGS, DIFFICULTIES, TIPP1_BY_TOPIC, deriveTips, bruchWort,
     SPACED_STEPS, spacedSanitize, spacedWrong, spacedCorrect, spacedDueKeys, spacedAmpel,
     punkteFuerStufe, stufeVonPunkten, rangTitel, owlForLevel, owlSVG, owlInner, OWL_ANIMS,
-    WOCHENZIELE, wochenSchluessel, WALD_BEREICHE, waldStatus, bereichFuerKey
+    WOCHENZIELE, wochenSchluessel, GARTEN_BEREICHE, gartenStatus, bereichFuerKey
   };
 })();

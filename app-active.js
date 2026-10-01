@@ -1065,7 +1065,25 @@ var gartenBtnEl = document.getElementById("gartenBtn");
 var gartenPctValEl = document.getElementById("gartenPctVal");
 var gartenLetzterStatus = null;
 var WWP_TIERE = ["🐿️","🦜","🐝","🦔","🦋","🐞"];
-var WWP_TUFF_FARBEN = { neu:"#A8CBA0", bau:"#F0A03C", due:"#E15759", sicher:"#74C95E", meister:"#FFD54A" };
+/*
+ * P4.1 (Wissensgarten) — Farbe heißt Reife, wie bei einer Frucht am Baum.
+ *
+ * Bewusst eine durchgehende Rampe von hellgrün nach rot: je sicherer die
+ * Kompetenz sitzt, desto reifer die Frucht. Vorher war die Reihenfolge
+ * genau verkehrt herum (ungeübt grün, gemeistert gelb), und Rot war
+ * doppelt belegt — es stand sowohl für "gemeistert" als auch für "fällig".
+ *
+ *   neu      #A9CE8B  hellgrün   unreife Frucht, noch nie geübt
+ *   bau      #F0C24B  gelb       im Wuchs, Stufe 1–2
+ *   sicher   #EE8A3C  orange     sicher, Stufe 3–4
+ *   meister  #D33A2C  rot        reif und geerntet, Stufe 5
+ *
+ * "due" hat bewusst KEINE eigene Farbe mehr: Rot gehört der Reife. Der
+ * Wiederholungs-Hinweis ist ein pulsierender Hellgrün-Glow (wwpDueGlow),
+ * der die reife Farbe unberührt lässt — die Frucht sieht aus wie die
+ * Frucht, die sie ist, sie blinkt nur, bis sie gepflückt ist.
+ */
+var WWP_FRUCHT_FARBEN = { neu:"#A9CE8B", bau:"#F0C24B", sicher:"#EE8A3C", meister:"#D33A2C" };
 function openWissensgarten(){
   renderWissensgarten();
   if(wwpViewEl) wwpViewEl.style.display = "block";
@@ -1109,10 +1127,18 @@ var WWP_FORM_SET = {
  * - Die Frucht hängt am Stiel, der leicht seitlich versetzt ist — das gibt
  *   ihr die typisch hängende Silhouette statt einer Kugel auf einem Strich.
  */
-function wwpFrucht(x, y, r, col, status, attrs){
+function wwpFrucht(x, y, r, col, status, attrs, due){
   var klein = r < 12;
   var hang = klein ? 0 : r * 0.22;             /* seitlicher Versatz des Stiels */
   var s = "";
+  /*
+   * P4.1 — "fällig" als pulsierender Hellgrün-Glow. Er liegt HINTER der
+   * Frucht und ändert ihre Farbe nicht: die Rampe bleibt damit eindeutig
+   * ("dunkler = reifer"), und der Glow sagt nur "pflück mich".
+   */
+  if(due){
+    s += '<circle class="wwp-due-glow" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (r * 1.5).toFixed(1) + '" fill="none" stroke="#7ED957" stroke-width="' + (r * 0.26).toFixed(1) + '" opacity=".6"/>';
+  }
   /* Stiel: leicht gebogen, damit der Baum nicht wie ein Nagelbrett wirkt */
   s += '<path d="M' + x.toFixed(1) + ' ' + (y - r + 0.6).toFixed(1)
      + ' q ' + hang.toFixed(1) + ' ' + (-r * 0.42).toFixed(1) + ' ' + (hang * 1.35).toFixed(1) + ' ' + (-r * 0.72).toFixed(1)
@@ -1242,7 +1268,7 @@ function wwZeigeTuff(key){
 }
 function wwpSchild(x, top, b, idx){
   var neig = (idx % 2 === 0) ? -1.5 : 1.5;
-  var sub = b.pct + "% · " + (b.status === "gold" ? "🏆 golden" : (b.status === "rot" ? "⏰ " + b.dueCount + " fällig" : (b.status === "neu" ? "🌱 unberührt" : "🌿 " + b.geuebt + "/" + b.total + " im Wuchs")));
+  var sub = b.pct + "% · " + (b.status === "gold" ? "🏆 golden" : (b.status === "rot" ? b.dueCount + " fällig" : (b.status === "neu" ? "🌱 unberührt" : "🌿 " + b.geuebt + "/" + b.total + " im Wuchs")));
   var s = "";
   /* Bodenschatten: verankert das Schild auf der Wiese (bleibt innerhalb der Bühne) */
   s += '<ellipse cx="' + x + '" cy="' + (top + 42) + '" rx="64" ry="5" fill="#7BAF6B" opacity=".5"/>';
@@ -1265,7 +1291,7 @@ function renderWissensgarten(){
   if(wwpStatsEl) wwpStatsEl.innerHTML = '<strong>' + garten.pct + '%</strong> gewachsen · <strong>' + garten.goldene + '/' + garten.total + '</strong> Bäume golden';
   if(wwHintEl) wwHintEl.innerHTML = garten.goldene === garten.total
     ? '🏆 Fantastisch! Dein ganzer Wissensgarten ist golden — deine Eulen wohnen im schönsten Hain!'
-    : '🌳 Tippe eine Frucht an, um genau diese Kompetenz zu üben · ⏰ rote Früchte warten auf Wiederholung';
+    : '🌳 Tippe eine Frucht an, um genau diese Kompetenz zu üben · pulsierende Früchte warten auf Wiederholung';
   /* Gold-Feier: nur beim Übergang (nicht beim ersten Öffnen) */
   var neueGold = [];
   garten.baeume.forEach(function(b, i){
@@ -1338,7 +1364,14 @@ function renderWissensgarten(){
     s += wwpKrone(form, rM, cy);
     posis.forEach(function(p, ti){
       var t = b.tuffs[ti];
-      var col = WWP_TUFF_FARBEN[t.status] || WWP_TUFF_FARBEN.neu;
+      /*
+       * "due" ist eine eigene Anzeige, keine eigene Farbe mehr: der Status
+       * wird zuerst auf seine Reife-Stufe zurückgeführt, damit eine fällige
+       * Frucht weiterhin so aussieht wie ihr Wissensstand (hellgrün bis rot)
+       * und der Glow nur zusätzlich darauf zeigt.
+       */
+      var reife = (t.status === "due") ? (t.level >= 5 ? "meister" : (t.level >= 3 ? "sicher" : "bau")) : t.status;
+      var col = WWP_FRUCHT_FARBEN[reife] || WWP_FRUCHT_FARBEN.neu;
       var cls = "wwp-frucht" + (t.status === "meister" ? " wwp-gold" : "");
       /* Abwechselnd Apfel und Birne. Die Art wechselt mit dem Index, nicht mit
          dem Status: der Garten soll nach Obst aussehen, die Farbe bleibt die
@@ -1346,12 +1379,9 @@ function renderWissensgarten(){
       var birne = ((ti + idx) % 2) === 1;
       var attrs = ' class="' + cls + '" data-key="' + t.key + '" role="button" tabindex="0"'
         + ' aria-label="' + escHtml(t.name) + (birne ? " (Birne)" : " (Apfel)") + '"';
-      s += wwpFrucht(p[0], cy + p[1], tR, col, birne ? "birne" : "apfel", attrs);
+      s += wwpFrucht(p[0], cy + p[1], tR, col, birne ? "birne" : "apfel", attrs, t.due);
       if(t.status === "meister"){
         s += '<text class="wwp-sparkle" x="' + (p[0]).toFixed(1) + '" y="' + (cy + p[1] + 4).toFixed(1) + '" text-anchor="middle" font-size="11">✨</text>';
-      }
-      if(t.due){
-        s += '<text class="wwp-due" x="' + (p[0]).toFixed(1) + '" y="' + (cy + p[1] + tR + 5).toFixed(1) + '" text-anchor="middle" font-size="9">⏰</text>';
       }
     });
     if(b.status === "gold"){

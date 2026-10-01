@@ -48,7 +48,7 @@ Mathe nach AT-Lehrplan 🦉 47 Übungstypen · 3 Stufen · kostenlos
 ```
 🦉 Mathemit – Mathe üben nach dem österreichischen Lehrplan (AHS/MS 2023)
 
-47 Übungstypen in 15 Themen-Modi, 3 Schwierigkeitsstufen, pädagogisches Tipp-System, Wissenswald und Eulenhain als Belohnung. Kostenlos und ohne Werbung.
+47 Übungstypen in 15 Themen-Modi, 3 Schwierigkeitsstufen, pädagogisches Tipp-System, Wissensgarten und Eulenhain als Belohnung. Kostenlos und ohne Werbung.
 
 🎬 Hier: kurze Mathe-Tricks & AHA-Momente als Shorts — die App selbst gibt es hier:
 https://mathemit.andybrandy.at

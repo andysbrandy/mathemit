@@ -426,22 +426,31 @@
   .wwp-animal{ animation:wwpFloat 3.5s ease-in-out infinite; }
   /* statischer Glow (bewusst ohne Animation → kein Flackern): gemeisterte Blätter & fällige Marker */
   .wwp-gold{ filter:drop-shadow(0 0 3.5px rgba(255,213,74,.95)); }
-  .wwp-due{ filter:drop-shadow(0 0 2px rgba(225,87,89,.85)); }
+  /*
+   * P4.1 — "fällig" ist ein pulsierender Hellgrün-Ring. Er liegt hinter der
+   * Frucht und faerbt sie nicht: die Reife-Rampe bleibt eindeutig lesbar.
+   */
+  .wwp-due-glow{ animation:wwpGlow 2.2s ease-in-out infinite; }
+  @keyframes wwpGlow{ 0%,100%{ opacity:.25; transform:scale(.94); } 50%{ opacity:.95; transform:scale(1.06); } }
   @keyframes wwpFloat{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-5px); } }
   .wwp-sparkle{ animation:wwpTwinkle 1.8s ease-in-out infinite; }
   @keyframes wwpTwinkle{ 0%,100%{ opacity:.3; } 50%{ opacity:1; } }
   .ww-caption{ text-align:center; margin-top:10px; font-size:.88rem; min-height:46px; }
   .ww-leg{ display:inline-flex; align-items:center; gap:5px; margin:0 7px; font-size:.76rem; color:var(--muted); font-weight:600; }
   .ww-leg i{ width:11px; height:11px; border-radius:50%; display:inline-block; border:1.5px solid #3F6B37; }
-  .ww-leg .lg-neu{ background:#A8CBA0; }
-  .ww-leg .lg-bau{ background:#F0A03C; }
-  .ww-leg .lg-sicher{ background:#74C95E; }
-  .ww-leg .lg-meister{ background:#FFD54A; }
-  .ww-leg .lg-due{ background:#E15759; }
+  /* P4.1 — Die Legende folgt der Reife-Rampe: hellgrün → gelb → orange → rot. */
+  .ww-leg .lg-neu{ background:#A9CE8B; }
+  .ww-leg .lg-bau{ background:#F0C24B; }
+  .ww-leg .lg-sicher{ background:#EE8A3C; }
+  .ww-leg .lg-meister{ background:#D33A2C; }
+  .ww-leg .lg-due{ background:transparent; border:2px solid #7ED957; }
   .wwp-codes{ font-size:.7rem; color:var(--muted); }
   .wwp-ueben{ margin-left:6px; }
   .ww-hint{ text-align:center; margin-top:6px; font-size:.78rem; color:var(--muted); }
   .stat-pill.garten{ cursor:pointer; }
   @media (prefers-reduced-motion: reduce){
-    .wwp-animal, .wwp-sparkle{ animation:none; }
+    .wwp-animal, .wwp-sparkle, .wwp-due-glow{ animation:none; }
+    /* Ohne Puls bleibt ein ruhiger, aber sichtbarer Ring — der Hinweis
+       darf durch die Einstellung nicht verschwinden. */
+    .wwp-due-glow{ opacity:.7; }
   }

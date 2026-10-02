@@ -23,6 +23,7 @@
 - **Geometrisches Eulen-Logo**: blinkt, die Pupillen folgen dem Cursor, die Flügel wedeln bei richtigen Aufgaben („Bewegung reduzieren" wird respektiert)
 - **9 Alltag-Textaufgaben** mit Österreich-Bezug
 - **Qualitätssicherung**: Pre-Commit-Check gegen nicht deklarierte Variablen (`scripts/check-strict-vars.py`) — verhindert „ReferenceError: Can't find variable"-Abstürze im `use strict`-Code der App
+- **Aufgabenleiste per Maus scrollbar** (Bugfix Windows/Edge): Die Themenleiste ließ sich mit der Maus überhaupt nicht bewegen — ein senkrechtes Mausrad scrollte die Seite, nicht die Leiste. Auf Touchpads fällt das nicht auf, auf Windows mit Maus umso mehr. Ursache war `overflow-x:auto` bei gleichzeitig `overflow-y:visible`, wodurch der Browser `overflow-y` zu `auto` rechnet; Chromium leitet das Rad dann an die Seite weiter. Behoben mit explizitem `overflow-y:hidden` **und** einem Wheel-Handler, der das senkrechte Rad auf die Leiste umleitet. Am Anschlag wird nichts geschluckt (die Seite scrollt weiter), Strg+Rad bleibt Zoom, eine echte seitliche Trackpad-Geste bleibt unangetastet. Dazu Pfeiltasten und `role="group"` für Tastatur und Screenreader.
 
 ---
 

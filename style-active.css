@@ -2,6 +2,22 @@
   .chips{
     display:flex; gap:8px; flex-wrap:nowrap;
     overflow-x:auto; -webkit-overflow-scrolling:touch;
+    /*
+      Bugfix Windows/Edge: die Leiste war mit der Maus nicht scrollbar.
+      overflow-y MUSS explizit hidden sein. Mit "overflow-x:auto;
+      overflow-y:visible" rechnet der Browser overflow-y zu "auto" — die
+      Leiste meldete damit faelschlich, sie koenne auch vertikal
+      scrollen, und das Mausrad ging an die Seite statt an die Leiste.
+      Gemessen: 3x deltaY ueber der Leiste -> chips.scrollLeft blieb bei 2,
+      window.scrollY stieg auf 141.
+
+      "hidden" allein reicht aber NICHT: damit bleibt die Leiste in
+      Chromium weiterhin stehen (nachgemessen, chipsBewegt:false). Die
+      Umleitung des vertikalen Rads auf eine waagerechte Achse macht der
+      Browser hier nicht. Deshalb uebernimmt der Wheel-Handler in
+      app-active.js die Umleitung selbst.
+    */
+    overflow-y:hidden;
     scroll-snap-type:x proximity;
     scrollbar-width:none; -ms-overflow-style:none;
     padding:2px 2px 4px; margin-bottom:18px;

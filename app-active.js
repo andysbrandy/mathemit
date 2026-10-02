@@ -404,6 +404,64 @@ function scrollActiveChip(){
 }
 scrollActiveChip();
 
+/*
+ * Bugfix: Die Aufgabenleiste war unter Windows/Edge mit der Maus nicht
+ * scrollbar — es gibt dort praktisch keine Geste, die eine waagerechte
+ * Leiste bewegt. Touchpad-Zwei-Finger-Schub fehlt, die Scrollbar ist per
+ * CSS ausgeblendet, und ein senkrechtes Mausrad scrollt die Seite, nicht
+ * die Leiste (gemessen: chips.scrollLeft blieb bei 2, window.scrollY
+ * stieg auf 141).
+ *
+ * Dieser Handler leitet das senkrechte Rad selbst auf die Leiste um.
+ * Drei Regeln, damit er nicht nervt:
+ *   - Eine echte seitliche Geste (Trackpad) wird nie angefasst.
+ *   - Strg+Rad bleibt Zoom, das gehoert dem Browser.
+ *   - Am Anschlag wird NICHT geschluckt: ist nichts mehr zu scrollen,
+ *     scrollt die Seite weiter. Sonst waere die Leiste eine Sackgasse.
+ * Zusaetzlich Pfeiltasten, damit die Leiste auch ohne Maus bedienbar ist.
+ */
+function enableChipWheelScroll(el){
+  if(!el){ return; }
+  el.addEventListener("wheel", function(ev){
+    /* deltaMode: 0 = Pixel, 1 = Zeilen, 2 = Seiten. Zeilen und Seiten
+     * kommen von aelteren Windows-Trackpads und muessen umgerechnet
+     * werden, sonst scrollt ein Tick quasi gar nichts. */
+    if(ev.ctrlKey){ return; }
+    if(Math.abs(ev.deltaX) >= Math.abs(ev.deltaY)){ return; }
+    var max = el.scrollWidth - el.clientWidth;
+    if(max <= 0){ return; }
+    var faktor = ev.deltaMode === 1 ? 16 : (ev.deltaMode === 2 ? el.clientWidth : 1);
+    var vorher = el.scrollLeft;
+    var ziel = vorher + ev.deltaY * faktor;
+    /* Am Anschlag durchlassen: das Rad gehoert dann der Seite. */
+    if(ziel <= 0 && vorher <= 0){ return; }
+    if(ziel >= max && vorher >= max){ return; }
+    ev.preventDefault();
+    el.scrollLeft = ziel;
+  }, {passive:false});
+  /* Pfeiltasten: ohne Maus gibt es sonst gar keinen Weg in die Leiste. */
+  el.addEventListener("keydown", function(ev){
+    var schritt = Math.max(120, Math.round(el.clientWidth * 0.8));
+    if(ev.key === "ArrowRight"){ el.scrollBy({left:schritt, behavior:"smooth"}); }
+    else if(ev.key === "ArrowLeft"){ el.scrollBy({left:-schritt, behavior:"smooth"}); }
+    else { return; }
+    ev.preventDefault();
+  });
+}
+/* Alle drei Leisten: Aufgaben, Stufen und Schwierigkeit. */
+[chipsHost, document.getElementById("gradeChips"), document.getElementById("diffChips")].forEach(function(el){
+  /* tabindex, damit die Leiste selbst ein Sprungziel ist und der
+   * Tastatur-Scroll ueberhaupt einen :focus bekommt. role="group" mit
+   * aria-label, weil es sonst ein unbenannter Bereich fuer Screenreader
+   * waere; die Chips darin sind ja echte Buttons. */
+  if(el){
+    el.setAttribute("tabindex", "0");
+    el.setAttribute("role", "group");
+    if(!el.getAttribute("aria-label")){ el.setAttribute("aria-label", "Aufgaben-Themen, waagerecht scrollbar"); }
+    enableChipWheelScroll(el);
+  }
+});
+
 function sanitizeRepeatQ(list){
   var out = [];
   if(!Array.isArray(list)){ return out; }

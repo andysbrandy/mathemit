@@ -132,6 +132,24 @@
     font:inherit; font-size:.75rem; color:var(--viereck); text-decoration:underline;
   }
   .footer-link:hover{ color:#188a82; }
+  /*
+    Kanal-Zeile im Footer (7.4.6). Eigene Klasse statt .footer-link, weil
+    das dort fuer <button> mit data-legal geschrieben ist — hier sind es
+    echte Sprungziele nach aussen. Die Zeile steht unter den Rechtslinks,
+    damit sie den Fuss nicht in einen langen Fliesstext verwandelt.
+  */
+  .footer-channels{
+    display:block; margin-top:6px; font-size:.75rem; opacity:.85;
+  }
+  .footer-channels-label{ color:var(--muted); }
+  .footer-chan{
+    color:var(--viereck); text-decoration:underline; padding:0 2px;
+  }
+  .footer-chan:hover{ color:#188a82; }
+  /* Touch-Flaeche: die Links sind klein, aber werden mit dem Daumen getippt. */
+  @media (pointer:coarse){
+    .footer-chan{ padding:4px 6px; }
+  }
   .auth-submit{
     width:100%; padding:11px; margin-top:8px;
     background:var(--viereck); color:#fff; border:0;

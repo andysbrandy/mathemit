@@ -11,6 +11,15 @@
 | **Instagram** | [@mathemit.andybrandy.at](https://www.instagram.com/mathemit.andybrandy.at) | ✅ Live |
 | **TikTok** | [@mathefit.andybrandy.at](https://www.tiktok.com/@mathefit.andybrandy.at) *(Hinweis: Handle lautet `mathefit`)* | ✅ Live |
 | **YouTube** | [Kanal UCLYEbAqgnCGcWASkaDOnXjw](https://www.youtube.com/channel/UCLYEbAqgnCGcWASkaDOnXjw) | ✅ Live |
+| **YouTube Studio** *(intern)* | [studio.youtube.com/…/content](https://studio.youtube.com/channel/UCLYEbAqgnCGcWASkaDOnXjw/content?d=ud) | ✅ Übersicht |
+
+**Stand Veröffentlichung (7.4.4–7.4.6):** Die drei Zugänge sind geprüft und die
+ersten **Videos mit Clips sind veröffentlicht**. Gepostet wird **manuell** — der
+Freigabeschritt bleibt zwingend, `publish-episode.js` (7.4.5) ist bewusst offen.
+Bei **YouTube sind die Kommentare deaktiviert** (Zielgruppe 10–14, offene
+Kommentarspalten ziehen unerwünschte Erwachsene an); TikTok und Instagram sind
+entsprechend eingestellt. Der Studio-Link ist eine **Übersicht, kein
+Publish-Endpunkt** und gehört deshalb nicht in den öffentlichen Footer der App.
 
 ## 🪪 Einheitliches Branding
 

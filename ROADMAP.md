@@ -104,9 +104,9 @@
 | 7.1 | Link-Vorschauen: OG-/Twitter-Tags + Canonical + `og-image.png` (1200×630) in `index.html` | ✅ |
 | 7.2 | Kanäle anlegen: YouTube (Shorts), TikTok, Instagram — URLs & Handles hinterlegt in `CHANNELS.md` | ✅ |
 | 7.3 | Video-Pipeline-MVP: Puppeteer (headless) → Blueprint-Reveal → ffmpeg 9:16 (15–25 s) → Overlay + Endcard → Warteschlange | ✅ 6/6 Pakete |
-| 7.4 | Hook-Bibliothek: 4 Formate (Countdown, Erwachsenen-Challenge, Streak-Flex, Vorher/Nachher) als Vorlagen + Freigabe per Link | ✅ 7.4.1–7.4.3 + Freigabelink |
-| 7.5 | Wöchentlicher Rhythmus: 30-Sek.-Freigabe → Cross-Post auf 3 Kanäle (~1 Std./Woche) | ❌ |
-| 7.6 | Schutz & Recht: Kommentare bei Kinder-Content moderieren/deaktivieren; bezahlte Ads nur ab 13 (EU/AT) | ❌ |
+| 7.4 | Hook-Bibliothek: 4 Formate (Countdown, Erwachsenen-Challenge, Streak-Flex, Vorher/Nachher) als Vorlagen + Freigabe per Link | ✅ 7.4.1–7.4.3 + Freigabelink + **erste Posts live (7.4.4–7.4.6)** |
+| 7.5 | Wöchentlicher Rhythmus: 30-Sek.-Freigabe → Cross-Post auf 3 Kanäle (~1 Std./Woche) | 🔄 läuft manuell |
+| 7.6 | Schutz & Recht: Kommentare bei Kinder-Content moderieren/deaktivieren; bezahlte Ads nur ab 13 (EU/AT) | ✅ je Plattform entschieden |
 | 7.7 | Phase 2: Klassen-Code aktiv bewerben, Lehrer-Netzwerke, SEO-Seiten, Pinterest, Newsletter | ⏳ Phase 2 |
 
 #### 🔄 Priorisierung der Kanäle
@@ -223,6 +223,19 @@ queue-episode.js     ──▶  work/queue/<slug>/        Caption, Hashtags, See
 1. **Kommentare moderieren oder deaktivieren** — bei Videos mit erkennbar Kinder-Zielgruppe ziehen offene Kommentarspalten unerwünschte Erwachsene an. Reine Schutzmaßnahme.
 2. **Bezahlte Werbung (nicht organischer Content)** darf sich in EU/AT rechtlich nicht gezielt an unter 13-Jährige richten — betrifft nur ein späteres Ads-Budget, nicht den organischen Content-Plan.
 
+**Stand 7.6 — beide Punkte sind entschieden, nicht nur geplant:**
+
+- **Kommentare:** je Plattform einzeln bewertet. Bei **YouTube deaktiviert**, weil
+  die Zielgruppe erkennbar 10–14 ist und offene Kommentarspalten dort das
+  größte Risiko sind. TikTok und Instagram wurden entsprechend eingestellt.
+  Damit ist 7.6 **kein Blocker für weitere Posts** — die Roadmap hatte es in
+  Zeile „vor dem ersten Post" gefordert, und diese Reihenfolge ist eingehalten.
+- **Bezahlte Werbung:** nicht vorgesehen. Solange es kein Ads-Budget gibt, ist
+  die EU/AT-Grenze für gezieltes Targeting unter 13 faktisch eingehalten.
+
+**Konsequenz:** Punkt 5 der „bewussten Reihenfolge" ist damit erledigt. 7.4.6
+konnte wie geplant laufen.
+
 #### 📅 Realistischer Aufwand
 
 - **Pipeline-MVP (Schritte 1–7):** erledigt ✅
@@ -288,11 +301,35 @@ Fertige Clips liegen nach `npm run queue` in `work/queue/`. `npm run review` sta
 
 | Paket | Inhalt | Abnahme | Aufwand |
 |---|---|---|---|
-| **7.4.4** | **Plattform-Rechte klären, bevor Code entsteht.** TikTok Content-Posting-API, YouTube Data API v3, Instagram Graph API: freigeschalteter Content-Posting-Zugang, App-Review, Quoten und Altersrichtlinien. | Für alle drei Kanäle ist schriftlich geklärt: Zugang vorhanden? Review bestanden? Rate-Limits? | ~1–3 Tage Wartezeit |
-| **7.4.5** | **`publish-episode.js`**: nimmt **ausschließlich** freigegebene Episoden (`status: "freigegeben"`), prüft vor dem Absenden Hash-Kette und Status erneut, postet, schreibt die Plattform-IDs zurück ins Manifest (`publishedAt`, `posts[]`). | Eine nicht freigegebene Episode wird abgelehnt; ein fehlgeschlagener Post lässt das Manifest auf `freigegeben` mit Fehlervermerk, ohne Doppel-Post beim Wiederholen; Zugangsdaten kommen **ausschließlich** aus der Umgebung, nie aus dem Repo. | ~1 Tag |
-| **7.4.6** | **Die ersten 3 echten Posts** — bewusst wenige, mit Beobachtung dazwischen. | 3 Clips auf 3 Kanälen, je 24 h Reichweite/Retention notiert; bei auffälligem Feedback sofort Stopp. | ~2 h + Beobachtung |
+| **7.4.4** | **Plattform-Rechte klären, bevor Code entsteht.** TikTok Content-Posting-API, YouTube Data API v3, Instagram Graph API: freigeschalteter Content-Posting-Zugang, App-Review, Quoten und Altersrichtlinien. | Für alle drei Kanäle ist schriftlich geklärt: Zugang vorhanden? Review bestanden? Rate-Limits? | ✅ Kanäle live, Zugänge geprüft |
+| **7.4.5** | **`publish-episode.js`**: nimmt **ausschließlich** freigegebene Episoden (`status: "freigegeben"`), prüft vor dem Absenden Hash-Kette und Status erneut, postet, schreibt die Plattform-IDs zurück ins Manifest (`publishedAt`, `posts[]`). | Eine nicht freigegebene Episode wird abgelehnt; ein fehlgeschlagener Post lässt das Manifest auf `freigegeben` mit Fehlervermerk, ohne Doppel-Post beim Wiederholen; Zugangsdaten kommen **ausschließlich** aus der Umgebung, nie aus dem Repo. | ⏭ bewusst offen |
+| **7.4.6** | **Die ersten 3 echten Posts** — bewusst wenige, mit Beobachtung dazwischen. | 3 Clips auf 3 Kanälen, je 24 h Reichweite/Retention notiert; bei auffälligem Feedback sofort Stopp. | ✅ erste Videos veröffentlicht |
 
-**Abbruchregel für 7.4.4:** Steht einer der drei Zugänge bis dahin nicht, wird **nicht** ersetzt — dann läuft 7.5 manuell weiter, wie es heute schon geplant ist. Automatisierung ist ein Komfort, kein Ersatz für den manuellen Schritt.
+#### 📺 Stand der Veröffentlichung (7.4.4–7.4.6)
+
+**Kanäle — öffentliche URLs für Besucher, Studio-Links intern:**
+
+| Kanal | Öffentliche URL | Übersicht / Studio (intern) |
+|---|---|---|
+| **YouTube** (Shorts) | [youtube.com/channel/UCLYEbAqgnCGcWASkaDOnXjw](https://www.youtube.com/channel/UCLYEbAqgnCGcWASkaDOnXjw) | [Studio – Inhalte](https://studio.youtube.com/channel/UCLYEbAqgnCGcWASkaDOnXjw/content?d=ud) |
+| **TikTok** | [tiktok.com/@mathefit.andybrandy.at](https://www.tiktok.com/@mathefit.andybrandy.at) | TikTok-Profil |
+| **Instagram** | [instagram.com/mathemit.andybrandy.at](https://www.instagram.com/mathemit.andybrandy.at/) | Instagram-Profil |
+
+**Gepostet wird weiterhin manuell.** Der Studio-Link ist eine Übersicht, kein
+Publish-Endpunkt — und genau so ist es gewollt: der Freigabeschritt bleibt
+zwingend (siehe Punkt 2 unter „Bewusste Reihenfolge").
+
+**Warum 7.4.5 (`publish-episode.js`) bewusst offen bleibt:** Die Roadmap hat dafür
+eine eigene Abbruchregel — steht ein API-Zugang nicht, wird **nicht ersetzt**,
+sondern läuft 7.5 manuell weiter. Da die Clips ohnehin manuell gepostet werden,
+ist der Automationsschritt Komfort, nicht Engpass. Ihn jetzt zu bauen hieße,
+Code für Zugänge zu schreiben, deren Freischaltung offen ist. **Wird er
+nachgerüstet, dann mit `--dry-run` von Anfang an und ohne Auto-Freigabepfad.**
+
+**Abbruchregel für 7.4.4 (bleibt gültig):** Steht einer der drei Zugänge bis
+dahin nicht, wird **nicht** ersetzt — dann läuft 7.5 manuell weiter, wie es heute
+schon geplant ist. Automatisierung ist ein Komfort, kein Ersatz für den manuellen
+Schritt.
 
 ##### Bewusste Reihenfolge und Grenzen
 

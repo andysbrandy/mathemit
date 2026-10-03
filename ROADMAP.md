@@ -23,6 +23,7 @@
 - **Geometrisches Eulen-Logo**: blinkt, die Pupillen folgen dem Cursor, die Flügel wedeln bei richtigen Aufgaben („Bewegung reduzieren" wird respektiert)
 - **9 Alltag-Textaufgaben** mit Österreich-Bezug
 - **Qualitätssicherung**: Pre-Commit-Check gegen nicht deklarierte Variablen (`scripts/check-strict-vars.py`) — verhindert „ReferenceError: Can't find variable"-Abstürze im `use strict`-Code der App
+- **PWA (installierbar & offline)** — P5.2 Grundversion: App per „Zum Home-Bildschirm" installierbar, startet ohne Netz mit allen 47 Generatoren, Icons aus `logo.svg`. Fortschritt geht offline **nur lokal** — die DB-Nachreichung ist bewusst noch nicht gebaut und wird auch nicht behauptet.
 - **Aufgabenleiste per Maus scrollbar** (Bugfix Windows/Edge): Die Themenleiste ließ sich mit der Maus überhaupt nicht bewegen — ein senkrechtes Mausrad scrollte die Seite, nicht die Leiste. Auf Touchpads fällt das nicht auf, auf Windows mit Maus umso mehr. Ursache war `overflow-x:auto` bei gleichzeitig `overflow-y:visible`, wodurch der Browser `overflow-y` zu `auto` rechnet; Chromium leitet das Rad dann an die Seite weiter. Behoben mit explizitem `overflow-y:hidden` **und** einem Wheel-Handler, der das senkrechte Rad auf die Leiste umleitet. Am Anschlag wird nichts geschluckt (die Seite scrollt weiter), Strg+Rad bleibt Zoom, eine echte seitliche Trackpad-Geste bleibt unangetastet. Dazu Pfeiltasten und `role="group"` für Tastatur und Screenreader.
 
 ---
@@ -78,17 +79,45 @@
 | # | Schritt | Status |
 |---|---------|--------|
 | 5.1 | ~~Mehr Regionen (15+ Alltag-Generatoren)~~ | ❌ gestrichen — **bewusst nicht mehr nötig**. Der Bestand (10 Alltag-Generatoren: Wien, Wandern, Einkauf, Weihnacht, Schule, Schulheft, Eiscafé, Skikurs, Wandertag, mehrstufig) reicht für den Wochenbetrieb; mehr Inhalt ist kein Engpass. |
-| 5.2 | PWA / Offline | ❌ |
+| 5.2 | PWA / Offline | ✅ Grundversion (Punkte 1, 2, 4, 5) — Offline-Write-Queue (Punkt 3) weiterhin offen |
 
-**Was steckt hinter 5.2 (PWA / Offline)?** — Noch nicht umgesetzt (kein Manifest, kein Service Worker, keine PWA-Metadaten in `index.html`).
+**Was 5.2 jetzt kann (Grundversion, ohne Punkt 3):**
 
-1. **Installierbarkeit (PWA):** `manifest.webmanifest` (Name, Icons, Theme-Farbe, `display: standalone`) + Meta-Tags in `index.html` (`<link rel="manifest">`, `theme-color`, Apple-Tags) → App per „Zum Home-Bildschirm" wie eine native App installieren und ohne Browser-Chrome öffnen.
-2. **Offline-Start:** Service Worker (`sw.js`) cached beim ersten Besuch die Kern-Dateien (`index.html`, `app-base.js`, `app-active.js`, beide CSS, `logo.svg`) → App startet auch ohne Internet (Stale-While-Revalidate, `CACHE_VERSION` an die `VERSION`-Datei koppeln, damit `?v=`-Deploys frisch werden).
-3. **Herausforderung — Fortschritt lebt in der DB:** Übungen sollen offline weiterlaufen; Punkte/Spaced-Fortschritt landen dann lokal (`localStorage`) und werden als **Offline-Write-Queue** bei nächster Verbindung an `backend/progress.php` nachgereicht (Konflikte lokal vs. DB lösen = aufwändigster Teil).
-4. **Update-Flow:** Nach jedem Deploy muss ein „♻️ Update verfügbar"-Toast die Nutzer zum Neuladen bewegen — sonst hängen sie auf alten gecachten `?v=`-Builds.
-5. **Online-bleibt-Online:** DB-Sync und 💬-Feedback brauchen Netz (klar als Offline-Hinweis/Chip kommunizieren).
+| Punkt | Status | Umsetzung |
+|---|---|---|
+| 1. Installierbarkeit | ✅ | `manifest.webmanifest` (standalone, Theme `#1FA294`) + Meta-Tags in `index.html`; Icons aus `logo.svg` erzeugt |
+| 2. Offline-Start | ✅ | `sw.js` mit Stale-While-Revalidate-Kern; Navigation Network-First mit Cache als Notnagel, App-Code Network-First, Unveränderliches Cache-First |
+| 3. **Offline-Write-Queue** | ⬜ | **bewusst offen** — der große Brocken, siehe unten |
+| 4. Update-Flow | ✅ | „♻️ Neue Version verfügbar"-Toast, wenn ein neuer Worker wartet; lädt aber **nicht** von selbst, weil das mitten in einer Aufgabe den Rechenweg zerstört |
+| 5. Online-bleibt-Online | ✅ | Offline-Chip „Offline — wird lokal gespeichert"; die API meldet ohnehin „Netzwerkfehler" |
 
-**Aufwand:** Grundversion (Punkte 1, 2 & 4) ≈ halber Tag · Offline-Write-Queue (Punkt 3 inkl. Sync-Konflikte) ist der große Brocken.
+**Warum Punkt 3 offen bleibt und nicht „irgendwann" heißt:** Offline-Training landet
+in `localStorage`, die DB-Synchronisation gibt es erst mit dem Queue-Bau. Solange
+das fehlt, ist der Fortschritt eines Offline-Nutzers **nicht** in der DB und geht
+auf einem anderen Gerät verloren. Der Chip sagt deshalb bewusst „wird **lokal**
+gespeichert" und nicht „Alles gespeichert". Das ist kein Makel, sondern die
+ehrliche Aussage — der Konflikt-Lösungsfall (lokal vs. DB, Reihenfolge,
+Wiederholung) ist der teuerste Teil der ganzen Roadmap.
+
+**Was der Service Worker bewusst NICHT tut — und warum:**
+
+1. **Er cachet keine Backend-Antworten.** Ein gecachter Fortschritt wäre stiller
+   Datenverlust: lokal da, in der DB nicht, und der Nutzer glaubt, alles sei
+   gespeichert. Festgeschrieben als Test.
+2. **Er spielt keine alte `app-base.js` aus, ohne zu fragen.** Cache-First gilt nur
+   für Unveränderliches (Icons, Logo, Manifest). App-Code ist Network-First —
+   sonst würde die App wochenlang mit altem Code laufen.
+
+**Der Cache-Name hängt an der Registrierungs-URL:** die Seite registriert
+`sw.js?v=<VERSION>`. Bei jedem Deploy ist das eine andere URL, der Browser meldet
+einen neuen Worker, alte Caches werden gelöscht. Ohne das läge nach drei
+Deploys ein toter Cache nach dem anderen.
+
+**Icons:** `scripts/make-pwa-icons.js` erzeugt 192/512 und eine maskable-Variante
+aus `logo.svg`. Bewusst **nicht** `avatar.png` — das trägt das Wortzeichen
+„mathemit .andybrandy.at", das bei 48×48 (Android-Icon-Größe) unlesbar ist und
+nur als dunkles Rechteck ankäme. Für ein App-Symbol zählt die Silhouette.
+Auch `apple-touch-icon` zeigt jetzt auf ein PNG: iOS rendert kein SVG.
 
 ### P7 — Bekanntmachung Zielgruppe 10–14 J. (revidiertes Konzept 🔄)
 

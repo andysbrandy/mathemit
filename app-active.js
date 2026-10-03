@@ -1636,7 +1636,114 @@ function apiFetch(endpoint, options) {
   });
 }
 
-// ---------- Auth UI ----------
+/* ==================================================================
+ * PWA (5.2) — Installation, Offline-Hinweis, Update-Toast
+ * ==================================================================
+ *
+ * Drei Aufgaben, ein Block:
+ *   1. Service Worker registrieren (mit Versions-Query, sonst erkennt
+ *      der Browser ein neues Deploy nicht)
+ *   2. anzeigen, wenn ein Update bereitliegt
+ *   3. anzeigen, wenn offline gearbeitet wird
+ *
+ * Zu 3 wichtig: es wird NICHT behauptet, alles sei gespeichert. Der
+ * Fortschritt liegt offline nur in localStorage; die DB-Synchronisation
+ * ist ausdruecklich noch nicht gebaut (5.2 Punkt 3). Wer offline
+ * trainiert, sieht das hier und weiss Bescheid.
+ */
+
+function appVersion() {
+  var meta = document.querySelector('meta[name="app-version"]');
+  var m = meta && /v(\d+)/.exec(meta.getAttribute("content") || "");
+  return m ? m[1] : "dev";
+}
+
+function chipSetzen(id, sichtbar, text) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  if (text) el.textContent = text;
+  el.hidden = !sichtbar;
+}
+
+function offlineZeigen() {
+  chipSetzen("offlineChip", true, "Offline — wird lokal gespeichert");
+}
+function onlineZeigen() {
+  chipSetzen("offlineChip", false);
+}
+
+/* --- Update-Toast ---------------------------------------------------
+ * Ein neuer Worker wartet im Hintergrund. Ohne Hinweis bliebe der
+ * Nutzer auf dem alten, gecachten Stand — bei einer Lern-App heisst das,
+ * er trainiert Aufgaben, die es nicht mehr gibt. Der Toast loest den
+ * Wechsel aber NICHT selbst aus: waehrend einer Aufgabe mitten im
+ * Rechnen soll nichts neu geladen werden. */
+function updateToastZeigen(reg) {
+  var toast = document.getElementById("updateToast");
+  if (!toast) return;
+  var btn = document.getElementById("updateToastBtn");
+  if (!btn) return;
+  toast.hidden = false;
+  btn.onclick = function () {
+    if (reg && reg.waiting) {
+      reg.waiting.postMessage("SKIP_WAITING");
+    } else if (reg) {
+      /* Neu laden und hoffen, dass der neue Worker sich meldet. */
+      reg.update();
+    }
+    location.reload();
+  };
+}
+
+function swRegistrieren() {
+  if (!("serviceWorker" in navigator)) return;   /* alter Browser: alles gut */
+  /* Ueber file:// gibt es keinen Service Worker. Das betrifft nur das
+   * lokale Doppelklicken, nicht die Auslieferung. */
+  if (location.protocol === "file:") return;
+  var version = appVersion();
+  try {
+    navigator.serviceWorker.register("sw.js?v=" + version, { scope: "./" }).then(function (reg) {
+      /* Ein Worker wartet bereits: Update anbieten. */
+      if (reg.waiting && navigator.serviceWorker.controller) {
+        updateToastZeigen(reg);
+      }
+      /* Beim Start pruefen, ob seit dem letzten Besuch etwas Neues kam. */
+      reg.addEventListener("updatefound", function () {
+        var neu = reg.installing;
+        if (!neu) return;
+        neu.addEventListener("statechange", function () {
+          if (neu.state === "installed" && navigator.serviceWorker.controller) {
+            updateToastZeigen(reg);
+          }
+        });
+      });
+      /* Sicherheitshalber taeglich nach einem Update schauen. Sonst
+       * bemerkt ein Nutzer, der die App nur einmal pro Woche oeffnet,
+       * ein neues Deploy unter Umstaenden erst nach Wochen. */
+      setInterval(function () { reg.update(); }, 60 * 60 * 1000);
+    }).catch(function (f) {
+      console.warn("Service Worker nicht registriert:", f && f.message);
+    });
+  } catch (error) {
+    console.warn("Service Worker:", error && error.message);
+  }
+}
+
+function offlineUeberwachen() {
+  offlineZeigen();
+  if (navigator.onLine) onlineZeigen();
+  window.addEventListener("online", function () { onlineZeigen(); });
+  window.addEventListener("offline", function () { offlineZeigen(); });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () { swRegistrieren(); offlineUeberwachen(); });
+} else {
+  swRegistrieren();
+  offlineUeberwachen();
+}
+
+/* ---------- Auth UI ---------- */
 var overlay     = document.getElementById('authOverlay');
 var authMsg     = document.getElementById('authMsg');
 var loginPanel  = document.getElementById('panel-login');

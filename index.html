@@ -7,13 +7,20 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v149">
+<meta name="app-version" content="v150">
 <title>Die Formen-Werkstatt – Mathe für die Mittelschule</title>
 <meta name="description" content="Mathe üben nach dem österreichischen Lehrplan (AHS/MS 2023): 47 Übungstypen, 3 Schwierigkeitsstufen, Tipp-System, Wissensgarten & Eulenhain. Kostenlos und ohne Werbung.">
 <link rel="canonical" href="https://mathemit.andybrandy.at/">
 <meta name="theme-color" content="#1FA294">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="logo.svg">
+<!-- PWA (5.2): Installierbarkeit. apple-touch-icon muss PNG sein — iOS
+     rendert kein SVG als Touch-Icon und zeigt sonst ein leeres Feld. -->
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mathemit">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Mathemit">
 <meta property="og:locale" content="de_AT">
@@ -32,10 +39,26 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style-base.css?v=149">
-<link rel="stylesheet" href="style-active.css?v=149">
+<link rel="stylesheet" href="style-base.css?v=150">
+<link rel="stylesheet" href="style-active.css?v=150">
 </head>
 <body>
+  <!--
+    PWA (5.2). Zwei Elemente, die ohne JS harmlos versteckt bleiben.
+
+    offlineChip: Offline-Hinweis. Wichtig ist die Aussage "wird lokal
+    gespeichert" — nicht etwa "Alles gespeichert". Die DB-Synchronisation
+    ist noch nicht gebaut; wer offline trainiert, muss wissen, dass der
+    Fortschritt nur lokal steht.
+
+    updateToast: Erscheint nur, wenn ein neuer Service Worker wirklich
+    wartet. role="status" + aria-live, damit Screenreader es vorlesen.
+  -->
+  <div class="offline-chip" id="offlineChip" hidden role="status" aria-live="polite">Offline — wird lokal gespeichert</div>
+  <div class="update-toast" id="updateToast" hidden role="status" aria-live="polite">
+    <span class="update-toast-text">♻️ Neue Version verfügbar</span>
+    <button type="button" class="update-toast-btn" id="updateToastBtn">Jetzt neu laden</button>
+  </div>
   <!-- Auth Overlay (Login/Register) -->
   <div class="auth-overlay" id="authOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="authTitle">
     <div class="auth-card">
@@ -219,10 +242,10 @@
 
 </div>
 
-<script src="app-base.js?v=149"></script>
-<script src="app-active.js?v=149"></script>
+<script src="app-base.js?v=150"></script>
+<script src="app-active.js?v=150"></script>
 <footer class="app-version">
-  <span class="ver" id="appVersion">v149</span>
+  <span class="ver" id="appVersion">v150</span>
   <span style="margin-left:.6rem; font-size:.75rem; opacity:.75;" class="footer-links">
     <button type="button" class="footer-link" data-legal="datenschutz.html" data-title="Datenschutzerklärung">Datenschutz</button> ·
     <button type="button" class="footer-link" data-legal="impressum.html" data-title="Impressum">Impressum</button> ·

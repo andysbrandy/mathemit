@@ -1,0 +1,49 @@
+{
+  "name": "Mathemit – Die Formen-Werkstatt",
+  "short_name": "Mathemit",
+  "description": "Mathe üben nach dem österreichischen Lehrplan: 47 Übungstypen, 3 Schwierigkeitsstufen, Tipp-System, Wissensgarten und Eulenhain. Kostenlos und ohne Werbung.",
+  "lang": "de-AT",
+  "dir": "ltr",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "id": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#1FA294",
+  "background_color": "#1F2E45",
+  "categories": ["education"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Wissensgarten",
+      "short_name": "Garten",
+      "url": "/?source=pwa&goto=garten",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Eulenhain",
+      "short_name": "Eulen",
+      "url": "/?source=pwa&goto=eulen",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

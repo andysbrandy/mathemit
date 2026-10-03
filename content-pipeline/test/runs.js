@@ -41,6 +41,22 @@ const BLOECKE = {
     files: ["app-base.js", "index.html"],
     zeit: "~1.4s",
   },
+  /*
+   * PWA / Offline (5.2) — eigener Block, weil der Test einen echten
+   * Browser braucht und ~10s kostet. Rechenlogik-Aenderungen sollen
+   * weiterhin in 1,4s durchlaufen und nicht an einem Browserlauf hängen.
+   *
+   * index.html/app-active.js/style-base.css stehen in beiden Bloecken:
+   * eine Aenderung dort kann die Rechenlogik genauso brechen wie den
+   * Offline-Start. Das ist Absicht, nicht Doppelarbeit.
+   */
+  pwa: {
+    titel: "PWA: Installation & Offline-Start",
+    suites: ["pwa"],
+    files: ["sw.js", "manifest.webmanifest", "index.html", "app-active.js",
+      "style-base.css", "scripts/make-pwa-icons.js"],
+    zeit: "~10s",
+  },
   frontend: {
     titel: "Frontend-Struktur (Template, Renderer)",
     /* Prueft, dass Preview und Frames das aktive app-active.js NICHT

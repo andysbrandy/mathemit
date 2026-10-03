@@ -41,7 +41,7 @@ try {
 
     if ($method === 'GET') {
         $stmt = $pdo->prepare(
-            'SELECT points, streak, best_streak, solved, correct, badges, spaced, owls, goals, mode, grade, updated_at
+            'SELECT points, streak, best_streak, solved, correct, badges, spaced, owls, goals, mode, grade, repeat_q, diff, updated_at
              FROM progress WHERE user_id = ?'
         );
         $stmt->execute([$userId]);
@@ -59,6 +59,8 @@ try {
                 'goals'       => null,
                 'mode'        => null,
                 'grade'       => null,
+                'repeat_q'    => null,
+                'diff'        => null,
                 'updated_at'  => null,
             ];
         } else {
@@ -74,6 +76,12 @@ try {
             if (isset($progress['spaced']) && $progress['spaced'] !== null) {
                 $progress['spaced'] = json_decode($progress['spaced'], true);
             }
+            /* 5.2 Punkt 3 — repeat_q kommt als Spaltenname mit Unterstrich
+             * aus der DB, die App erwartet "repeatQ". */
+            if (isset($progress['repeat_q']) && $progress['repeat_q'] !== null) {
+                $progress['repeatQ'] = json_decode($progress['repeat_q'], true);
+            }
+            unset($progress['repeat_q']);
         }
 
         http_response_code(200);
@@ -94,15 +102,30 @@ try {
             exit;
         }
 
-        // Erlaubte Felder (Whitelist)
-        $allowed = ['points', 'streak', 'best_streak', 'solved', 'correct', 'badges', 'spaced', 'owls', 'goals', 'mode', 'grade'];
+        /* Erlaubte Felder (Whitelist)
+         *
+         * 5.2 Punkt 3: repeat_q und diff kamen hinzu. Die App hat beide
+         * Felder lange gesendet, sie standen hier aber nicht — der Server
+         * hat sie kommentarlos verworfen. Das Wiederholungstraining war
+         * damit trotz Werbeversprechen ("geräteuebergreifend synchronisiert")
+         * nicht synchronisiert.
+         *
+         * Die App sendet "repeatQ", die Spalte heisst "repeat_q". */
+        $allowed = ['points', 'streak', 'best_streak', 'solved', 'correct', 'badges', 'spaced', 'owls', 'goals', 'mode', 'grade', 'diff', 'repeat_q'];
+        $json_spalten = ['badges', 'spaced', 'owls', 'goals', 'repeat_q'];
         $updates = [];
         $params  = [];
+
+        /* camelCase -> snake_case, damit die App ihre gewohnten Feldnamen
+         * schicken kann. */
+        if (array_key_exists('repeatQ', $input) && !array_key_exists('repeat_q', $input)) {
+            $input['repeat_q'] = $input['repeatQ'];
+        }
 
         foreach ($allowed as $field) {
             if (array_key_exists($field, $input)) {
                 $updates[] = "$field = ?";
-                if (($field === 'badges' || $field === 'spaced' || $field === 'owls' || $field === 'goals') && $input[$field] !== null) {
+                if (in_array($field, $json_spalten, true) && $input[$field] !== null) {
                     $params[] = json_encode($input[$field]);
                 } else {
                     $params[] = $input[$field];

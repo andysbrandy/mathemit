@@ -26,6 +26,13 @@ CREATE TABLE IF NOT EXISTS users (
 -- ALTER TABLE users ADD COLUMN consent_at DATETIME NULL AFTER pin_hash;
 -- ALTER TABLE progress ADD COLUMN owls JSON NULL AFTER badges;
 -- ALTER TABLE progress ADD COLUMN goals JSON NULL AFTER owls;
+-- ALTER TABLE progress ADD COLUMN repeat_q JSON NULL AFTER grade;
+-- ALTER TABLE progress ADD COLUMN diff TINYINT NULL AFTER repeat_q;
+--
+-- repeat_q und diff fehlten bisher in der Tabelle UND in der Whitelist von
+-- progress.php. Die App hat beide Felder seit Langem gesendet und das
+-- Wiederholungstraining als "geräteübergreifend synchronisiert" beworben —
+-- es wurde aber still verworfen. Deshalb sind die Spalten jetzt da.
 
 
 CREATE TABLE IF NOT EXISTS progress (
@@ -41,6 +48,10 @@ CREATE TABLE IF NOT EXISTS progress (
     goals JSON NULL,
     mode VARCHAR(50),
     grade VARCHAR(10),
+    /* 5.2 Punkt 3: Wiederholungstraining und Schwierigkeitsstufe gehören
+     * jetzt wirklich dazu. Vorher wurden sie gesendet und weggeworfen. */
+    repeat_q JSON NULL,
+    diff TINYINT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

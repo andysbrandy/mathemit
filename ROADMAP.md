@@ -79,7 +79,7 @@
 | # | Schritt | Status |
 |---|---------|--------|
 | 5.1 | ~~Mehr Regionen (15+ Alltag-Generatoren)~~ | ❌ gestrichen — **bewusst nicht mehr nötig**. Der Bestand (10 Alltag-Generatoren: Wien, Wandern, Einkauf, Weihnacht, Schule, Schulheft, Eiscafé, Skikurs, Wandertag, mehrstufig) reicht für den Wochenbetrieb; mehr Inhalt ist kein Engpass. |
-| 5.2 | PWA / Offline | ✅ Grundversion (Punkte 1, 2, 4, 5) — Offline-Write-Queue (Punkt 3) weiterhin offen |
+| 5.2 | PWA / Offline | ✅ vollständig (Punkte 1–5) |
 
 **Was 5.2 jetzt kann (Grundversion, ohne Punkt 3):**
 
@@ -87,9 +87,59 @@
 |---|---|---|
 | 1. Installierbarkeit | ✅ | `manifest.webmanifest` (standalone, Theme `#1FA294`) + Meta-Tags in `index.html`; Icons aus `logo.svg` erzeugt |
 | 2. Offline-Start | ✅ | `sw.js` mit Stale-While-Revalidate-Kern; Navigation Network-First mit Cache als Notnagel, App-Code Network-First, Unveränderliches Cache-First |
-| 3. **Offline-Write-Queue** | ⬜ | **bewusst offen** — der große Brocken, siehe unten |
+| 3. **Offline-Write-Queue** | ✅ | Warteschlange in `localStorage`; wird beim Netzrückkehr, nach jeder gelösten Aufgabe und beim Anmelden gesendet |
+
+**Punkt 3 im Detail — die Warteschlange.** Der Sync ist ein **voller Snapshot**,
+kein Delta, und der Server überschreibt blind. Damit gibt es nichts
+zusammenzuführen — es gibt nur die Frage „ist der Server aktuell?". Solange das
+nicht sicher beantwortet ist, wird der Snapshot später erneut gesendet. Das ist
+idempotent: zweimal denselben Snapshot schicken ändert nichts.
+
+**Der gefährliche Moment war das Anmelden, nicht das Offline-Arbeiten.**
+`loadProgressFromAPI()` hat den Server als Wahrheit behandelt und den lokalen
+Stand überschrieben. Bei einem Gast-Stand ist das richtig. Bei offline
+Gearbeitetem genau verkehrt: lokal liegt nachweislich etwas, das der Server noch
+nicht hat — die Punkte wären beim Anmelden wegsortiert worden. Jetzt gilt:
+
+| Lage | Was passiert |
+|---|---|
+| Warteschlange leer | Serverstand lädt (wie bisher) |
+| Warteschlange, **gleiches** Konto | erst senden, **dann** Serverstand laden |
+| Warteschlange, **anderes** Konto | gar nichts senden, gar nichts laden, Hinweis anzeigen |
+
+Die letzte Zeile ist kein Sonderfall, sondern der wichtigste: Auf geteilten
+Familienhandys ist ein Kontowechsel Alltag. Ohne Konto-Kennung würden die Punkte
+eines Kindes auf das Konto eines anderen wandern.
+
+Dazu vier Regeln, die jeweils einen Fehler verhindern:
+
+1. **Nur eine Anfrage gleichzeitig.** Zwei parallele Posts könnten in falscher
+   Reihenfolge ankommen (Serverstand 100 Punkte, dann 90) — stiller
+   Fortschrittsverlust.
+2. **Backoff 5s → 20s → 60s → 5min.** Statt im Sekundentakt zu versuchen.
+3. **401/403 wird nicht endlos wiederholt.** Ein ungültiges Token muss durch
+   einen neuen Login behoben werden, nicht durch Warten.
+4. **Der Nutzer sieht es.** Der Chip zählt die wartenden Änderungen. Wer
+   traubte vorher dem „wird lokal gespeichert"-Text, sonst hätte er
+   wahrscheinlich wochenlang geglaubt, alles sei synchron.
+
+**Nebenbei gefunden und behoben — ein stiller Datenverlust:** Die App sendet
+`repeatQ` und `diff` seit Langem, aber `backend/progress.php` hatte sie nicht in
+der Whitelist und `progress` hatte keine passenden Spalten. Das Wiederholungs-
+training (🔁) und die Schwierigkeitsstufe waren damit **überhaupt nicht
+geräteübergreifend** — während die Oberfläche genau das verspricht. Schema,
+Whitelist und Ladelogik sind ergänzt.
+
+> **⚠️ Migration nötig** (einmalig in phpMyAdmin, sonst fehlen die Spalten):
+> ```sql
+> ALTER TABLE progress ADD COLUMN repeat_q JSON NULL AFTER grade;
+> ALTER TABLE progress ADD COLUMN diff TINYINT NULL AFTER repeat_q;
+> ```
+> Danach `backend/progress.php` auf den Server hochladen. **Ohne Migration
+> laufen die Posts mit einem SQL-Fehler und der Sync bleibt in der
+> Warteschlange** — die App funktioniert weiter, nur nichts kommt an.
 | 4. Update-Flow | ✅ | „♻️ Neue Version verfügbar"-Toast, wenn ein neuer Worker wartet; lädt aber **nicht** von selbst, weil das mitten in einer Aufgabe den Rechenweg zerstört |
-| 5. Online-bleibt-Online | ✅ | Offline-Chip „Offline — wird lokal gespeichert"; die API meldet ohnehin „Netzwerkfehler" |
+| 5. Online-bleibt-Online | ✅ | Offline-Chip; ohne Netz meldet die API „Netzwerkfehler", und wartende Änderungen werden gezählt statt verschwiegen |
 
 **Warum Punkt 3 offen bleibt und nicht „irgendwann" heißt:** Offline-Training landet
 in `localStorage`, die DB-Synchronisation gibt es erst mit dem Queue-Bau. Solange
@@ -98,6 +148,10 @@ auf einem anderen Gerät verloren. Der Chip sagt deshalb bewusst „wird **lokal
 gespeichert" und nicht „Alles gespeichert". Das ist kein Makel, sondern die
 ehrliche Aussage — der Konflikt-Lösungsfall (lokal vs. DB, Reihenfolge,
 Wiederholung) ist der teuerste Teil der ganzen Roadmap.
+
+> ✅ **Erledigt** — siehe die Tabelle oben. Der Chip zeigt jetzt nicht mehr nur
+> „wird lokal gespeichert", sondern zählt die wartenden Änderungen und verschwindet,
+> sobald sie oben sind.
 
 **Was der Service Worker bewusst NICHT tut — und warum:**
 

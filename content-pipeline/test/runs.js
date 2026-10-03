@@ -37,9 +37,13 @@ const BLOECKE = {
      * sie bindet app-base.js/app-active.js per <script> ein. Ein Tippfehler
      * in der Einbindung laesst die komplette App tot aussehen, und das
      * faellt sonst erst beim Oeffnen der Seite auf. */
-    suites: ["select-exercises"],
-    files: ["app-base.js", "index.html"],
-    zeit: "~1.4s",
+    suites: ["select-exercises", "queue-sync"],
+    /* index.html/app-active.js stehen auch im pwa-Block: eine Aenderung
+     * dort kann Rechenlogik, Offline-Start UND die Warteschlange brechen.
+     * Das ist Absicht, nicht Doppelarbeit. */
+    files: ["app-base.js", "index.html", "app-active.js",
+      "content-pipeline/test/fixtures/queuepage.html"],
+    zeit: "~9s",
   },
   /*
    * PWA / Offline (5.2) — eigener Block, weil der Test einen echten

@@ -1732,8 +1732,18 @@ function swRegistrieren() {
 function offlineUeberwachen() {
   offlineZeigen();
   if (navigator.onLine) onlineZeigen();
-  window.addEventListener("online", function () { onlineZeigen(); });
+  window.addEventListener("online", function () {
+    onlineZeigen();
+    /* Netz ist da: liegt etwas an, wird es JETZT gesendet. Ohne diesen
+     * Aufruf bliebe die Warteschlange bis zum naechsten Aufgaben-Check
+     * liegen — oder bis zum naechsten Seitenaufruf, wo der Nutzer es
+     * nicht erwartet. */
+    if (pendingLesen()) queueFlushen();
+    else pendingAnzeigen();
+  });
   window.addEventListener("offline", function () { offlineZeigen(); });
+  /* Beim Start: was von der letzten Sitzung wartet, sofort anzeigen. */
+  pendingAnzeigen();
 }
 
 if (document.readyState === "loading") {
@@ -1901,14 +1911,183 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
   });
 });
 
-// ---------- Progress Sync ----------
+// ---------- Offline-Write-Queue (5.2 Punkt 3) ----------
+//
+// BISHER: syncProgressToAPI() rief nach jeder Aufgabe die DB. Bei
+// Netzfehler wurde der Fehler IGNORIERT — "Fortschritt bleibt lokal
+// gespeichert". Das war ein Versprechen ohne Nachreichen: der Fortschritt
+// stand dann nur in diesem Geraet und war nach einem Kontowechsel weg.
+//
+// Warum das leicht loesbar ist und kein Merge noetig ist:
+// Der Sync ist ein VOLLER SNAPSHOT des Zustands, kein Delta, und der
+// Server ueberschreibt blind. Damit gibt es nichts zusammenzufuehren —
+// es gibt nur die Frage "ist der Server aktuell?". Solange das nicht
+// sicher beantwortet ist, senden wir den Snapshot spaeter erneut. Das ist
+// idempotent: zweimal denselben Snapshot zu schicken aendert nichts.
+//
+// Der gefaehrliche Moment ist der LOGIN. loadProgressFromAPI() hat den
+// Server als Wahrheit behandelt und den lokalen Stand ueberschrieben —
+// damit waere offline Gearbeitetes beim Anmelden still verloren
+// gegangen. Deshalb gilt: liegt eine wartende Aenderung vor, ist der
+// lokale Stand nachweislich neuer als der Server. Dann wird erst
+// hochgeladen und nur danach geladen.
+
+var PENDING_KEY = "formenwerkstatt_pending_v1";
+
+function pendingLesen() {
+  try {
+    var raw = localStorage.getItem(PENDING_KEY);
+    if (!raw) return null;
+    var d = JSON.parse(raw);
+    return (d && typeof d === "object" && d.anzahl > 0) ? d : null;
+  } catch (e) { return null; }
+}
+
+function pendingSchreiben(d) {
+  try { localStorage.setItem(PENDING_KEY, JSON.stringify(d)); } catch (e) { /* Privatmodus */ }
+  pendingAnzeigen();
+}
+
+function pendingLoeschen() {
+  try { localStorage.removeItem(PENDING_KEY); } catch (e) { /* Privatmodus */ }
+  pendingAnzeigen();
+}
+
+/* Die Warteschlange gehoert einem Konto. Ohne diese Kennung wuerde
+ * Abmelden und Anmelden eines anderen Kontos den fremden Fortschritt auf
+ * dieses Konto hochladen — Punkte eines Kindes waeren dann woanders. */
+function nutzerKennung() {
+  try {
+    var u = getUser();
+    if (!u) return null;
+    return String(u.id || u.nickname || "");
+  } catch (e) { return null; }
+}
+
+function pendingMarkieren() {
+  var p = pendingLesen() || { anzahl: 0, zeit: 0, nutzer: null };
+  p.anzahl += 1;
+  p.zeit = Date.now();
+  p.nutzer = nutzerKennung();
+  pendingSchreiben(p);
+}
+
+/* Sichtbar machen, dass etwas wartet. Sonst traeut der Nutzer dem
+ * "gespeichert"-Text, den die App auch offline zeigt. */
+function pendingAnzeigen() {
+  var chip = document.getElementById("offlineChip");
+  var text = document.getElementById("offlineChipText");
+  if (!chip || !text) return;
+  var p = pendingLesen();
+  if (!p) { chip.hidden = true; return; }
+  var n = p.anzahl;
+  text.textContent = (n === 1 ? "1 Änderung wartet" : n + " Änderungen warten")
+    + " — wird gesendet, sobald das Netz da ist";
+  chip.hidden = false;
+}
+
+/* Nach jedem Fehlschlag laenger warten, statt im Sekundentakt zu
+ * versuchen. Drei Stufen, dann alle 5 Minuten. */
+var _queueVersuche = 0;
+var _queueTimer = null;
+function queueSpueren() {
+  if (_queueTimer) clearTimeout(_queueTimer);
+  var stufen = [5000, 20000, 60000, 300000];
+  var wartezeit = stufen[Math.min(_queueVersuche, stufen.length - 1)];
+  _queueVersuche += 1;
+  _queueTimer = setTimeout(queueFlushen, wartezeit);
+}
+
+/*
+ * Fremdhinweis: die Warteschlange gehoert zu einem anderen Konto. Wir
+ * senden nicht — und sagen es laut. Die Punkte bleiben fuer das Konto
+ * erhalten, dem sie gehoeren, statt auf ein fremdes zu wandern.
+ */
+function pendingAnzeigenFremd() {
+  var chip = document.getElementById("offlineChip");
+  var text = document.getElementById("offlineChipText");
+  if (!chip || !text) return;
+  text.textContent = "Es warten noch Änderungen von einem anderen Konto — melde dich dort an, um sie zu speichern.";
+  chip.hidden = false;
+}
+
+/*
+ * Reihenfolge: GENAU EINE Anfrage gleichzeitig. Zwei parallele Posts
+ * koennten in falscher Reihenfolge ankommen und damit Punkte
+ * zurueckdrehen (Serverstand 100 Punkte, dann 90 Punkte). Das waere ein
+ * stiller Fortschrittsverlust.
+ */
+var _queueLaeuft = false;
+function queueFlushen(fertig) {
+  var cb = typeof fertig === "function" ? fertig : function () {};
+  if (_queueLaeuft) { cb(false); return; }
+  if (!navigator.onLine) { cb(false); return; }
+  var token = getToken();
+  if (!token) { cb(false); return; }
+  var p = pendingLesen();
+  if (!p) { cb(true); return; }
+
+  var jetzt = nutzerKennung();
+  /* Fremdes Konto: nicht senden. Ein Kind, das sich abmeldet und ein
+     anderes anmeldet, darf keine Punkte uebertragen. */
+  if (p.nutzer && jetzt && p.nutzer !== jetzt) {
+    console.warn('[mathemit] Warteschlange gehoert zu einem anderen Konto — nicht gesendet.');
+    pendingAnzeigenFremd();
+    cb(false);
+    return;
+  }
+
+  _queueLaeuft = true;
+  syncProgressToAPI().then(function (ok) {
+    _queueLaeuft = false;
+    _queueVersuche = 0;
+    if (ok) { pendingLoeschen(); cb(true); return; }
+    queueSpueren();
+    cb(false);
+  });
+}
 function loadProgressFromAPI(customToken) {
   var token = customToken || getToken();
   if (!token) return;
+
+  /*
+   * SICHERHEITSREGEL gegen stillen Datenverlust.
+   *
+   * Bisher hat der Server als Wahrheit gegolten und den lokalen Stand
+   * ueberschrieben. Das ist bei einem Gast-Stand richtig (neues Geraet,
+   * Anmeldung, Server kennt mehr). Bei OFFLINE Gearbeitetem ist es genau
+   * verkehrt: lokal liegt nachweislich etwas, das der Server noch nicht
+   * hat. Ein Ueberschreiben wuerde die Punkte beim Anmelden wegsortieren.
+   *
+   * Deshalb: liegt eine Warteschlange vor, wird sie ZUERST gesendet und
+   * der Serverstand erst danach geladen.
+   */
+  var p = pendingLesen();
+  if (p && p.nutzer !== null && nutzerKennung() !== p.nutzer) {
+    /* Fremdes Konto: gar nicht erst laden. Sonst wuerde der Serverstand
+     * des neuen Kontos den lokalen Stand ueberschreiben und der Nutzer
+     * glaubt, seine Punkte seien weg. */
+    pendingAnzeigenFremd();
+    return;
+  }
+  if (p) {
+    queueFlushen(function (ok) {
+      if (ok) { fortschrittLaden(token); return; }
+      /* Konnte nicht gesendet werden: wir laden trotzdem NICHT, sonst
+       * waere die Offline-Arbeit jetzt wirklich verloren. */
+      pendingAnzeigen();
+    });
+    return;
+  }
+  fortschrittLaden(token);
+}
+
+function fortschrittLaden(token) {
   apiFetch('/progress.php').then(function(data) {
     if (data.status === 'ok' && data.data) {
       var d = data.data;
-      /* Login: Server ist Source-of-Truth und überschreibt den lokalen (Gast-)Stand */
+      /* Server ist Source-of-Truth und überschreibt den lokalen Stand */
+      state.points  = d.points      || 0;
       state.points  = d.points      || 0;
       state.streak  = d.streak      || 0;
       state.bestStreak = d.best_streak || 0;
@@ -1922,6 +2101,14 @@ function loadProgressFromAPI(customToken) {
       state.weekly = sanitizeWochen(d.goals);
       state.mode    = (d.mode && MODES.some(function(m){return m.id===d.mode;})) ? d.mode : (state.mode || 'alles');
       state.grade   = (d.grade && GRADES.some(function(g){return g.id===d.grade;})) ? d.grade : (state.grade || 'all');
+      /* 5.2 Punkt 3 — repeatQ und diff werden erst seit der Warteschlangen-
+       * Arbeit tatsaechlich gespeichert. Vorher hat der Server sie verworfen,
+       * das Wiederholungstraining war nach einem Geraetewechsel weg, obwohl
+       * die Oberflaeche "geräteübergreifend synchronisiert" versprach. */
+      if (d.repeatQ !== undefined && d.repeatQ !== null) {
+        state.repeatQ = sanitizeRepeatQ(d.repeatQ);
+      }
+      if (d.diff === 1 || d.diff === 2 || d.diff === 3) state.diff = d.diff;
       console.log('[mathemit] Fortschritt vom Server geladen:', JSON.stringify({p:state.points,s:state.streak,bs:state.bestStreak}));
       updateStatsUI();
       updateModeAmpel();
@@ -1934,9 +2121,12 @@ function loadProgressFromAPI(customToken) {
 
 function syncProgressToAPI() {
   var token = getToken();
-  if (!token) return;
+  if (!token) return Promise.resolve(false);
+  /* Ohne Netz gar nicht erst versuchen: das erzeugt nur Fehlermeldungen
+   * im Log und laesst die Uebertragung unnoetig lang dauern. */
+  if (navigator.onLine === false) { pendingMarkieren(); return Promise.resolve(false); }
 
-  apiFetch('/progress.php', {
+  return apiFetch('/progress.php', {
     body: {
       points:      state.points,
       streak:      state.streak,
@@ -1953,17 +2143,32 @@ function syncProgressToAPI() {
       goals:       state.weekly
     }
   }).then(function(data) {
-    // Sync-Fehler ignorieren - Fortschritt bleibt lokal gespeichert
-  }, function(err) {
-    // Netzwerkfehler ignorieren
+    var ok = !!(data && data.status === 'ok');
+    /* 401/403 heisst: Token ungueltig. Da ist Warten sinnlos — der Login
+     * muss neu stattfinden, sonst wartet die Schlange vergeblich. */
+    var code = data && data._httpStatus;
+    if (!ok && (code === 401 || code === 403)) {
+      console.warn('[mathemit] Token abgelehnt — die Warteschlange bleibt erhalten, bis du dich neu anmeldest.');
+    }
+    return ok;
+  }).catch(function(err) {
+    console.warn('[mathemit] Sync fehlgeschlagen, kommt in die Warteschlange:', err);
+    return false;
   });
 }
 
-// Nach jeder gelösten Aufgabe synchronisieren
+/*
+ * Nach jeder gelösten Aufgabe synchronisieren. Bei Fehlschlag wandert der
+ * Stand in die Warteschlange statt verloren zu gehen.
+ */
 var _origHandleCheck = handleCheck;
 handleCheck = function() {
   _origHandleCheck.apply(this, arguments);
-  syncProgressToAPI();
+  syncProgressToAPI().then(function(ok) {
+    if (ok) { pendingLoeschen(); return; }
+    pendingMarkieren();
+    queueSpueren();
+  });
 };
 
 // ---------- Logout Button ----------

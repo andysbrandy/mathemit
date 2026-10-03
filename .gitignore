@@ -8,3 +8,6 @@
 /content-pipeline/output/
 /content-pipeline/queue/
 /content-pipeline/work/
+
+# Lokaler Mail-Schluessel (weekly.js) — niemals einchecken
+/content-pipeline/.mail-key

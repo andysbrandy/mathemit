@@ -2,6 +2,31 @@
 
 Dieser Ordner erzeugt lokal und ohne Netzwerkzugriff reproduzierbare Aufgabenpakete für die spätere Video-Pipeline. **Die Pipeline veröffentlicht nichts automatisch.**
 
+## 🗓️ Wochendurchlauf (7.5)
+
+Ein Clip pro Woche für YouTube Shorts, TikTok und Instagram Reels. Alles außer
+dem Hochladen macht **ein Befehl**:
+
+```bash
+npm run woche          # rendern, in die Queue legen, Freigabe-Server, Mail
+npm run woche:dry      # nur zeigen, was passieren würde
+npm run woche -- --hook streak    # bestimmten Hook erzwingen
+```
+
+Der Hook kommt sonst aus einer festen Rotation über alle fünf Vorlagen, gesteuert
+von der Kalenderwoche; der Seed ist daraus abgeleitet, derselbe Clip ist also
+reproduzierbar. Nach dem Lauf kommt eine Mail mit Freigabe-Link, Caption,
+Hashtags und MP4-Pfad an `andybrandy@gmx.at`. **Das Hochladen bleibt manuell** —
+der Freigabeschritt ist zwingend (7.4, „Bewusste Reihenfolge" Punkt 2).
+
+Für den Mailversand wird ein Resend-Schlüssel gebraucht, der **lokal** abgelegt
+wird (in der Umgebung als `RESEND_API_KEY` oder in `content-pipeline/.mail-key`,
+steht in `.gitignore`). Fehlt er, läuft der Durchlauf trotzdem durch — nur ohne
+Mail, und der Freigabe-Link steht im Terminal.
+
+**Ausführlich:** [`WOCHENRUNBOOK.md`](WOCHENRUNBOOK.md) ·
+**Messwerte eintragen:** [`MESSPROTOKOLL.md`](MESSPROTOKOLL.md)
+
 ## Tests: nach Bereich getrennt, nur Geändertes prüfen
 
 `npm test` läuft **alle 12 Suiten durch und braucht ~230 Sekunden** — davon allein

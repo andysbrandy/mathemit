@@ -70,8 +70,13 @@ const BLOECKE = {
   },
   pipeline: {
     titel: "Orchestrierung & Timeline",
-    suites: ["run-pipeline", "timeline", "timeline-hooks"],
-    files: ["content-pipeline/run-pipeline.js", "content-pipeline/timeline.js", "content-pipeline/lib/"],
+    suites: ["run-pipeline", "timeline", "timeline-hooks", "weekly"],
+    files: [
+      "content-pipeline/run-pipeline.js", "content-pipeline/timeline.js",
+      "content-pipeline/lib/", "content-pipeline/weekly.js",
+      "content-pipeline/WOCHENRUNBOOK.md", "content-pipeline/MESSPROTOKOLL.md",
+      "content-pipeline/package.json", ".gitignore"
+    ],
     zeit: "~62s",
   },
   queue: {

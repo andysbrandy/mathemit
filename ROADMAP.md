@@ -77,7 +77,7 @@
 
 | # | Schritt | Status |
 |---|---------|--------|
-| 5.1 | Mehr Regionen (15+ Alltag-Generatoren) | ❌ |
+| 5.1 | ~~Mehr Regionen (15+ Alltag-Generatoren)~~ | ❌ gestrichen — **bewusst nicht mehr nötig**. Der Bestand (10 Alltag-Generatoren: Wien, Wandern, Einkauf, Weihnacht, Schule, Schulheft, Eiscafé, Skikurs, Wandertag, mehrstufig) reicht für den Wochenbetrieb; mehr Inhalt ist kein Engpass. |
 | 5.2 | PWA / Offline | ❌ |
 
 **Was steckt hinter 5.2 (PWA / Offline)?** — Noch nicht umgesetzt (kein Manifest, kein Service Worker, keine PWA-Metadaten in `index.html`).
@@ -106,7 +106,7 @@
 | 7.2 | Kanäle anlegen: YouTube (Shorts), TikTok, Instagram — URLs & Handles hinterlegt in `CHANNELS.md` | ✅ |
 | 7.3 | Video-Pipeline-MVP: Puppeteer (headless) → Blueprint-Reveal → ffmpeg 9:16 (15–25 s) → Overlay + Endcard → Warteschlange | ✅ 6/6 Pakete |
 | 7.4 | Hook-Bibliothek: 4 Formate (Countdown, Erwachsenen-Challenge, Streak-Flex, Vorher/Nachher) als Vorlagen + Freigabe per Link | ✅ 7.4.1–7.4.3 + Freigabelink + **erste Posts live (7.4.4–7.4.6)** |
-| 7.5 | Wöchentlicher Rhythmus: 30-Sek.-Freigabe → Cross-Post auf 3 Kanäle (~1 Std./Woche) | 🔄 läuft manuell |
+| 7.5 | Wöchentlicher Rhythmus: 30-Sek.-Freigabe → Cross-Post auf 3 Kanäle (~1 Std./Woche) | ✅ Werkzeugkette (`weekly.js`) + [`WOCHENRUNBOOK.md`](content-pipeline/WOCHENRUNBOOK.md) — Posting bleibt manuell |
 | 7.6 | Schutz & Recht: Kommentare bei Kinder-Content moderieren/deaktivieren; bezahlte Ads nur ab 13 (EU/AT) | ✅ je Plattform entschieden |
 | 7.7 | Phase 2: Klassen-Code aktiv bewerben, Lehrer-Netzwerke, SEO-Seiten, Pinterest, Newsletter | ⏳ Phase 2 |
 

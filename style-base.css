@@ -405,17 +405,38 @@
    * in der Kaskade die niedrigste Priorität, deshalb genügt hier eine Regel —
    * die Zeichenroutine bleibt unverändert und die gesammelten Eulen bleiben
    * unberührt. Alle Flächen (Körper, Bauch, Ohren, Flügel, Augenring, Schnabel,
-   * Füße) werden transparent und bekommen eine gemeinsame Kontur in der
-   * Ink-Farbe. Die Pupillen bleiben gefüllt: ohne sie wäre kein Auge zu sehen
-   * und die Figur läse sich als Keks, nicht als Eule. */
+   * Füße) werden transparent und bekommen eine gemeinsame Kontur. Die Pupillen
+   * bleiben gefüllt: ohne sie wäre kein Auge zu sehen und die Figur läse
+   * sich als Keks, nicht als Eule.
+   *
+   * Die Kontur ist grau, nicht --ink: eine fertige Eule, die es noch gar nicht
+   * gibt, soll nicht mit Tuschestärke um Aufmerksamkeit bitten. Der Ton folgt
+   * derselben Familie wie die Stufenzahl der Warteeule (Ziffer #5A6B7C,
+   * Plakettenrand #8C99A8).
+   *
+   * Das Grau ist nicht beliebig gewaehlt, sondern gegen den Untergrund
+   * gerechnet. Der Himmel ist ein Verlauf (#BFE3F7 bis #EFF8EE) und der Zweig
+   * braun (#7A4E26) — es gibt keinen Untergrund, gegen den ein zu helles Grau
+   * noch stuende. Gemessen (WCAG-Kontrast, 3,0 = deutliche Nichttext-Form):
+   *
+   *   #7E8B9C  Himmel 2,6  Boden 3,2  Ast 2,1   <- erster Versuch, verworfen
+   *   #66748A  Himmel 3,5  Boden 4,4  Ast 1,5   <- gewaehlt
+   *
+   * #66748A haelt gegen Himmel und Boden ueber 3,0 und bleibt klar hinter den
+   * vollstaendig gefuellten Eulen zurueck. Der Ast ist bewusst nicht der
+   * massgebliche Untergrund: an der Warteeule liegt der Zweig unter den
+   * Fuessen, im Rumpf steht sie vor dem Himmel (im Browser geprueft). Ein
+   * helleres Grau kaeme dem Ast entgegen, wuerde die Eule dort aber im Braun
+   * verschwinden lassen — der Wert ist darum so dunkel wie noetig, nicht so
+   * hell wie moeglich. */
   .eh-owl.eh-mystery .owl-body,
   .eh-owl.eh-mystery .owl-belly,
   .eh-owl.eh-mystery .owl-ear,
   .eh-owl.eh-mystery .owl-wing,
   .eh-owl.eh-mystery .owl-eye-ring,
   .eh-owl.eh-mystery .owl-beak,
-  .eh-owl.eh-mystery .owl-foot{ fill:none; stroke:var(--ink); stroke-width:2.4; stroke-linejoin:round; }
-  .eh-owl.eh-mystery .owl-pupil{ fill:var(--ink); }
+  .eh-owl.eh-mystery .owl-foot{ fill:none; stroke:#66748A; stroke-width:2.2; stroke-linejoin:round; }
+  .eh-owl.eh-mystery .owl-pupil{ fill:#4E5D70; }
   /* Der Bauch ist eine Innenlinie, keine Außenkontur — dünner, sonst
      zerlegt er die Silhouette in zwei Haelften. */
   .eh-owl.eh-mystery .owl-belly{ stroke-width:1.4; }

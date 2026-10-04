@@ -394,7 +394,32 @@
   .eh-owl svg{ display:block; }
   .eh-owl .eh-name{ font-size:.62rem; font-weight:700; color:var(--muted); margin-top:1px; }
   .eh-owl.eh-mystery{ cursor:default; }
-  .eh-silhouette{ filter:grayscale(1) brightness(1.35); opacity:.42; }
+  /* P5.5 — Die Warteeule ist eine Kontur, keine Farbe.
+   *
+   * Sie stand vorher in voller Eigenfarbe auf dem Ast und war damit von den
+   * gesammelten Eulen nicht zu unterscheiden. Das war mehr als Geschmack: die
+   * Farbe versprach eine Eule, die es noch gar nicht gibt. Wer noch Punkte
+   * sammeln muss, soll das sehen — nicht eine fertige Eule.
+   *
+   * owlInner() setzt die Farben als Inline-fill. Präsentationsattribute haben
+   * in der Kaskade die niedrigste Priorität, deshalb genügt hier eine Regel —
+   * die Zeichenroutine bleibt unverändert und die gesammelten Eulen bleiben
+   * unberührt. Alle Flächen (Körper, Bauch, Ohren, Flügel, Augenring, Schnabel,
+   * Füße) werden transparent und bekommen eine gemeinsame Kontur in der
+   * Ink-Farbe. Die Pupillen bleiben gefüllt: ohne sie wäre kein Auge zu sehen
+   * und die Figur läse sich als Keks, nicht als Eule. */
+  .eh-owl.eh-mystery .owl-body,
+  .eh-owl.eh-mystery .owl-belly,
+  .eh-owl.eh-mystery .owl-ear,
+  .eh-owl.eh-mystery .owl-wing,
+  .eh-owl.eh-mystery .owl-eye-ring,
+  .eh-owl.eh-mystery .owl-beak,
+  .eh-owl.eh-mystery .owl-foot{ fill:none; stroke:var(--ink); stroke-width:2.4; stroke-linejoin:round; }
+  .eh-owl.eh-mystery .owl-pupil{ fill:var(--ink); }
+  /* Der Bauch ist eine Innenlinie, keine Außenkontur — dünner, sonst
+     zerlegt er die Silhouette in zwei Haelften. */
+  .eh-owl.eh-mystery .owl-belly{ stroke-width:1.4; }
+  .eh-owl.eh-mystery .owl-pupil{ stroke:none; }
   .eh-branch.eh-next .eh-name{ font-style:italic; }
   .eh-caption{
     margin-top:10px; font-size:.82rem; font-weight:600; color:var(--ink);

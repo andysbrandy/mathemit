@@ -1756,7 +1756,10 @@ function offlineUeberwachen() {
     else pendingAnzeigen();
   });
   window.addEventListener("offline", function () { offlineZeigen(); });
-  /* Beim Start: was von der letzten Sitzung wartet, sofort anzeigen. */
+  /* Beim Start: abgelaufene Schlangen aussortieren und melden. Der
+   * Hinweis ist einmalig — sonst stuende die Meldung bei jedem Aufruf der
+   * Seite da, und nach einem Tag ist sie nicht mehr gelesen. */
+  if (pendingAufraeumen()) return;
   pendingAnzeigen();
 }
 
@@ -1992,6 +1995,9 @@ function pendingAnzeigen() {
   var chip = document.getElementById("offlineChip");
   var text = document.getElementById("offlineChipText");
   if (!chip || !text) return;
+  /* Eine sichtbare Verwerfungs-Meldung darf nicht von einem der folgenden
+   * Aufrufe wieder ueberschrieben werden. */
+  if (_pendingHinweisSichtbar) return;
   var p = pendingLesen();
   if (!p) {
     /*
@@ -2038,6 +2044,64 @@ function pendingAnzeigenFremd() {
 }
 
 /*
+ * ABLAUF nach 30 Tagen (5.2 Punkt 3).
+ *
+ * Eine Warteschlange, die monatelang nicht gesendet werden kann, ist kein
+ * Rettungsnetz mehr, sondern ein Zustand: typischerweise ist das Konto
+ * geloescht oder das Token ungueltig. Sie blockiert dann dauerhaft den
+ * Chip und sendet alle fuenf Minuten ins Leere.
+ *
+ * Nach 30 Tagen wird sie deshalb verworfen — aber NICHT still. Der Nutzer
+ * bekommt eine einmalige, wegklickbare Meldung. Punkte verschwinden
+ * leise, das ist genau die Sorte Datenverlust, die niemand mitkriegt.
+ */
+var PENDING_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
+var PENDING_HINWEIS_KEY = "formenwerkstatt_pending_hinweis_v1";
+/* Solange das true ist, darf der Chip nicht von allein verschwinden. */
+var _pendingHinweisSichtbar = false;
+
+/* >= und nicht >: "nach 30 Tagen verworfen" heisst, dass der 30. Tag schon
+ * zur Ablaufzeit gehoert. Mit > waere die Grenze von der Reihenfolge zweier
+ * Datumsauswertungen abhaengig — mal faellig, mal nicht, ohne erkennbaren
+ * Grund. Genau solche Zufaelle sind in der Warteschlangenlogik teuer. */
+function pendingVerfallen(p) {
+  return !!(p && p.zeit && (Date.now() - p.zeit) >= PENDING_MAX_AGE);
+}
+
+/* Einmalig melden, nicht bei jedem Seitenaufruf. */
+function hinweisGesehen() {
+  try { return localStorage.getItem(PENDING_HINWEIS_KEY) === "1"; } catch (e) { return false; }
+}
+
+function pendingVerwerfen() {
+  try { localStorage.removeItem(PENDING_KEY); localStorage.setItem(PENDING_HINWEIS_KEY, "1"); }
+  catch (e) { /* Privatmodus */ }
+  _pendingHinweisSichtbar = true;
+  var chip = document.getElementById("offlineChip");
+  var text = document.getElementById("offlineChipText");
+  if (!chip || !text) return;
+  text.textContent = "Änderungen von vor über 30 Tagen konnten nicht gespeichert werden. "
+    + "Bitte einmal anmelden — hier klicken zum Schließen.";
+  chip.hidden = false;
+  chip.style.cursor = "pointer";
+  chip.title = "Zum Schließen klicken";
+  chip.onclick = function () {
+    _pendingHinweisSichtbar = false;
+    chip.hidden = true;
+    chip.style.cursor = "";
+    chip.onclick = null;
+  };
+}
+
+/* Beim Start und vor jedem Senden: abgelaufene Schlangen aussortieren. */
+function pendingAufraeumen() {
+  var p = pendingLesen();
+  if (!pendingVerfallen(p)) return false;
+  pendingVerwerfen();
+  return true;
+}
+
+/*
  * Reihenfolge: GENAU EINE Anfrage gleichzeitig. Zwei parallele Posts
  * koennten in falscher Reihenfolge ankommen und damit Punkte
  * zurueckdrehen (Serverstand 100 Punkte, dann 90 Punkte). Das waere ein
@@ -2050,6 +2114,12 @@ function queueFlushen(fertig) {
   if (!navigator.onLine) { cb(false); return; }
   var token = getToken();
   if (!token) { cb(false); return; }
+
+  /* Abgelaufen? Dann wird nichts mehr gesendet — sonst sendet die App
+   * bis zum Ende aller Tage alle fuenf Minuten einen Zustand, den niemand
+   * mehr will. */
+  if (pendingAufraeumen()) { cb(false); return; }
+
   var p = pendingLesen();
   if (!p) { cb(true); return; }
 

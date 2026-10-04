@@ -17,15 +17,41 @@ const path = require("node:path");
 const http = require("node:http");
 const ROOT = path.join(__dirname, "..", "..");
 const puppeteer = require(path.join(ROOT, "content-pipeline/node_modules/puppeteer-core"));
-const SEITE = fs.readFileSync(path.join(__dirname, "fixtures/queuepage.html"), "utf8");
 const CHROME = process.env.CHROME_PATH || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 
 function serverStarten() {
   return new Promise(function (fertig) {
+    /*
+     * Ausgeliefert wird die ECHTE index.html, nicht eine Nachbauseite.
+     * An ihre Stelle treten:
+     *   - der Mock (queue-mock.js), VOR den App-Skripten
+     *   - die echte app-base.js
+     *   - die echte app-active.js, nur ohne IIFE-Huelle
+     *
+     * Grund fuer den Aufwand: eine eigene Testseite hatte zu wenig DOM.
+     * app-active.js brach beim Start ab, alles unterhalb der
+     * Abbruchstelle lief nie — und die Tests waren trotzdem gruen.
+     */
+    const mock = fs.readFileSync(path.join(__dirname, "fixtures/queue-mock.js"), "utf8");
     const s = http.createServer(function (req, res) {
       if (req.url === "/" || req.url === "/index.html") {
+        let html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+        /* Die Original-Skripte ersetzen. Der Mock muss VOR app-active.js
+         * laufen, weil er window.setTimeout kapert. */
+        html = html.replace(
+          /<script src="app-base\.js[^"]*"><\/script>/,
+          "<script>" + mock + "</script>\n<script src=\"/app-base.js\"></script>"
+        );
+        html = html.replace(
+          /<script src="app-active\.js[^"]*"><\/script>/,
+          "<script src=\"/app-active.js?gestrippt\"></script>"
+        );
         res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-        return res.end(SEITE);
+        return res.end(html);
+      }
+      if (req.url.indexOf("/app-base.js") === 0) {
+        res.writeHead(200, { "Content-Type": "text/javascript" });
+        return res.end(fs.readFileSync(path.join(ROOT, "app-base.js"), "utf8"));
       }
       /* Die echte app-active.js ausliefern — aber ohne IIFE.
        *
@@ -53,6 +79,11 @@ function serverStarten() {
   });
 }
 
+/* Ergebnisse auf Modulebene: der catch am Ende der IIFE ist eine andere
+ * Scope und saehe ein Array innerhalb der Funktion nicht. */
+const e = [];
+const pruefe = function (n, ok, z) { e.push({ n: n, ok: ok, z: z || "" }); };
+
 (async function () {
   const server = await serverStarten();
   const port = server.address().port;
@@ -62,9 +93,6 @@ function serverStarten() {
   });
   const page = await browser.newPage();
   await page.goto("http://127.0.0.1:" + port + "/", { waitUntil: "networkidle0" });
-
-  const e = [];
-  const pruefe = function (n, ok, z) { e.push({ n: n, ok: ok, z: z || "" }); };
 
   /* 1 — Grundzustand: nichts wartet, nichts wird gesendet. */
   let r = await page.evaluate(function () {
@@ -205,6 +233,103 @@ function serverStarten() {
   });
   pruefe("drei gleichzeitige Aufrufe senden nur einmal", r.posts === 1, "posts " + r.posts);
 
+  /* 8 — Ablauf nach 30 Tagen. */
+  r = await page.evaluate(async function () {
+    localStorage.setItem("mathemit_token", "tok-anna");
+    localStorage.setItem("mathemit_user", JSON.stringify({ nickname: "anna", id: "anna" }));
+    window.__MOCK.status = 500;
+    window.state.points = 999;
+    await window.syncProgressToAPI();
+    window.pendingMarkieren();
+    return { key: window.PENDING_KEY, maxAge: window.PENDING_MAX_AGE };
+  });
+  /* Grundvoraussetzung fuer alles Weitere: die App benutzt den echten
+   * Schluesselnamen. Ein Test gegen den Schluessel "undefined" waere
+   * gruen und wuerde nichts pruefen — das ist beim Bauen tatsaechlich
+   * passiert, weil die Testseite zu wenig DOM hatte und die App beim
+   * Start abbrach. Deshalb wird es hier ausdruecklich festgehalten. */
+  pruefe("echter localStorage-Schluessel", r.key === "formenwerkstatt_pending_v1",
+    "key=" + JSON.stringify(r.key));
+  pruefe("Ablauf ist 30 Tage", r.maxAge === 30 * 24 * 60 * 60 * 1000, "maxAge=" + r.maxAge);
+
+  /* 29 Tage: noch nicht faellig. 30 und 31 Tage: faellig. */
+  r = await page.evaluate(function () {
+    var KEY = "formenwerkstatt_pending_v1";
+    function setzeAlter(tage) {
+      var d = JSON.parse(localStorage.getItem(KEY));
+      d.zeit = Date.now() - tage * 24 * 60 * 60 * 1000;
+      localStorage.setItem(KEY, JSON.stringify(d));
+      return window.pendingVerfallen(window.pendingLesen());
+    }
+    return { mit29: setzeAlter(29), mit30: setzeAlter(30), mit31: setzeAlter(31) };
+  });
+  pruefe("29 Tage: noch nicht faellig", r.mit29 === false);
+  pruefe("genau 30 Tage: faellig", r.mit30 === true);
+  pruefe("31 Tage: faellig", r.mit31 === true);
+
+  /* Der Ablauf darf nicht still sein: der Nutzer muss erfahren, dass
+   * Punkte weg sind. Genau diese Datenverluste bemerkt sonst niemand. */
+  r = await page.evaluate(function () {
+    var aufgeraeumt = window.pendingAufraeumen();
+    var chip = document.getElementById("offlineChip");
+    var text = document.getElementById("offlineChipText");
+    return {
+      aufgeraeumt: aufgeraeumt,
+      wartet: !!window.pendingLesen(),
+      chipSichtbar: !!chip && !chip.hidden,
+      text: text ? text.textContent : "",
+      wegKlickbar: chip ? typeof chip.onclick === "function" : false
+    };
+  });
+  pruefe("abgelaufene Warteschlange wird verworfen", r.aufgeraeumt === true && r.wartet === false);
+  pruefe("Verwerfung wird dem Nutzer gemeldet", r.chipSichtbar === true && /30 Tagen/.test(r.text),
+    JSON.stringify(r.text));
+  pruefe("Meldung ist wegclickbar", r.wegKlickbar === true);
+
+  /* Und sie darf nicht beim naechsten Aufruf wieder ueberschrieben werden. */
+  r = await page.evaluate(function () {
+    window.pendingMarkieren();
+    window.pendingAnzeigen();
+    var text = document.getElementById("offlineChipText").textContent;
+    return { text: text };
+  });
+  pruefe("Meldung bleibt stehen", /30 Tagen/.test(r.text), JSON.stringify(r.text));
+
+  /* Wegklicken und dann ist Ruhe. */
+  r = await page.evaluate(function () {
+    document.getElementById("offlineChip").onclick();
+    window.pendingLoeschen();
+    window.pendingAnzeigen();
+    var chip = document.getElementById("offlineChip");
+    return { versteckt: chip.hidden };
+  });
+  pruefe("nach Wegklicken ist der Chip weg", r.versteckt === true);
+
+  /* Und eine abgelaufene Schlange wird nicht mehr gesendet. */
+  r = await page.evaluate(async function () {
+    localStorage.setItem("formenwerkstatt_pending_v1", JSON.stringify({
+      anzahl: 4, zeit: Date.now() - 40 * 24 * 60 * 60 * 1000, nutzer: "anna"
+    }));
+    window.__MOCK.status = 200;
+    window.__POSTS.length = 0;
+    await new Promise(function (f) { window.queueFlushen(f); });
+    return { posts: window.__POSTS.length, wartet: !!window.pendingLesen() };
+  });
+  pruefe("abgelaufene Schlange sendet nicht mehr", r.posts === 0, "posts " + r.posts);
+
+  /* Frische Daten werden nicht versehentlich mitverworfen. */
+  r = await page.evaluate(async function () {
+    localStorage.setItem("formenwerkstatt_pending_v1", JSON.stringify({
+      anzahl: 1, zeit: Date.now(), nutzer: "anna"
+    }));
+    window.__MOCK.status = 200;
+    window.__POSTS.length = 0;
+    await new Promise(function (f) { window.queueFlushen(f); });
+    return { posts: window.__POSTS.length, wartet: !!window.pendingLesen() };
+  });
+  pruefe("frische Warteschlange wird gesendet", r.posts === 1 && r.wartet === false,
+    "posts " + r.posts);
+
   await browser.close();
   server.close();
 
@@ -215,4 +340,10 @@ function serverStarten() {
   });
   if (schlecht) { process.stdout.write("QUEUE_FEHLER (" + schlecht + ")\n"); process.exit(1); }
   process.stdout.write("QUEUE_OK (" + e.length + " Tests)\n");
-})().catch(function (x) { process.stdout.write("FAIL Lauf: " + x.message + "\n"); process.exit(1); });
+})().catch(function (x) {
+  process.stdout.write("--- Abbruch: " + x.message + " (Ergebnisse bisher: " + (e ? e.length : "kein Array") + ")\n");
+  e.forEach(function (y) {
+    process.stdout.write((y.ok ? "PASS " : "FAIL ") + y.n + (y.z ? "  [" + y.z + "]" : "") + "\n");
+  });
+  process.exit(1);
+});

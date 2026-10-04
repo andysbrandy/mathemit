@@ -943,16 +943,82 @@ function showLevelUpBanner(stufe){
   if(eulenhainViewEl && eulenhainViewEl.style.display !== "none") renderEulenhain();
 }
 /* ---------- P6: Eulenhain als eigene Seite mit großem, wachsendem Baum ---------- */
+/* Beide Vollbild-Ansichten (Eulenhain, Wissensgarten) sind position:fixed
+   und scrollen selbst. Sie nehmen den Body aber NICHT aus dem Fluss — die
+   Hauptseite (.wrap, 761 px Desktop / 1218 px Handy) bleibt darunter
+   scrollbar. Folge war ein zweiter Scrollbalken: einer fuer das Dokument,
+   einer fuer das Overlay. Auf dem Handy kam es nur bei vielen Eulen dazu,
+   weil die Szene erst dann das Fenster ueberragt.
+
+   Gemessen (scrollHeight - clientHeight):
+     Desktop  Dokument +129 px, Overlay +534..1235 px  -> zwei Balken
+     Handy    Dokument +558 px, Overlay 0..+117 px     -> zwei ab 50 Eulen
+
+   Der Body wird waehrend des Offenseins stillgelegt und danach auf seinen
+   Ausgangswert zurueckgesetzt — nicht blind auf '', weil die Regel aus
+   style-active.css (.chips) das overflow-verhalten beeinflusst.
+   Die Scrollposition wird gesichert und zurueckgesetzt: sonst stuende die
+   Seite nach dem Schliessen an anderer Stelle. */
+var BODY_SCROLL_Y = 0, BODY_OVERFLOW_VORHER = "", HTML_OVERFLOW_VORHER = "";
+var BODY_SCROLL_GESICHERT = false;
+function overlayScrollSperren(gesicherteY){
+  var b = document.body, h = document.documentElement;
+  if(!b || BODY_SCROLL_GESICHERT) return;
+  /* Wert uebergeben? Dann zaehlt dieser (die Aufrufer sichern VOR dem
+     Rendern). Sonst der aktuelle Wert — der ist aber auf dem Handy bereits
+     0, sobald das Rendern die Seite nach oben geschoben hat. */
+  BODY_SCROLL_Y = (typeof gesicherteY === "number") ? gesicherteY : window.scrollY;
+  BODY_OVERFLOW_VORHER = b.style.overflowY;
+  HTML_OVERFLOW_VORHER = h.style.overflowY;
+  /* Wichtig ist die html-Regel, nicht die body-Regel: gemessen wird immer
+     ueber documentElement, und "overflow:hidden" am Body allein laesst das
+     Dokument scrollbar. Der Body wird mitgesperrt, weil manche Browser das
+     Wheel sonst ueber den Body leiten.
+
+     WICHTIG — die Sperre selbst kostet die Position: sobald overflow:hidden
+     am html steht, meldet das Handy sofort scrollY 0, noch bevor wir
+     freigeben. Deshalb wird direkt danach wiederhergestellt (Desktop zeigt
+     die richtige Position ohnehin, das Handy braucht es). Ohne das landet
+     die Seite nach dem Schliessen oben statt bei der Aufgabe. */
+  h.style.overflowY = "hidden";
+  b.style.overflowY = "hidden";
+  BODY_SCROLL_GESICHERT = true;
+  window.scrollTo(0, BODY_SCROLL_Y);
+}
+function overlayScrollFreigeben(){
+  var b = document.body, h = document.documentElement;
+  if(!b || !BODY_SCROLL_GESICHERT) return;
+  h.style.overflowY = HTML_OVERFLOW_VORHER;
+  b.style.overflowY = BODY_OVERFLOW_VORHER;
+  BODY_SCROLL_GESICHERT = false;
+  /* requestAnimationFrame: das Neuaufbauen der Ansicht setzt die Position
+     sonst danach noch einmal auf 0. */
+  requestAnimationFrame(function(){
+    window.scrollTo(0, BODY_SCROLL_Y);
+  });
+}
+/* Beim Schliessen ueber Escape gilt: der Body muss wieder frei, sonst
+   bleibt die Seite stumm. Siehe die Taste-Abfrage weiter unten. */
+function overlayOffen(){ return !!(eulenhainViewEl && eulenhainViewEl.style.display !== "none")
+                            || !!(wwpViewEl && wwpViewEl.style.display !== "none"); }
 var eulenhainViewEl = document.getElementById("eulenhainView");
 var ehpSceneEl = document.getElementById("ehpScene");
 var ehpStatsEl = document.getElementById("ehpStats");
 var ehHintEl = document.getElementById("ehHint");
 function openEulenhain(){
+  /* Die Position VOR dem Rendern sichern, nicht danach: das Neuaufbauen
+     dauert auf dem Handy mehrere hundert Millisekunden, und bis dahin ist
+     die Seite bereits an den Anfang gesprungen (gemessen: scrollY war beim
+     Sichern schon 0 statt 300). */
+  var y = window.scrollY;
   renderEulenhain();
   if(eulenhainViewEl) eulenhainViewEl.style.display = "block";
-  window.scrollTo(0, 0);
+  overlayScrollSperren(y);
 }
-function closeEulenhain(){ if(eulenhainViewEl) eulenhainViewEl.style.display = "none"; }
+function closeEulenhain(){
+  if(eulenhainViewEl) eulenhainViewEl.style.display = "none";
+  if(!overlayOffen()) overlayScrollFreigeben();
+}
 function ehpStrahlen(n, innen, aussen){
   var s = "", i, a;
   for(i = 0; i < n; i++){
@@ -1372,11 +1438,15 @@ var WWP_FRUCHT_FARBEN = { neu:"#CFEA86", bau:"#F0C24B", sicher:"#EE8A3C", meiste
  */
 var WWP_TREFFER_RADIUS = 22;
 function openWissensgarten(){
+  var y = window.scrollY;             /* vor dem Rendern, siehe openEulenhain */
   renderWissensgarten();
   if(wwpViewEl) wwpViewEl.style.display = "block";
-  window.scrollTo(0, 0);
+  overlayScrollSperren(y);
 }
-function closeWissensgarten(){ if(wwpViewEl) wwpViewEl.style.display = "none"; }
+function closeWissensgarten(){
+  if(wwpViewEl) wwpViewEl.style.display = "none";
+  if(!overlayOffen()) overlayScrollFreigeben();
+}
 /* P4.1: Baum-Formen je Wissensbereich — die Krone wächst mit der Zahl der Kompetenzen.
    f = Größenfaktor · form = Kronen-Silhouette · WWP_FORM_HW = Halbbreite (× rM) ·
    WWP_FORM_ASPECT = Höhe/Breite der Frucht-Verteilung */

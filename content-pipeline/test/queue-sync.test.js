@@ -89,6 +89,32 @@ function serverStarten() {
   pruefe("Warteschlange gehoert dem Konto", r.nutzer === "anna", "nutzer " + r.nutzer);
   pruefe("Chip zeigt die Warteschlange", r.chip === true);
 
+  /* Regression (auf der Live-Seite gefunden): der Offline-Text und die
+   * Anzahl stehen in derselben Anzeige. Ein "textContent" auf dem Chip
+   * loescht die innere Span — danach zeigt die Anzeige nie wieder eine
+   * Anzahl, und der Nutzer erfaehrt nie, dass Aenderungen warten. */
+  r = await page.evaluate(function () {
+    /* Erst Offline-Text setzen (das ist, was beim Start passiert), ... */
+    document.getElementById("offlineChipText").textContent = "Offline — wird lokal gespeichert";
+    /* ... dann Offline-Chip einblenden und den Warteschlangen-Text. */
+    window.pendingMarkieren();
+    window.offlineZeigen();
+    window.pendingAnzeigen();
+    var chip = document.getElementById("offlineChip");
+    var span = document.getElementById("offlineChipText");
+    return {
+      spanDa: !!span,
+      anzahlChips: chip ? chip.querySelectorAll("span").length : 0,
+      text: span ? span.textContent : "(keine Span)",
+      versteckt: chip ? chip.hidden : null
+    };
+  });
+  pruefe("Offline-Text zerstoert die Span nicht", r.spanDa === true && r.anzahlChips === 1,
+    "spans " + r.anzahlChips);
+  pruefe("Anzahl wird nach Offline-Text angezeigt", /Änderung/.test(r.text),
+    JSON.stringify(r.text));
+  pruefe("Chip bleibt dabei sichtbar", r.versteckt === false);
+
   /* 3 — Online und erfolgreich: die Schlange raeumt sich. */
   r = await page.evaluate(async function () {
     window.__MOCK.status = 200;

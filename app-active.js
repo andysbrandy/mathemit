@@ -1661,7 +1661,21 @@ function appVersion() {
 function chipSetzen(id, sichtbar, text) {
   var el = document.getElementById(id);
   if (!el) return;
-  if (text) el.textContent = text;
+  if (text) {
+    /*
+     * WICHTIG: den Text in die innere Span schreiben, nicht in den Chip.
+     *
+     * Ein "el.textContent = text" loescht alle Kindelemente — und damit
+     * genau die Span, in die pendingAnzeigen() spaeter schreibt. Die Folge
+     * war still und fies: der Offline-Text zuerst gesetzt, danach findet
+     * die Warteschlangen-Anzeige ihre Span nicht mehr und zeigt NIE eine
+     * Anzahl. Der Nutzer haette nie erfahren, dass Aenderungen warten.
+     * Auf der Live-Seite (v151) reproduziert und behoben.
+     */
+    var span = document.getElementById(id + "Text");
+    if (span) span.textContent = text;
+    else el.textContent = text;
+  }
   el.hidden = !sichtbar;
 }
 
@@ -1979,7 +1993,19 @@ function pendingAnzeigen() {
   var text = document.getElementById("offlineChipText");
   if (!chip || !text) return;
   var p = pendingLesen();
-  if (!p) { chip.hidden = true; return; }
+  if (!p) {
+    /*
+     * Nichts wartet. Der Chip darf trotzdem nicht verschwinden, wenn wir
+     * offline sind — sonst verliert man die Auskunft "du bist offline"
+     * genau dann, wenn man sie braucht.
+     *
+     * Das war ein echter Fehler: pendingAnzeigen() lief beim Start immer
+     * und hat den Offline-Hinweis sofort wieder ausgeblendet. Gefangen
+     * vom PWA-Test, der den Chip nach dem Offline-Neuladen gesucht hat.
+     */
+    if (navigator.onLine) chip.hidden = true;
+    return;
+  }
   var n = p.anzahl;
   text.textContent = (n === 1 ? "1 Änderung wartet" : n + " Änderungen warten")
     + " — wird gesendet, sobald das Netz da ist";

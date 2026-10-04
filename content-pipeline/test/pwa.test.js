@@ -85,6 +85,8 @@ function serverStarten() {
       nochAmLaden: frage ? (frage.textContent || "").indexOf("Lade") === 0 : true,
       svg: document.querySelectorAll("#figureHost svg").length,
       chipSichtbar: !!chip && !chip.hidden,
+      chipText: chip ? chip.textContent : null,
+      online: navigator.onLine,
       worker: !!navigator.serviceWorker.controller
     };
   });
@@ -115,7 +117,8 @@ function serverStarten() {
     ["offline: Aufgabe geladen", offline.aufgabe.length > 3 && !offline.nochAmLaden,
       offline.aufgabe.slice(0, 42)],
     ["offline: Figur gezeichnet", offline.svg > 0],
-    ["offline: Hinweis sichtbar", offline.chipSichtbar],
+    ["offline: Hinweis sichtbar", offline.chipSichtbar,
+      "online=" + offline.online + " text=" + JSON.stringify(offline.chipText)],
     ["keine JS-Fehler auf der Seite", fehler.length === 0, fehler.join(" | ")]
   ];
 

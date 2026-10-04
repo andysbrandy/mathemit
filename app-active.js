@@ -1002,12 +1002,47 @@ function renderEulenhain(){
    * arbeiten in lokalen Koordinaten (0 = Stammfuß, nach oben negativ) und
    * werden über <g transform> auf die Szene gesetzt.
    */
-  var proAst = 5;
-  var gesamt = state.owls.length + 1;
-  var astZahl = Math.ceil(gesamt / proAst);
   var spacing = 92, W = 860, trunkX = 430;
   var form = "busch";                                /* breit und ausladend wie ein Hofbaum */
-  var OWL_H = 52, OWL_ABSTAND = 54, OWL_START = 68, AST_UEBERSTAND = 40, OWL_SITZ = 1;
+  var s = "", i, k;
+  var OWL_ABSTAND = 54, OWL_START = 68, AST_UEBERSTAND = 40;
+  /* P5.5 — Belegung der Äste von unten nach oben: 3, 4, 5, 5, 5, …
+   *
+   * Vorher wurden alle Äste gleich behandelt (bis zu 5 Eulen). Das ergab unten
+   * einen winzigen und oben einen sehr langen Ast — die Krone wirkte dadurch wie
+   * ein Kugelkopf auf einem Besenstiel: die untersten Eulen klebten dicht am
+   * Stamm, die obersten standen weit draussen im Leeren.
+   *
+   * Die Rampe 3 → 4 → 5 löst das, weil die Astlänge an der Eulenanzahl hängt:
+   * der unterste Ast bleibt kurz und kräftig, nach oben werden die Zweige länger.
+   * Zusammen mit der Krone, die oben aufsetzt, ergibt das eine Silhouette, die
+   * nach oben breiter wird, statt in die Breite zu kippen. Ab dem vierten Ast
+   * bleiben es 5, damit oben Ruhe eintritt und das Bild nicht ausfranst.
+   */
+  function astPlan(n){
+    var p = [], frei = n, kap = 3;
+    while(frei > 0){
+      var nimm = Math.min(kap, frei);
+      p.push(nimm);
+      frei -= nimm;
+      if(kap < 5) kap++;
+    }
+    return p;
+  }
+  /* Astlaenge bei UNVERAENDERTER Eulengrösse — der Ausgangswert, auf den der
+     Wachstumsfaktor angewendet wird. */
+  function maxAstLenBase(n){
+    return OWL_START + (n - 1) * OWL_ABSTAND + AST_UEBERSTAND;
+  }
+  /* Wo liegt die Fusssohle im 64x52-Kasten?
+     Die Eule ist <svg width=64 height=52 viewBox="-12 0 124 100">. Kasten- und
+     Bildverhaeltnis stimmen nicht ueberein (1,231 gegen 1,240), deshalb skaliert
+     SVG den Inhalt einheitlich ("meet") und zentriert die Resthoehe oben wie
+     unten — der Kasten ist also NICHT das Eulenbild. Die Fusssohle liegt bei
+     viewBox-y 99 und damit 51,29 statt 52 Einheiten unter der Kastenoberkante.
+     Wer sie auf den Ast legen will, muss das mitrechnen. Die Eulen wachsen
+     allerdings mit dem Baum (eulenSk), deshalb wird der Weg unten aus der
+     tatsaechlichen Kastenhoehe berechnet statt hier fest verdrahtet. */
   /* Kronengrösse aus einem FESTEN Höhenverhältnis ableiten, nicht durch Raten.
      Zwei unabhängige Zuschläge (Astlänge, Astzahl) schwankten je nach
      Eulenstand zwischen 58 % und 29 % Kronenanteil — mal Laubballon, mal
@@ -1022,10 +1057,38 @@ function renderEulenhain(){
      ⇒ rM = 0.42·(hFirst+16) / (S − 0.42·(0.12+S))   mit S = TOP+BOT */
   var KRONEN_ANTEIL = 0.42, LUECKE = 16, KRONE_UEBER_AST = 0.12;
   var S = (WWP_FORM_TOP[form] || 1.0) + (WWP_FORM_BOT[form] || 0.9);
-  var groessteGruppe = Math.max(1, Math.min(5, state.owls.length));
-  var maxAstLen = OWL_START + (groessteGruppe - 1) * OWL_ABSTAND + AST_UEBERSTAND;
+  var plan = astPlan(state.owls.length);
+  var astZahl = plan.length;
+  /* Der längste Ast muss aus der Krone hervorkommen. Bei der Rampe ist das der
+     Ast mit 5 Eulen — aber nur, wenn so viele Eulen überhaupt da sind. */
+  var groessteGruppe = 1;
+  for(i = 0; i < plan.length; i++) if(plan[i] > groessteGruppe) groessteGruppe = plan[i];
   var hDeep = 150;                                   /* unterste Astreihe über der Wiese */
-  var hFirst = hDeep + astZahl * spacing;             /* Zweig der Warteeule */
+  /* P5.5 — Kronenhöhe darf nicht linear mit der Astzahl wachsen.
+   *
+   * Bei fest 92 px Abstand braucht der 25-Eulen-Baum 6 Reihen = 552 px allein
+   * für die Äste; die daraus folgende Kronenhöhe (547 px) frisst dann zwei
+   * Drittel der Gesamthöhe und die Äste quetschen sich unten zusammen.
+   *
+   * Deshalb wird der Reihenabstand nach oben hin gestaucht: ab der vierten
+   * Reihe wird jede weitere Reihe um 6 px enger, nie unter 58 px (dort wären
+   * die Eulen zu dicht). Der Baum wächst dadurch in die Breite statt in die
+   * Höhe — was ohnehin zur buschigen Kronenform passt.
+   */
+  var reiheAb = [];
+  for(i = 0; i < astZahl; i++){
+    var ab = spacing - Math.max(0, i - 2) * 6;
+    reiheAb.push(Math.max(58, ab));
+  }
+  var astHoehe = 0;
+  for(i = 0; i < astZahl; i++) astHoehe += reiheAb[i];
+  /* Summe der ersten n Reihenabstaende — der Ast in Reihe n sitzt so hoch. */
+  function reiheSumme(n){
+    var s = 0;
+    for(var j = 0; j < n && j < reiheAb.length; j++) s += reiheAb[j];
+    return s;
+  }
+  var hFirst = hDeep + astHoehe;                    /* Zweig der Warteeule */
   /* Abstand Kronenunterkante bis oberster Zweig ist LUECKE + KRONE_UEBER_AST·rM; die
      Deckelgrenze 330 ist die harte Grenze der Szenenbreite (2·1.18·330 = 779 px
      bei 860 px Breite). Ab dort muss die Krone schrumpfen, sonst würde sie
@@ -1033,15 +1096,127 @@ function renderEulenhain(){
      bewusst und der Baum wird schlank statt breit. */
   var rM = Math.min(330, Math.max(
         KRONEN_ANTEIL * (hFirst + LUECKE) / (S - KRONEN_ANTEIL * (KRONE_UEBER_AST + S)),
-        maxAstLen * 0.62 / WWP_FORM_HW[form]));
+        1));
+  /* P5.5 — Kronenhoehe bleibt an die Astzone gekoppelt.
+   *
+   * Geprueft und VERWORFEN: eine Deckelung der Krone gegen die Astzone. Sie
+   * greift nie, denn das Verhaeltnis Kronenhoehe zu Astzone liegt konstant bei
+   * 0,78 bis 0,81 — von 1 bis 50 Eulen. Die Form ist also gesund, nichts kippt.
+   *
+   * Der Eindruck eines "Kugelkopfs" bei 25 Eulen entsteht woanders: nicht die
+   * Krone ist zu gross, sondern die Eulen sind relativ zu ihr zu klein. Sie
+   * sind fest 52 px hoch, waehrend die Krone auf 311 px Radius waechst. Bei
+   * 25 Eulen sind es 25 kleine Figuren unter einer grossen Kugel.
+   *
+   * Die Eulen skalieren deshalb mit der Krone mit (bis 1,6x) und werden
+   * zusaetzlich am engsten Reihenabstand gekappt, damit sie sich nie stapeln.
+   */
+  /* Deckel gegen die engste Zeile: die Eulen duerfen nie hoeher werden als der
+     Reihenabstand, sonst stapeln sie sich bei 25+ Eulen (81 px Eule bei 74 px
+     Abstand). Deshalb wird der Faktor noch einmal mit dem kleinsten
+     Reihenabstand gekappt — mit 10 % Luft nach oben. */
+  var engsteZeile = astZahl > 0 ? reiheAb[astZahl - 1] : spacing;
+  var eulenSk = Math.min(1.6, Math.max(1, rM / 190));
+  eulenSk = Math.min(eulenSk, (engsteZeile * 0.9) / 52);
+  /* P5.5 — Ast und Krone muessen MITWACHSEN.
+   *
+   * Der Eulenabstand war fest 54 px, die Eulen waren fest 52 px gross, die Krone
+   * wuchs dagegen mit der Astzahl von 268 auf 779 px Breite. Bei 25 Eulen musste
+   * der längste Ast 546 px lang sein, war aber 324 px — die Äste verschwanden
+   * als dünne Striche unter einem Kugelkopf. Genau das Gegenteil von "eine
+   * schöne Gesamtkrone".
+   *
+   * Deshalb wird nicht der Ast gestreckt, sondern der EULENABSTAND so gewählt,
+   * dass der längste Ast bei jedem Stand derselbe Anteil der Kronenhalbbreite
+   * einnimmt (Ziel: der Ast ragt zu 62 % aus der Krone). Der Faktor ist der
+   * Quotient aus Zielbreite und Basisbreite — er liegt zwischen 0,38 (3 Eulen,
+   * Ast bereits zu lang) und 1 (Krone passt zum Basisast). Kleinere Abstände
+   * machen die Eulen dichter, nicht kleiner: sie sollen schliesslich lesbar
+   * bleiben.
+   */
+  /* Untergrenze 0,62: bei kleinerem Abstand (Faktor 0,38 bei 3 Eulen) würden
+     die Eulen ineinanderschieben. Die 62 % gelten dann nur als Obergrenze der
+     Kronenbreite — der Ast ragt nie weiter als 62 % hinaus, kann aber kürzer
+     sein. Das ist die richtige Richtung: lieber ein etwas zu kurzer Ast als
+     überlappende Eulen. */
+  /* P5.5 — Die Aeste muessen mit der Krone EINE Silhouette bilden.
+   *
+   * Zwei Befunde aus Messungen:
+   *
+   * 1) Reihenfolge war umgekehrt. state.owls laeuft aufsteigend; vorher wurde
+   *    die Liste umgedreht, wodurch Stufe 1 oben und Stufe 12 unten sass —
+   *    spiegelverkehrt zur Rampe 3-4-5, die UNTEN beginnt.
+   *
+   * 2) Ast und Krone wuchsen nicht zusammen. Der Eulenabstand war fest 54 px
+   *    und die Krone wuchs von 268 auf 779 px Breite. Bei 25 Eulen musste der
+   *    längste Ast 546 px lang sein, war aber 324 px: das Ast/Kronen-Verhältnis
+   *    kippte von 1,64 auf 0,83 und die Äste verschwanden als Striche unter dem
+   *    Kugelkopf.
+   *
+   * Deshalb wird der Eulenabstand so gewählt, dass der längste Ast bei jedem
+   * Stand derselbe Anteil der Kronenhalbbreite einnimmt. Untergrenze 0,62, damit
+   * die Eulen nicht ineinanderschieben.
+   *
+   * Und: die Kronenhöhe folgt nicht mehr linear der Astzahl. Sonst frisst die
+   * Krone bei 25 Eulen 547 von 755 px und die Äste drängen sich unten zusammen.
+   * Der Zuschlag je Astreihe wird deshalb gedeckelt (AST_HOCH_PRO_REIHE), damit
+   * die Baumkrone die Obergrenze behält und die Äste Platz finden.
+   */
+  var kronenHalb = rM * WWP_FORM_HW[form];
+  var astFaktor = Math.max(0.62, Math.min(1, (kronenHalb * 0.62) / maxAstLenBase(groessteGruppe)));
+  var owlAbstand = OWL_ABSTAND * astFaktor;
+  var owlStart = OWL_START * astFaktor;
+  var owlUeber = AST_UEBERSTAND * astFaktor;
+  var maxAstLen = owlStart + (groessteGruppe - 1) * owlAbstand + owlUeber;
+  /* Die Eulen selbst skalieren nur leicht mit — als Tipp-Fläche sollen sie
+     nicht schrumpfen, aber auch nicht die Krone überwachsen. */
+  var eulenBw = Math.round(64 * eulenSk), eulenBh = Math.round(52 * eulenSk);
+  var eulenSohle = (eulenBh - 100 * Math.min(eulenBw / 124, eulenBh / 100)) / 2
+                 + 99 * Math.min(eulenBw / 124, eulenBh / 100);
+  /* P5.5 — Die Warteeule braucht oben Platz, den der Reihenabstand allein nicht
+     garantiert.
+     *
+     * Sie sitzt auf einem eigenen duennen Zweig unmittelbar über der obersten
+     * Astreihe. Beide Zweige sind geneigt, und zwar unterschiedlich stark: der
+     * lange Ast mit 5 Eulen steigt an seiner Spitze um 0,14 mal Länge an, der
+     * kurze Wartezweig um weit weniger. Dadurch landete die Warteeule dichter
+     * an der obersten Reihe, als der Reihenabstand vorsah — bei 25 Eulen 63 px
+     * statt 74 px, bei 67 px Eulenhöhe also 4 px Überlappung. Die Kapplung
+     * eulenSk am engsten Reihenabstand griff hier nicht, denn sie kann die
+     * Neigung des Zweigs nicht kennen.
+     *
+     * Statt zu raten, werden die Rückenpunkte beider Eulen auf ihren
+     * tatsächlichen Zweigkurven berechnet und die Warteeule um die Differenz
+     * so weit nach oben geschoben, dass zwischen den Rücken die volle
+     * Eulenhöhe plus 5 % Luft bleibt. Der Kronenansatz wandert um denselben
+     * Betrag mit, sonst verschwände sie im Laub. */
+  function warteVersatz(){
+    var letzte = astZahl - 1;
+    if(letzte < 0) return 0;
+    var yOben = -(hDeep + reiheSumme(letzte));
+    var anzahl = plan[letzte];
+    var lenOben = owlStart + (anzahl - 1) * owlAbstand + owlUeber;
+    var obLinks = (letzte + 1) % 2 === 1;
+    /* Die äusserste Eule der obersten Reihe — der Ast fällt zu ihr hin ab,
+       deshalb steht sie am höchsten und begrenzt den Abstand. */
+    var aussen = obLinks ? -1 : 1;
+    var cyOben = wwpAstY(aussen * (owlStart + (anzahl - 1) * owlAbstand), 0, yOben,
+                         aussen * lenOben, yOben - lenOben * 0.14, 1);
+    var lenW = 56 + owlUeber;
+    var cyW = wwpAstY(56 * astFaktor, 0, -hFirst, lenW, -hFirst - lenW * 0.14, 0.55);
+    /* wwpAstY liefert die Zweigkante, also genau den Stand der Fusssohle.
+       Höhere Lagen sind (negativ gesehen) weiter oben: der Abstand der
+       Warteeule über der obersten Reihe ist darum cyOben minus cyW. */
+    return Math.max(0, eulenBh * 1.02 - (cyOben - cyW));
+  }
+  var versatz = warteVersatz();
   var GM = 96, TOPM = 34;                            /* Wiese unter dem Fuß · Himmel über der Krone */
-  var crownBotH = hFirst + LUECKE + rM * KRONE_UEBER_AST;
+  var crownBotH = hFirst + versatz + LUECKE + rM * KRONE_UEBER_AST;
   var crownCyH = crownBotH + (WWP_FORM_BOT[form] || 0.9) * rM;
   var crownTopH = crownCyH + (WWP_FORM_TOP[form] || 1.0) * rM;
   var stammH = crownCyH - rM * 0.62;                 /* Stamm reicht bis in die Krone */
   var bw = rM * 0.20;
   var groundY = crownTopH + TOPM, H = groundY + GM;
-  var s = "", i, k;
   s += '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="display:block;">';
   s += '<defs>'
     + '<linearGradient id="ehpSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BFE3F7"/><stop offset="1" stop-color="#EFF8EE"/></linearGradient>'
@@ -1063,10 +1238,14 @@ function renderEulenhain(){
   /* Krone: identische Silhouette zu den Gartenbäumen, inkl. Schattenband und
      Lichtreflex. Zuerst gezeichnet, damit die Äste danach aus dem Laub treten. */
   s += wwpKrone(form, rM, -crownCyH);
-  /* Äste: oben die nächste Eule (dünner Ast), darunter die gesammelten Eulen — neueste oben, älteste unten */
+  /* Äste: die gesammelten Eulen von unten nach oben, älteste unten, neueste oben.
+     P5.5 — vorher stand hier eine Umkehrung (neueste zuerst). Die Rampe 3-4-5
+     beginnt aber UNTEN, deshalb saß Stufe 1 oben und Stufe 12 unten: die Eulen
+     standen spiegelverkehrt zur Astreihenfolge. state.owls ist bereits
+     aufsteigend sortiert, also genügt die Schleife in dieser Reihenfolge. */
   var alle = [];
-  for(k = state.owls.length - 1; k >= 0; k--) alle.push({ stufe: state.owls[k], mysterium: false });
-  var astIdx = 0;
+  for(k = 0; k < state.owls.length; k++) alle.push({ stufe: state.owls[k], mysterium: false });
+  var astIdx = 0, zeiger = 0;                         /* astIdx zählt die Aeste, zeiger liest alle[] */
   /* Ast als verjüngte Silhouette mit Laub an der Spitze — wwpAst() ist derselbe
      Helfer wie im Wissensgarten. Die Astspitze steigt leicht an, damit der Zweig
      nach oben greift statt durchzuhängen; wwpAstY() liefert für dieselbe Kurve
@@ -1077,33 +1256,44 @@ function renderEulenhain(){
        nicht drei Pixel Farbe. */
     return wwpAst(0, ay, links ? -len : len, tip, sk, farbe, Math.max(0.9, len / 140));
   }
+  /* Stufenzahl auf heller Plakette. Der Kreis ist nicht Dekoration: ohne ihn
+     steht die Ziffer direkt auf dem braunen Zweig und ist dort nicht lesbar. */
+  function euleZahl(x, cy, txt, mystery){
+    var r = 10.5 * eulenSk;
+    return '<circle class="ehp-label-bg' + (mystery ? " mystery" : "") + '" cx="'+x.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+r.toFixed(1)+'"/>'
+         + '<text x="'+x.toFixed(1)+'" y="'+(cy + 4.5 * eulenSk).toFixed(1)+'" text-anchor="middle" class="ehp-label' + (mystery ? " mystery" : "") + '" style="font-size:'+(13 * eulenSk).toFixed(1)+'px">'+txt+'</text>';
+  }
   /* Warteeule: dünner Zweig direkt unter der Krone, auf der rechten Seite */
   (function(){
-    var y = -hFirst, len = 56 + AST_UEBERSTAND;
-    var o = owlForLevel(lvl.stufe + 1), x = 56;
+    var y = -(hFirst + versatz), len = 56 + owlUeber;
+    var o = owlForLevel(lvl.stufe + 1), x = 56 * astFaktor;
     var cy = wwpAstY(x, 0, y, len, y - len * 0.14, 0.55);
     s += wwpAst(0, y, len, y - len * 0.14, 0.55, "#B98A4E", 1.05);
-    s += '<svg class="eh-owl eh-mystery" data-anim="'+o.anim+'" data-stufe="'+(lvl.stufe+1)+'" x="'+(x-32)+'" y="'+(cy-OWL_SITZ-OWL_H)+'" width="64" height="52" viewBox="-12 0 124 100" role="button" tabindex="0" aria-label="Noch unbekannte Eule (Stufe '+(lvl.stufe+1)+')">'
+    s += '<svg class="eh-owl eh-mystery" data-anim="'+o.anim+'" data-stufe="'+(lvl.stufe+1)+'" x="'+(x-eulenBw/2).toFixed(1)+'" y="'+(cy-eulenSohle).toFixed(1)+'" width="'+eulenBw+'" height="'+eulenBh+'" viewBox="-12 0 124 100" role="button" tabindex="0" aria-label="Noch unbekannte Eule (Stufe '+(lvl.stufe+1)+')">'
        + owlInner(o.hue) + '</svg>';
-    s += '<text x="'+x+'" y="'+(cy+14)+'" text-anchor="middle" class="ehp-label mystery">'+(lvl.stufe+1)+'</text>';
+    s += euleZahl(x, cy + 17 * eulenSk, (lvl.stufe + 1), true);
   })();
-  for(i = 0; i < alle.length; i += proAst){
-    var gruppe = alle.slice(i, i + proAst);
+  for(i = 0; i < plan.length; i++){
+    var gruppe = alle.slice(zeiger, zeiger + plan[i]);
+    zeiger += plan[i];
     astIdx++;
-    var y = -(hDeep + (astIdx - 1) * spacing);
+    var y = -(hDeep + reiheSumme(astIdx - 1));
+    /* Seitenwechsel pro Ast: links, rechts, links, rechts … Der unterste Ast
+       zeigt nach links, damit die Eulen nicht direkt über dem Fallbild der
+       Wurzeln sitzen. */
     var links = astIdx % 2 === 1;
-    var len = OWL_START + (gruppe.length - 1) * OWL_ABSTAND + AST_UEBERSTAND;   /* Ast endet knapp hinter der letzten Eule */
+    var len = owlStart + (gruppe.length - 1) * owlAbstand + owlUeber;   /* Ast endet knapp hinter der letzten Eule */
     s += astPfad(y, links, len, 1);
     for(k = 0; k < gruppe.length; k++){
       var e = gruppe[k];
       var o = owlForLevel(e.stufe);
-      var x = links ? -(OWL_START + k * OWL_ABSTAND) : (OWL_START + k * OWL_ABSTAND);
+      var x = links ? -(owlStart + k * owlAbstand) : (owlStart + k * owlAbstand);
       var cy = wwpAstY(x, 0, y, links ? -len : len, y - len * 0.14, 1);
       var cls = "eh-owl" + (e.stufe === lvl.stufe ? " eh-idle" : "");
-      s += '<svg class="'+cls+'" data-anim="'+o.anim+'" data-stufe="'+e.stufe+'" x="'+(x-32)+'" y="'+(cy-OWL_SITZ-OWL_H)+'" width="64" height="52" viewBox="-12 0 124 100" role="button" tabindex="0" aria-label="'+o.name+', Stufe '+e.stufe+'">'
+      s += '<svg class="'+cls+'" data-anim="'+o.anim+'" data-stufe="'+e.stufe+'" x="'+(x-eulenBw/2).toFixed(1)+'" y="'+(cy-eulenSohle).toFixed(1)+'" width="'+eulenBw+'" height="'+eulenBh+'" viewBox="-12 0 124 100" role="button" tabindex="0" aria-label="'+o.name+', Stufe '+e.stufe+'">'
          + owlInner(o.hue)
          + '</svg>';
-      s += '<text x="'+x+'" y="'+(cy+14)+'" text-anchor="middle" class="ehp-label">'+e.stufe+'</text>';
+      s += euleZahl(x, cy + 17 * eulenSk, e.stufe, false);
     }
   }
   s += '</g>';   /* /ehp-baum */

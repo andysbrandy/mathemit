@@ -365,8 +365,14 @@
   }
   .ehp-scene > svg{ display:block; width:100%; height:auto; }
   .ehp-stage{ position:relative; }
-  .ehp-label{ font-size:13px; font-weight:700; fill:#5F7186; }
-  .ehp-label.mystery{ font-style:italic; fill:#8A97A6; }
+  /* P5.5 — Die Stufenzahl war #5F7186 auf dem braunen Ast (#7A4E26): ein
+     mittleres Blaugrau auf mittelbraun, bei Sonnenlicht praktisch nicht lesbar.
+     Ein heller Kreis mit dunkler Ziffer hebt sich auf jedem Untergrund ab und
+     bleibt auch dann lesbar, wenn der Zweig mal heller ist. */
+  .ehp-label{ font-size:13px; font-weight:700; fill:#3D2B1A; }
+  .ehp-label-bg{ fill:#FFF6E3; stroke:#B07A3C; stroke-width:1; }
+  .ehp-label.mystery{ fill:#5A6B7C; }
+  .ehp-label-bg.mystery{ fill:#EEF2F7; stroke:#8C99A8; stroke-dasharray:3 2; }
   .ehp-caption-row{ text-align:center; margin-top:10px; }
   /* Sonne, Wolken, Schmetterlinge */
   .ehp-rays{ transform-box:fill-box; transform-origin:center; animation:ehpSpin 90s linear infinite; }

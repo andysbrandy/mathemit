@@ -265,18 +265,31 @@
   .stat-pill.level{color:var(--viereck);}
 
   /* ---------- Level progress ---------- */
-  .level-bar-row{display:flex; align-items:center; gap:10px; margin-bottom:16px;}
+  /*
+   * P5.3 — Überlauf auf dem Handy (46 px) behoben.
+   *
+   * Ursache: `.level-next` stand auf `white-space:nowrap` und ist 205 px breit.
+   * Zusammen mit Name und Balken passt die Zeile nicht in 390 px, das Dokument
+   * wurde 46 px zu breit. Das kippte auch die Breite der `position:fixed`-
+   * Szenen (Eulenhain/Wissensgarten) von 390 auf 436 px — im Desktop-Bild
+   * unsichtbar, weil dort genug Platz ist.
+   *
+   * Der Text darf jetzt umbrechen, damit er vollständig lesbar bleibt
+   * (reines Abschneiden mit "…" wäre für Kinder schlechter). Zusätzlich darf
+   * die Zeile umbrechen, damit auf sehr schmalen Geraeten nichts ueberlaeuft.
+   */
+  .level-bar-row{display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap;}
   .level-name{font-family:'Fredoka',sans-serif; font-weight:600; font-size:.95rem; white-space:nowrap;}
   .level-track{
     flex:1; height:10px; border-radius:6px; background:var(--line); overflow:hidden;
-    border:1px solid var(--line);
+    border:1px solid var(--line); min-width:120px;
   }
   .level-fill{
     height:100%; border-radius:6px;
     background:linear-gradient(90deg, var(--gold), var(--triangle));
     width:0%; transition:width .5s cubic-bezier(.4,1.4,.6,1);
   }
-  .level-next{font-size:.72rem; color:var(--muted); white-space:nowrap; font-weight:600;}
+  .level-next{font-size:.72rem; color:var(--muted); font-weight:600; min-width:0;}
 
   /* ---------- App Version Footer ---------- */
   .app-version{
@@ -483,6 +496,12 @@
   .wwp-boardtext{ font-size:17px; font-weight:700; fill:#4A3319; font-family:'Fredoka',sans-serif; }
   .wwp-boardthema{ font-size:15px; font-weight:600; fill:#7A5A34; }
   .wwp-boardsub{ font-size:16px; font-weight:600; fill:#6B4A2B; }
+  /* P5.3 — Unsichtbare Trefferflaeche: traegt den Tipp, nicht der Apfel.
+   Ohne eigenen Cursor wirkt sie wie ein toter Fleck, wenn man genau
+   daneben tippt. Sie liegt vor dem Apfel, deshalb kein eigener Tabstopp —
+   Tastatur und Screenreader bleiben beim `.wwp-frucht`. */
+  .wwp-treffer{ cursor:pointer; }
+  .wwp-treffer:hover + .wwp-frucht{ transform:scale(1.3); }
   .wwp-frucht{ cursor:pointer; transition:transform .15s ease, opacity .15s ease; transform-box:fill-box; transform-origin:center; }
   .wwp-frucht:hover{ transform:scale(1.3); }
   .wwp-frucht:focus-visible{ outline:2px solid var(--gold); outline-offset:1px; }
@@ -514,9 +533,12 @@
   @keyframes wwpTwinkle{ 0%,100%{ opacity:.3; } 50%{ opacity:1; } }
   .ww-caption{ text-align:center; margin-top:10px; font-size:1rem; min-height:46px; }
   .ww-leg{ display:inline-flex; align-items:center; gap:5px; margin:0 8px; font-size:.88rem; color:var(--muted); font-weight:600; }
-  .ww-leg i{ width:11px; height:11px; border-radius:50%; display:inline-block; border:1.5px solid #3F6B37; }
-  /* P4.1 — Die Legende folgt der Reife-Rampe: hellgrün → gelb → orange → rot. */
-  .ww-leg .lg-neu{ background:#A9CE8B; }
+  .ww-leg i{ width:11px; height:11px; border-radius:50%; display:inline-block; border:1.5px solid #35602E; }
+  /* P4.1 — Die Legende folgt der Reife-Rampe: hellgrün → gelb → orange → rot.
+     P5.3 — "unreif" auf #CFEA86 angehoben (deckt sich mit WWP_FRUCHT_FARBEN.neu)
+     und die Kontur auf #35602E vereinheitlicht, sonst wuerde die Legende einen
+     helleren Ton zeigen als die Frucht selbst. */
+  .ww-leg .lg-neu{ background:#CFEA86; }
   .ww-leg .lg-bau{ background:#F0C24B; }
   .ww-leg .lg-sicher{ background:#EE8A3C; }
   .ww-leg .lg-meister{ background:#D33A2C; }

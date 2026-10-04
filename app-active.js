@@ -576,7 +576,17 @@ function renderBadges(){
     streak5: "🔥 Serie x5", streak10:"🔥🔥 Serie x10",
     solved10:"📚 10 gelöst", solved25:"📚 25 gelöst", solved50:"📚 50 gelöst"
   };
-  host.innerHTML = state.badges.map(function(b){ return '<span class="badge">'+defs[b]+'</span>'; }).join("");
+  /*
+   * P5.3 — Fallback gegen "undefined".
+   *
+   * `defs[b]` war ungeschützt: eine unbekannte Badge-ID (z. B. aus einem
+   * älteren oder künftigen Sync-Payload) wäre wörtlich als "undefined"
+   * für ein Kind sichtbar. Unbekanntes wird jetzt als neutrale Medaille
+   * gezeigt und nie ganz ausgeblendet — die Liste bleibt nachvollziehbar.
+   */
+  host.innerHTML = state.badges.map(function(b){
+    return '<span class="badge">'+escHtml(defs[b] || "🏅")+'</span>';
+  }).join("");
 }
 
 function checkBadges(){
@@ -979,29 +989,58 @@ function renderEulenhain(){
   var nxt = owlForLevel(lvl.stufe + 1);
   var fehl = Math.max(0, punkteFuerStufe(lvl.stufe + 1) - state.points);
   if(ehHintEl) ehHintEl.innerHTML = '🔭 Noch <strong>'+fehl+'</strong> Punkte bis zur nächsten Eule: <strong>'+escHtml(nxt.name)+'</strong> (Stufe '+(lvl.stufe+1)+')';
-  /* Baum-Geometrie: von der Krone nach unten wachsend — je Ast 5 Eulen, oben wartet die nächste Eule */
+  /* Baum-Geometrie: von der Krone nach unten wachsend — je Ast 5 Eulen, oben wartet die nächste Eule.
+   *
+   * P5.4 — Krone, Stamm, Wurzeln und Äste kommen jetzt aus DENSELBEN Helfern
+   * wie die sechs Bäume im Wissensgarten (wwpKrone / wwpStamm / wwpAst).
+   * Vorher hatte der Eulenhain eine eigene Krone aus fünf Grüntönen und zwei
+   * aufgesetzte Wurzelkeile — deshalb sah er aus wie eine andere Baumart als
+   * die Bäume daneben. "Passt zu den Gartenbäumen" ist so per Konstruktion
+   * erfüllt und nicht nur per Augenmaß.
+   *
+   * Alle Höhen werden von der Wiese nach oben gerechnet; die Zeichenfunktionen
+   * arbeiten in lokalen Koordinaten (0 = Stammfuß, nach oben negativ) und
+   * werden über <g transform> auf die Szene gesetzt.
+   */
   var proAst = 5;
   var gesamt = state.owls.length + 1;
   var astZahl = Math.ceil(gesamt / proAst);
-  var spacing = 92, W = 860;
-  var f = 1 + Math.min(0.6, astZahl * 0.045);
-  var crownK = 0.78, crownCy = 250;
-  var crownBottom = crownCy + 95 * f;
-  var topAstY = crownBottom + 66;
-  var H = topAstY + astZahl * spacing + 86 + 84;   /* Astreihen sind 1-basiert (astIdx) – sonst liegt der Ast auf der Wiese */
-  var groundY = H - 84;
-  var trunkX = 430;
-  var trunkTopY = crownCy + 95 * f * 0.5;
-  var kronenFarben = ["#6FAF5C", "#7FBF6A", "#8FCF79", "#97CB84", "#A5D98E"];
+  var spacing = 92, W = 860, trunkX = 430;
+  var form = "busch";                                /* breit und ausladend wie ein Hofbaum */
   var OWL_H = 52, OWL_ABSTAND = 54, OWL_START = 68, AST_UEBERSTAND = 40, OWL_SITZ = 1;
-  /* Kronenbreite folgt der längsten Astreihe: die grösste Gruppe (max. 5 Eulen) bestimmt die Ausdehnung */
-  var groessteGruppe = state.owls.length > 5 ? 5 : state.owls.length;
-  if(groessteGruppe < 1) groessteGruppe = 1;
+  /* Kronengrösse aus einem FESTEN Höhenverhältnis ableiten, nicht durch Raten.
+     Zwei unabhängige Zuschläge (Astlänge, Astzahl) schwankten je nach
+     Eulenstand zwischen 58 % und 29 % Kronenanteil — mal Laubballon, mal
+     Lutscher. Hier ist der Anteil konstant, der Baum sieht bei jedem Stand
+     nach Baum aus.
+
+     Die Krone muss aber mindestens so breit sein, dass der längste Ast aus ihr
+     hervorkommt; dafür steht der zweite Summand.
+       crownBotH = hFirst + 16 + 0.12·rM      (Abstand Krone–oberster Zweig)
+       crownH    = (TOP+BOT)·rM
+       crownH / (crownBotH + crownH) = 0.42   (Zielanteil)
+     ⇒ rM = 0.42·(hFirst+16) / (S − 0.42·(0.12+S))   mit S = TOP+BOT */
+  var KRONEN_ANTEIL = 0.42, LUECKE = 16, KRONE_UEBER_AST = 0.12;
+  var S = (WWP_FORM_TOP[form] || 1.0) + (WWP_FORM_BOT[form] || 0.9);
+  var groessteGruppe = Math.max(1, Math.min(5, state.owls.length));
   var maxAstLen = OWL_START + (groessteGruppe - 1) * OWL_ABSTAND + AST_UEBERSTAND;
-  if(56 + AST_UEBERSTAND > maxAstLen) maxAstLen = 56 + AST_UEBERSTAND;
-  var kronenBreite = ((maxAstLen / (crownK * f)) - 32) / 164;   /* Kronenrand liegt an der Astspitze */
-  if(kronenBreite < 1) kronenBreite = 1;
-  var kronenRund = 1 + (kronenBreite - 1) * 0.5;   /* Radien wachsen halb mit -> dichte Krone */
+  var hDeep = 150;                                   /* unterste Astreihe über der Wiese */
+  var hFirst = hDeep + astZahl * spacing;             /* Zweig der Warteeule */
+  /* Abstand Kronenunterkante bis oberster Zweig ist LUECKE + KRONE_UEBER_AST·rM; die
+     Deckelgrenze 330 ist die harte Grenze der Szenenbreite (2·1.18·330 = 779 px
+     bei 860 px Breite). Ab dort muss die Krone schrumpfen, sonst würde sie
+     breiter als das Bild — deshalb sinkt der Anteil bei sehr hohen Stufen
+     bewusst und der Baum wird schlank statt breit. */
+  var rM = Math.min(330, Math.max(
+        KRONEN_ANTEIL * (hFirst + LUECKE) / (S - KRONEN_ANTEIL * (KRONE_UEBER_AST + S)),
+        maxAstLen * 0.62 / WWP_FORM_HW[form]));
+  var GM = 96, TOPM = 34;                            /* Wiese unter dem Fuß · Himmel über der Krone */
+  var crownBotH = hFirst + LUECKE + rM * KRONE_UEBER_AST;
+  var crownCyH = crownBotH + (WWP_FORM_BOT[form] || 0.9) * rM;
+  var crownTopH = crownCyH + (WWP_FORM_TOP[form] || 1.0) * rM;
+  var stammH = crownCyH - rM * 0.62;                 /* Stamm reicht bis in die Krone */
+  var bw = rM * 0.20;
+  var groundY = crownTopH + TOPM, H = groundY + GM;
   var s = "", i, k;
   s += '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="display:block;">';
   s += '<defs>'
@@ -1015,53 +1054,35 @@ function renderEulenhain(){
   s += '<path d="M0 '+(groundY+10)+' Q 210 '+(groundY-48)+' 430 '+(groundY+4)+' T '+W+' '+(groundY-4)+' L '+W+' '+H+' L 0 '+H+' Z" fill="#A9D89B"/>';
   s += '<path d="M0 '+(groundY+34)+' Q 260 '+(groundY-2)+' 520 '+(groundY+26)+' T '+W+' '+(groundY+20)+' L '+W+' '+H+' L 0 '+H+' Z" fill="#8FCB7E"/>';
   s += ehpBlumen(groundY);
-  s += '<path d="M'+(trunkX-30)+' '+(groundY+8)+' C '+(trunkX-24)+' '+(groundY-60)+' '+(trunkX-26)+' '+(trunkTopY+130)+' '+(trunkX-16)+' '+trunkTopY
-     + ' L '+(trunkX+16)+' '+trunkTopY
-     + ' C '+(trunkX+26)+' '+(trunkTopY+130)+' '+(trunkX+24)+' '+(groundY-60)+' '+(trunkX+30)+' '+(groundY+8)+' Z" fill="url(#ehpTrunk)"/>';
-  s += '<path d="M'+(trunkX-28)+' '+(groundY+6)+' q -36 4 -56 20 l 10 4 q 24 -12 48 -14 Z" fill="#6E4423"/>';
-  s += '<path d="M'+(trunkX+28)+' '+(groundY+6)+' q 36 4 56 20 l -10 4 q -24 -12 -48 -14 Z" fill="#6E4423"/>';
-  var kronen = [[0,0,128],[-105,26,88],[100,20,92],[-52,-58,86],[48,-64,90],[-132,-18,64],[120,-26,66],[0,-98,90],[38,54,66],[-42,60,62],[-10,34,80],[26,-8,96]];
-  for(i = 0; i < kronen.length; i++){
-    var c = kronen[i];
-    s += '<circle cx="'+(trunkX + c[0]*crownK*f*kronenBreite).toFixed(1)+'" cy="'+(crownCy + c[1]*crownK*f).toFixed(1)+'" r="'+(c[2]*crownK*f*kronenRund).toFixed(1)+'" fill="'+kronenFarben[i % kronenFarben.length]+'"/>';
-  }
+  /* Baum in lokalen Koordinaten: der Stamm wächst aus (0,0) nach oben, die Krone
+     darüber. Dieselbe Aufteilung wie im Wissensgarten. */
+  s += '<g class="ehp-baum" transform="translate('+trunkX+','+groundY+')">';
+  /* Stamm + Wurzeln als EINE Silhouette — die Wurzeln fliessen aus dem Fuss
+     heraus statt als aufgesetzte Keile danebenzuliegen. */
+  s += wwpStamm(stammH, bw, "url(#ehpTrunk)");
+  /* Krone: identische Silhouette zu den Gartenbäumen, inkl. Schattenband und
+     Lichtreflex. Zuerst gezeichnet, damit die Äste danach aus dem Laub treten. */
+  s += wwpKrone(form, rM, -crownCyH);
   /* Äste: oben die nächste Eule (dünner Ast), darunter die gesammelten Eulen — neueste oben, älteste unten */
   var alle = [];
   for(k = state.owls.length - 1; k >= 0; k--) alle.push({ stufe: state.owls[k], mysterium: false });
   var astIdx = 0;
-  /* Ast-Geometrie: Äste verjüngen sich zur Spitze, Eulen sitzen exakt auf der Astkurve */
-  /* Ast als gefüllte Kontur: dick am Stamm, dünn an der Spitze (sk skaliert die Dicke) */
+  /* Ast als verjüngte Silhouette mit Laub an der Spitze — wwpAst() ist derselbe
+     Helfer wie im Wissensgarten. Die Astspitze steigt leicht an, damit der Zweig
+     nach oben greift statt durchzuhängen; wwpAstY() liefert für dieselbe Kurve
+     die Höhe, auf der die Eule sitzt. */
   function astPfad(ay, links, len, sk, farbe){
-    sk = sk || 1;
-    var xm = links ? trunkX - len * 0.52 : trunkX + len * 0.52;
-    var xe = links ? trunkX - len : trunkX + len;
-    var ob = 6.5 * sk, un = 7.5 * sk, sp = 3 * sk;
-    return '<path d="M'+trunkX+' '+(ay-5-ob)
-      + ' Q '+xm+' '+(ay+14-ob)+' '+xe+' '+(ay+6-sp)
-      + ' L '+xe+' '+(ay+6+sp)
-      + ' Q '+xm+' '+(ay+14+un)+' '+trunkX+' '+(ay-5+un)+' Z" fill="'+(farbe || "#7A4E26")+'"/>';
-  }
-  /* y der Ast-Mittelkurve an der Stelle x (quadratische Bézier nach t aufgelöst) */
-  function astY(x, ay, links, len){
-    var xm = links ? trunkX - len * 0.52 : trunkX + len * 0.52;
-    var xe = links ? trunkX - len : trunkX + len;
-    var a = trunkX - 2 * xm + xe, b = 2 * (xm - trunkX), c = trunkX - x, t;
-    if(Math.abs(a) < 1e-6){ t = b !== 0 ? -c / b : 0; }
-    else {
-      var w = b * b - 4 * a * c, rt = Math.sqrt(w > 0 ? w : 0);
-      var t1 = (-b + rt) / (2 * a), t2 = (-b - rt) / (2 * a);
-      t = (t1 >= 0 && t1 <= 1) ? t1 : t2;   /* jene Lösung, die auf dem Ast liegt */
-    }
-    t = t < 0 ? 0 : (t > 1 ? 1 : t);
-    var u = 1 - t;
-    return u * u * (ay - 5) + 2 * u * t * (ay + 14) + t * t * (ay + 6);
+    var tip = ay - len * 0.14;
+    /* Laub wächst mit der Astlänge: am langen Ast sollen es Blätter sein und
+       nicht drei Pixel Farbe. */
+    return wwpAst(0, ay, links ? -len : len, tip, sk, farbe, Math.max(0.9, len / 140));
   }
   /* Warteeule: dünner Zweig direkt unter der Krone, auf der rechten Seite */
   (function(){
-    var y = topAstY, len = 56 + AST_UEBERSTAND;
-    var o = owlForLevel(lvl.stufe + 1), x = trunkX + 56;
-    var cy = astY(x, y, false, len);
-    s += astPfad(y, false, len, 0.55, "#B98A4E");
+    var y = -hFirst, len = 56 + AST_UEBERSTAND;
+    var o = owlForLevel(lvl.stufe + 1), x = 56;
+    var cy = wwpAstY(x, 0, y, len, y - len * 0.14, 0.55);
+    s += wwpAst(0, y, len, y - len * 0.14, 0.55, "#B98A4E", 1.05);
     s += '<svg class="eh-owl eh-mystery" data-anim="'+o.anim+'" data-stufe="'+(lvl.stufe+1)+'" x="'+(x-32)+'" y="'+(cy-OWL_SITZ-OWL_H)+'" width="64" height="52" viewBox="-12 0 124 100" role="button" tabindex="0" aria-label="Noch unbekannte Eule (Stufe '+(lvl.stufe+1)+')">'
        + owlInner(o.hue) + '</svg>';
     s += '<text x="'+x+'" y="'+(cy+14)+'" text-anchor="middle" class="ehp-label mystery">'+(lvl.stufe+1)+'</text>';
@@ -1069,15 +1090,15 @@ function renderEulenhain(){
   for(i = 0; i < alle.length; i += proAst){
     var gruppe = alle.slice(i, i + proAst);
     astIdx++;
-    var y = topAstY + astIdx * spacing;
+    var y = -(hDeep + (astIdx - 1) * spacing);
     var links = astIdx % 2 === 1;
     var len = OWL_START + (gruppe.length - 1) * OWL_ABSTAND + AST_UEBERSTAND;   /* Ast endet knapp hinter der letzten Eule */
     s += astPfad(y, links, len, 1);
     for(k = 0; k < gruppe.length; k++){
       var e = gruppe[k];
       var o = owlForLevel(e.stufe);
-      var x = links ? trunkX - OWL_START - k * OWL_ABSTAND : trunkX + OWL_START + k * OWL_ABSTAND;
-      var cy = astY(x, y, links, len);
+      var x = links ? -(OWL_START + k * OWL_ABSTAND) : (OWL_START + k * OWL_ABSTAND);
+      var cy = wwpAstY(x, 0, y, links ? -len : len, y - len * 0.14, 1);
       var cls = "eh-owl" + (e.stufe === lvl.stufe ? " eh-idle" : "");
       s += '<svg class="'+cls+'" data-anim="'+o.anim+'" data-stufe="'+e.stufe+'" x="'+(x-32)+'" y="'+(cy-OWL_SITZ-OWL_H)+'" width="64" height="52" viewBox="-12 0 124 100" role="button" tabindex="0" aria-label="'+o.name+', Stufe '+e.stufe+'">'
          + owlInner(o.hue)
@@ -1085,6 +1106,7 @@ function renderEulenhain(){
       s += '<text x="'+x+'" y="'+(cy+14)+'" text-anchor="middle" class="ehp-label">'+e.stufe+'</text>';
     }
   }
+  s += '</g>';   /* /ehp-baum */
   s += '</svg>';
   ehpSceneEl.innerHTML = '<div class="ehp-stage">' + s
     + '<span class="ehp-butterfly" style="left:14%;top:20%;" aria-hidden="true">🦋</span>'
@@ -1131,7 +1153,7 @@ var WWP_TIERE = ["🐿️","🦜","🐝","🦔","🦋","🐞"];
  * genau verkehrt herum (ungeübt grün, gemeistert gelb), und Rot war
  * doppelt belegt — es stand sowohl für "gemeistert" als auch für "fällig".
  *
- *   neu      #A9CE8B  hellgrün   unreife Frucht, noch nie geübt
+ *   neu      #CFEA86  hellgrün   unreife Frucht, noch nie geübt
  *   bau      #F0C24B  gelb       im Wuchs, Stufe 1–2
  *   sicher   #EE8A3C  orange     sicher, Stufe 3–4
  *   meister  #D33A2C  rot        reif und geerntet, Stufe 5
@@ -1140,8 +1162,25 @@ var WWP_TIERE = ["🐿️","🦜","🐝","🦔","🦋","🐞"];
  * Wiederholungs-Hinweis ist ein pulsierender Hellgrün-Glow (wwpDueGlow),
  * der die reife Farbe unberührt lässt — die Frucht sieht aus wie die
  * Frucht, die sie ist, sie blinkt nur, bis sie gepflückt ist.
+ *
+ * P5.3 — "neu" war #A9CE8B und las sich in Screenshots wie eine Seifenblase:
+ * blass, zusätzlich mit opacity .85 noch entschärft. Der Ton ist jetzt
+ * #CFEA86. Gemessen am Kontrast gegen das Kronengrün #4C8C3F:
+ *   alt #A9CE8B -> 2.32   |   neu #CFEA86 -> 3.07   (+32 %)
+ * Bewusst KEIN satteres Gruen: #8CC63F oder #7FB733 saehen koerneriger aus,
+ * liegen aber nur bei 2.00 bzw. 1.70 Kontrast zum Kranz und verschwimmen
+ * dort wieder. Helliger + kräftiger ist hier der richtige Weg, nicht grüner.
+ * Die Kontur #3F6B37 und die volle Deckkraft halten die Silhouette dann auch
+ * auf dem Handy, wo der Apfel real nur ~10 px breit ist.
  */
-var WWP_FRUCHT_FARBEN = { neu:"#A9CE8B", bau:"#F0C24B", sicher:"#EE8A3C", meister:"#D33A2C" };
+var WWP_FRUCHT_FARBEN = { neu:"#CFEA86", bau:"#F0C24B", sicher:"#EE8A3C", meister:"#D33A2C" };
+/*
+ * P5.3 — Radius der unsichtbaren Trefferflaeche um jede Frucht, in
+ * SVG-Einheiten der 1000er-Buehne. Auf dem Handy sind das rund
+ * 0.358 px je Einheit, 22 also ~7.9 px Radius bzw. ~16 px Durchmesser.
+ * Siehe die ausfuehrliche Begruendung bei wwpFrucht().
+ */
+var WWP_TREFFER_RADIUS = 22;
 function openWissensgarten(){
   renderWissensgarten();
   if(wwpViewEl) wwpViewEl.style.display = "block";
@@ -1160,6 +1199,11 @@ var WWP_FORM_HW     = { kugel:1.06, hoch:0.72, kegel:0.78, rund:1.17, busch:1.18
 var WWP_FORM_ASPECT = { kugel:0.95, hoch:1.55, kegel:1.42, rund:0.95, busch:0.92, flach:0.74 };
 /* Kronen-Oberkante je Form (× rM) — für die Tier-Position oberhalb der Krone */
 var WWP_FORM_TOP    = { kugel:0.90, hoch:1.13, kegel:1.04, rund:1.00, busch:0.83, flach:0.87 };
+/* Kronen-Unterkante je Form (× rM) — für den Abstand zwischen Krone und dem
+ * ersten Ast. Das Gegenstück zu WWP_FORM_TOP: der Eulenhain setzt die Krone so
+ * tief, dass zwischen Blattdach und oberstem Ast ein sichtbarer Himmel bleibt.
+ * Werte = max(c[1] + c[2]) aus WWP_FORM_SET. */
+var WWP_FORM_BOT   = { kugel:0.89, hoch:1.17, kegel:1.46, rund:1.00, busch:0.93, flach:0.97 };
 var WWP_FORM_SET = {
   kugel: [[0,-0.10,0.80],[-0.42,0.12,0.62],[0.42,0.10,0.64],[0,0.34,0.55]],
   hoch:  [[0,-0.55,0.58],[0,0,0.72],[0,0.55,0.62]],
@@ -1187,6 +1231,14 @@ var WWP_FORM_SET = {
  *   ihr die typisch hängende Silhouette statt einer Kugel auf einem Strich.
  */
 function wwpFrucht(x, y, r, col, status, attrs, due){
+  /*
+   * P5.3 — `status` wird im Koerper nicht mehr ausgewertet. Vorher steuerte
+   * er Deckkraft (.85) und Konturstaerke fuer "neu"; beides ist jetzt
+   * einheitlich (siehe Anmerkung am Apfelkoerper). Der Parameter bleibt in
+   * der Signatur, weil der Aufruber ihn weiterhin uebergibt und eine
+   * Umstellung hier nichts aendern wuerde — er ist aber bewusst nicht mehr
+   * entscheidend fuer die Darstellung.
+   */
   var klein = r < 12;
   var hang = klein ? 0 : r * 0.22;             /* seitlicher Versatz des Stiels */
   var s = "";
@@ -1221,10 +1273,34 @@ function wwpFrucht(x, y, r, col, status, attrs, due){
   s += '<path d="M' + x.toFixed(1) + ' ' + (y - r + 0.6).toFixed(1)
      + ' q ' + hang.toFixed(1) + ' ' + (-r * 0.42).toFixed(1) + ' ' + (hang * 1.35).toFixed(1) + ' ' + (-r * 0.72).toFixed(1)
      + '" fill="none" stroke="#6B4224" stroke-width="' + (klein ? 1.4 : 2.2).toFixed(1) + '" stroke-linecap="round"/>';
+/*
+   * P5.3 — Deutlichere Silhouette und groessere Trefferflaeche.
+   *
+   * Deckkraft: "neu" stand auf .85 und wurde dadurch blass. Jetzt 1.0 fuer
+   * alle Staende — die Unterscheidung traegt die Farbe, nicht die Transparenz.
+   *
+   * Kontur: bei 1.2 px (neu) bzw. 2 px verschwindet die Linie auf dem Handy
+   * unter der Pixelflaeche, der Apfel zerlaeuft zu einem Farbfleck. Deshalb
+   * einheitlich 1.8 px und die dunklere Kontur #35602E.
+   *
+   * Trefferflaeche: der sichtbare Radius ist auf dem Handy nur ~4.8 px
+   * (Durchmesser 9.7 px) — fuer einen Kinderfinger unbrauchbar. Gemessen sind
+   * 0.358 px je SVG-Einheit; ein 44-px-Ziel (Radius 22 px) braeuchte 61
+   * Einheiten. Der kleinste Nachbarabstand IM Kranz liegt aber nur bei 7.3 px
+   * bzw. 20 Einheiten: darueber ueberlappen sich die Trefferkreise und ein Tipp
+   * wuerde den Nachbarapfel treffen statt den eigenen. Gewaehlt sind 22
+   * Einheiten (~16 px Durchmesser), rund 1.6x des sichtbaren Apfels, ohne die
+   * Nachbarn zu verschlucken. 44 px sind bei 47 Aepfeln in dieser Anordnung
+   * physikalisch nicht erreichbar — das waere die 1.10-fache Szenenflaeche.
+   * Eine echte Loesung waere ein anderes Handy-Layout (Paket C).
+   * Groesser gewuenscht: WWP_TREFFER_RADIUS.
+   */
+  s += '<circle class="wwp-treffer" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1)
+     + '" r="' + WWP_TREFFER_RADIUS + '" fill="transparent"/>';
   /* Körper */
   s += '<circle class="wwp-frucht"' + attrs + ' cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1)
-     + '" r="' + r.toFixed(1) + '" fill="' + col + '" stroke="#3F6B37" stroke-width="' + (status === "neu" ? 1.2 : 2) + '"'
-     + ' opacity="' + (status === "neu" ? 0.85 : 1) + '"/>';
+     + '" r="' + r.toFixed(1) + '" fill="' + col + '" stroke="#35602E" stroke-width="1.8"'
+     + ' opacity="1"/>';
   if(!klein){
     /* Blatt links oben am Stiel */
     s += '<ellipse cx="' + (x + hang * 0.72).toFixed(1) + '" cy="' + (y - r * 0.48).toFixed(1)
@@ -1255,7 +1331,7 @@ function wwpKrone(form, rM, cy){
    unten direkt in zwei geschwungene Wurzeln aus (S-Bogen nach außen,
    abgestumpfte Spitzen, flacher Bogen unter dem Stammfuß). Keine aufgesetzten
    Keile, keine Streifen. Leichte Asymmetrie = organischer Look. */
-function wwpStamm(stammH, bw){
+function wwpStamm(stammH, bw, fill){
   var H = stammH, tw = Math.max(3.5, bw * 0.34);
   var gy = bw * 0.80;                            /* Bodenlinie unter dem Stamm */
   var fL = bw * 2.60, fR = bw * 2.46;            /* Wurzelreichweite (asymmetrisch) */
@@ -1293,7 +1369,86 @@ function wwpStamm(stammH, bw){
      + " " + (bw * 0.52).toFixed(1) + " " + (-H * 0.66).toFixed(0)
      + " " + tw.toFixed(1) + " " + (-H).toFixed(0);
   d += " Z";
-  return '<path d="' + d + '" fill="url(#wwpTrunk)" stroke="#6B4224" stroke-width="1.2" stroke-linejoin="round"/>';
+  return '<path d="' + d + '" fill="' + (fill || "url(#wwpTrunk)") + '" stroke="#6B4224" stroke-width="1.2" stroke-linejoin="round"/>';
+}
+/*
+ * P5.4 — EIN Ast-Helfer für beide Ansichten (Eulenhain und Wissensgarten).
+ *
+ * Bewusst geteilt: der Eulenhain-Baum soll zu den sechs Bäumen im
+ * Wissensgarten passen. Zwei kopierte Ast-Zeichner laufen beim nächsten
+ * Gestaltungs-Schritt sofort auseinander — dann sieht der große Baum aus wie
+ * eine andere Baumart als die sechs daneben.
+ *
+ * Drei Entscheidungen:
+ * - Der Ast ist eine verjüngte Silhouette entlang einer quadratischen Kurve,
+ *   keine Linie mit konstanter Dicke. Eine konstante Dicke wirkt wie Draht,
+ *   besonders an der dünnen Spitze.
+ * - Die Kurve senkt sich leicht und hebt sich dann zur Spitze: der Ast greift
+ *   nach oben. Die Zweige hingen vorher durch wie Seile.
+ * - An der Spitze sitzt ein Laubbüschel. Vorher endeten sie als nackte
+ *   Spitzen, die wie abgeschnitten aussahen — gerade die dünnen Zweige der
+ *   Warteeule wirkten dadurch wie ein kahl geschabter Ast.
+ *
+ * sk skaliert die Dicke (dünne Warteeulen-Zweige), farbe ist optional.
+ * laubSk skaliert das Laub getrennt davon: am langen Eulenzweig sollen es
+ * Blätter sein und am kurzen Seitenast des Wissensgartens bleibt es zart.
+ */
+/* Gemeinsame Ast-Geometrie — EINMAL berechnet, damit Zeichenfunktion und
+   Höhenberechnung nie auseinanderlaufen können. Vorher rechnete astY() mit
+   anderen Kontrollpunkten als astPfad() zeichnete; die Eulen landeten dadurch
+   um bis zu 2 px neben dem Zweig. */
+function wwpAstGeo(x0, y0, x1, y1, sk){
+  sk = sk || 1;
+  var ob = 7 * sk, sp = 2.4 * sk, un = 8 * sk;   /* oben am Stamm · Spitze · unten am Stamm */
+  var cx = x0 + (x1 - x0) * 0.5;
+  var cy = y0 + (y1 - y0) * 0.62 + 16 * sk;     /* Kontrollpunkt: leichtes Durchhängen */
+  return {
+    ob:ob, sp:sp, un:un, cx:cx, cy:cy,
+    /* die drei Punkte der OBERkante — genau die, die wwpAst() zeichnet */
+    ty0:y0 - ob, tyc:cy - ob * 0.5, ty1:y1 - sp
+  };
+}
+function wwpAst(x0, y0, x1, y1, sk, farbe, laubSk){
+  sk = sk || 1;
+  laubSk = laubSk || sk;
+  var g = wwpAstGeo(x0, y0, x1, y1, sk);
+  var d = "M " + x0.toFixed(1) + " " + g.ty0.toFixed(1)
+        + " Q " + g.cx.toFixed(1) + " " + g.tyc.toFixed(1)
+        + " " + x1.toFixed(1) + " " + g.ty1.toFixed(1)
+        + " L " + x1.toFixed(1) + " " + (y1 + g.sp).toFixed(1)
+        + " Q " + g.cx.toFixed(1) + " " + (g.cy + g.un * 0.8).toFixed(1)
+        + " " + x0.toFixed(1) + " " + (y0 + g.un).toFixed(1) + " Z";
+  return '<path d="' + d + '" fill="' + (farbe || "#7A4E26") + '"/>' + wwpLaub(x1, y1, laubSk);
+}
+/* Höhe der Ast-Oberkante an der Stelle x. Dieselbe quadratische Kurve wie oben,
+   daher sitzt die Eule exakt auf dem Zweig und nicht daneben. */
+function wwpAstY(x, x0, y0, x1, y1, sk){
+  var g = wwpAstGeo(x0, y0, x1, y1, sk);
+  var a = x1 - 2 * g.cx + x0, b = 2 * (g.cx - x0), c = x0 - x, t;
+  if(Math.abs(a) < 1e-6){ t = (b !== 0) ? -c / b : 0; }
+  else {
+    var w = b * b - 4 * a * c, rt = Math.sqrt(w > 0 ? w : 0);
+    var t1 = (-b + rt) / (2 * a), t2 = (-b - rt) / (2 * a);
+    t = (t1 >= 0 && t1 <= 1) ? t1 : t2;   /* jene Lösung, die auf dem Ast liegt */
+  }
+  t = t < 0 ? 0 : (t > 1 ? 1 : t);
+  var u = 1 - t;
+  return u * u * g.ty0 + 2 * u * t * g.tyc + t * t * g.ty1;
+}
+/* Laubbüschel an einer Astspitze: drei Blätter in den Tönen der Krone, fächerförmig
+   um die Spitze. Bewusst keine geschlossene Kugel — die würde im Wissensgarten
+   wieder nur ein Farbfleck neben den Äpfeln sein. */
+function wwpLaub(x, y, sk){
+  sk = sk || 1;
+  var r = 7 * sk, s = "", i;
+  var versatz = [-0.9, 0.1, 1.0], winkel = [-26, 6, 32], farben = ["#69A85A", "#4E8F42", "#5FA653"];
+  for(i = 0; i < 3; i++){
+    var cx = x + versatz[i] * r, cy = y - r * 0.4;
+    s += '<ellipse cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '"'
+       + ' rx="' + (r * 0.95).toFixed(1) + '" ry="' + (r * 0.5).toFixed(1) + '"'
+       + ' fill="' + farben[i] + '" transform="rotate(' + winkel[i] + ' ' + cx.toFixed(1) + ' ' + cy.toFixed(1) + ')"/>';
+  }
+  return s;
 }
 /* Früchte (Kompetenzen) gleichmäßig im Kronen-Oval verteilen (Sonnenblumen-Muster) */
 function wwpTuffPosis(n, R, aspect){
@@ -1500,10 +1655,11 @@ function renderWissensgarten(){
     var bw = rM * 0.20;                         /* Stamm-Halbbbreite (skaliert mit der Baumgröße) */
     /* Stamm + zwei Wurzeln als EINE durchgehende Silhouette */
     s += wwpStamm(stammH, bw);
-    /* Seitenäste: bleiben unterhalb der Krone sichtbar → echter Baum statt Lutscher */
+    /* Seitenäste: bleiben unterhalb der Krone sichtbar → echter Baum statt Lutscher.
+       Derselbe Helfer wie im Eulenhain, damit beide Bäume gleich aussehen. */
     var bh = stammH * 0.46, bl = stammH * 0.20;
-    s += '<path d="M-8 ' + (-bh).toFixed(0) + ' Q -24 ' + (-(bh + bl * 0.45)).toFixed(0) + ' -34 ' + (-(bh + bl)).toFixed(0) + '" stroke="#7A4E26" stroke-width="6" fill="none" stroke-linecap="round"/>';
-    s += '<path d="M8 ' + (-(bh + stammH * 0.10)).toFixed(0) + ' Q 24 ' + (-(bh + stammH * 0.10 + bl * 0.45)).toFixed(0) + ' 32 ' + (-(bh + stammH * 0.10 + bl)).toFixed(0) + '" stroke="#8A5A2B" stroke-width="6" fill="none" stroke-linecap="round"/>';
+    s += wwpAst(-8, -bh, -34, -(bh + bl), 0.8);
+    s += wwpAst(8, -(bh + stammH * 0.10), 32, -(bh + stammH * 0.10 + bl), 0.8, "#8A5A2B");
     /* Krone: solide Silhouette (kein Transparenz-Schaum) */
     s += wwpKrone(form, rM, cy);
     posis.forEach(function(p, ti){
@@ -1533,6 +1689,21 @@ function renderWissensgarten(){
   });
   s += '</svg>';
   wwpSceneEl.innerHTML = s;
+  /*
+   * P5.3 — Der Klick haengt an der Trefferflaeche, nicht am Apfel selbst.
+   *
+   * Der sichtbare Apfel misst auf dem Handy nur ~9.7 px. Die groessere,
+   * unsichtbare `.wwp-treffer`-Flaeche liegt direkt davor und traegt die
+   * Bedienung; sie holt sich den Schluessel von ihrem Nachbarn, dem Apfel.
+   * Tastatur und Screenreader bleiben am Apfel (role/tabindex/aria-label),
+   * sonst waeren je Baum bis zu 14 zusaetzliche Tabstopps im Weg.
+   */
+  Array.prototype.forEach.call(wwpSceneEl.querySelectorAll(".wwp-treffer"), function(el){
+    var apfel = el.nextElementSibling;
+    if(!apfel || !apfel.classList.contains("wwp-frucht")) return;
+    var key = apfel.getAttribute("data-key");
+    el.addEventListener("click", function(){ wwZeigeTuff(key); });
+  });
   Array.prototype.forEach.call(wwpSceneEl.querySelectorAll(".wwp-frucht"), function(el){
     el.addEventListener("click", function(){ wwZeigeTuff(el.getAttribute("data-key")); });
     el.addEventListener("keydown", function(ev){

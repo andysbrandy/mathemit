@@ -92,7 +92,17 @@ function ensureOwls(){
 function sanitizeWochen(d){
   var cur = wochenSchluessel();
   if(!d || typeof d !== "object" || d.week !== cur){
-    return { week:cur, points:0, solved:0, repeats:0, repeatsNew:0, done:[], bonusGiven:false };
+    /* Neue Woche: der Bestand der Wiederholungsschlange wandert als
+       repeatsStart mit — sonst zeigt der Chip offene Wiederholungen, das
+       Menue aber 0/0 gruen. repeatsStart ist eine Wochenkonstante, kein
+       Zaehler: sie wird genau einmal beim Wochenwechsel gesetzt. */
+    var bestand = 0;
+    try{
+      if(typeof state !== "undefined" && state && Array.isArray(state.repeatQ)){
+        bestand = Math.max(0, Math.min(15, state.repeatQ.length));
+      }
+    }catch(e){ /* state noch nicht da (Start) — dann 0 */ }
+    return { week:cur, points:0, solved:0, repeats:0, repeatsNew:0, repeatsStart:bestand, done:[], bonusGiven:false };
   }
   var validIds = WOCHENZIELE.map(function(z){ return z.id; });
   return {
@@ -101,6 +111,8 @@ function sanitizeWochen(d){
     solved: Math.max(0, Math.min(99999, Number(d.solved) || 0)),
     repeats: Math.max(0, Math.min(99999, Number(d.repeats) || 0)),
     repeatsNew: Math.max(0, Math.min(9999, Number(d.repeatsNew) || 0)),
+    /* Alte Staende kennen repeatsStart noch nicht — dann gilt 0, wie bisher. */
+    repeatsStart: Math.max(0, Math.min(15, Number(d.repeatsStart) || 0)),
     done: (Array.isArray(d.done) ? d.done : []).filter(function(v){ return validIds.indexOf(v) !== -1; }),
     bonusGiven: !!d.bonusGiven
   };
@@ -111,12 +123,27 @@ function ensureWochen(){
     state.weekly = sanitizeWochen(state.weekly);
   }
 }
-/* P4.2: Ziel-Helfer — das Wiederholungsziel wächst dynamisch (Ziel = falsche Aufgaben der Woche) */
+/* P4.2: Ziel-Helfer — das Wiederholungsziel ist dynamisch.
+ * Ziel = Bestand bei Wochenstart + neue Fehler dieser Woche (repeatsNew).
+ * Der Wert ist "geschaffte Wiederholungen": Ziel minus offene Schlange.
+ * Damit gilt immer: Rest = Ziel - Wert = repeatQ.length = Chip-Zahl.
+ * Der Bestand muss NICHT extra gezaehlt werden, weil er im Ziel steckt —
+ * und was diese Woche noch offen ist, steht live in der Schlange.
+ * Der 15er-Deckel passt zum Chip: storeRepeatInstance kappt die Schlange
+ * ebenfalls bei 15, ein hoeheres Ziel waere unerreichbar. */
 function wzZiel(z){
-  if(z.dynamisch){ return Math.max(0, Number(state.weekly.repeatsNew) || 0); }
+  if(z.dynamisch){
+    return Math.max(0, Math.min(15, Number(state.weekly.repeatsStart) || 0))
+         + Math.max(0, Number(state.weekly.repeatsNew) || 0);
+  }
   return z.ziel;
 }
 function wzWert(z){
+  if(z.dynamisch){
+    var offen = 0;
+    try{ if(typeof state !== "undefined" && state && Array.isArray(state.repeatQ)){ offen = state.repeatQ.length; } }catch(e){}
+    return Math.max(0, wzZiel(z) - offen);
+  }
   return Math.max(0, Number(state.weekly[z.id]) || 0);
 }
 function wzErreicht(z){
@@ -193,7 +220,12 @@ function toggleWeeklyDetails(goal){
   } else if(z.id === "solved"){
     msg = "📚 Noch " + Math.max(0, ziel - wert) + " richtige Aufgaben — bleib dran, du schaffst das!";
   } else if(ziel > 0){
-    msg = "🔁 " + wert + " von " + ziel + " Wiederholungen geschafft. Jede falsche Aufgabe landet hier — bis du sie wieder sicher löst!";
+    msg = "🔁 " + wert + " von " + ziel + " Wiederholungen geschafft";
+    var offen = 0;
+    try{ if(typeof state !== "undefined" && state && Array.isArray(state.repeatQ)){ offen = state.repeatQ.length; } }catch(e){}
+    if(offen > 0){ msg += " — noch " + offen + " offen, genau wie im 🔁-Chip."; }
+    else { msg += " — alles geschafft, die Schlange ist leer!"; }
+    msg += " Jede falsche Aufgabe landet hier — bis du sie wieder sicher löst!";
   } else {
     msg = "🎉 Keine offenen Wiederholungen — bisher keine Fehler diese Woche!";
   }
@@ -721,10 +753,13 @@ function finishRound(isCorrect, explanation){
     state.bestStreak = Math.max(state.bestStreak, state.streak);
     var bonus = Math.min(10, state.streak) ;
     state.points += 10 + bonus;
-    /* P4.2: Wochenziele — nur RICHTIGE Lösungen zählen */
+    /* P4.2: Wochenziele — nur RICHTIGE Lösungen zählen.
+       repeats wird NICHT mehr gezaehlt: der Wert des dynamischen Ziels kommt
+       live aus Ziel minus Schlange (wzWert), ein Treffer-Zaehler wuerde nur
+       daneben stehen. Das alte Feld repeats bleibt lesbar und reist weiter
+       mit (Server-Historie), wird aber nicht mehr geschrieben. */
     state.weekly.solved += 1;
     state.weekly.points += 10 + Math.min(10, state.streak);
-    if(state.currentIsRepeat || state.currentWasDue) state.weekly.repeats += 1;
   } else {
     state.streak = 0;
     /* P4.2: Wiederholungs-Ziel wächst dynamisch mit jedem Fehler (analog 🔁-Chip) */
@@ -2638,6 +2673,10 @@ function fortschrittLaden(token) {
       if (d.diff === 1 || d.diff === 2 || d.diff === 3) state.diff = d.diff;
       console.log('[mathemit] Fortschritt vom Server geladen:', JSON.stringify({p:state.points,s:state.streak,bs:state.bestStreak}));
       updateStatsUI();
+      /* Chip ans Menue angleichen: repeatQ kommt vom Server, das Menue wird
+         in updateStatsUI() neu gerendert — ohne diesen Aufruf stuende der
+         Chip noch auf dem alten Stand, bis die naechste Aufgabe kommt. */
+      if(typeof updateRepeatChip === "function") updateRepeatChip();
       updateModeAmpel();
       syncProgressToAPI();
     }

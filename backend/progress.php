@@ -39,10 +39,45 @@ $userId = $user['user_id'];
 try {
     $pdo = get_db();
 
+    /* Spalten-Toleranz: Die Live-DB hinkt dem Repo gern hinterher (Beispiel:
+     * progress.goals fehlte, obwohl Whitelist und SELECT sie nannten).
+     * Ein fehlender Spaltenname wuerfe einen PDOException und der ganze
+     * Abruf schluese fehl — obwohl alle anderen Felder vorhanden waeren.
+     * Deshalb pruefen wir einmal pro Aufruf, welche der optionalen Spalten
+     * wirklich existieren, und bauen SELECT/UPDATE nur aus diesen.
+     * Pflichtspalten (kommen immer mit): points, streak, best_streak,
+     * solved, correct, badges, spaced, owls, mode, grade. */
+    $alleSpalten = null;
+    $spaltenDa = function (string $name) use ($pdo, &$alleSpalten): bool {
+        if ($alleSpalten === null) {
+            try {
+                $stmt = $pdo->query('SHOW COLUMNS FROM progress');
+                $alleSpalten = [];
+                while ($zeile = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $alleSpalten[strtolower($zeile['Field'])] = true;
+                }
+            } catch (PDOException $e) {
+                /* SHOW scheitert? Dann nichts filtern — der Aufruf meldet
+                 * sich wie bisher mit dem echten Fehler. */
+                $alleSpalten = false;
+            }
+        }
+        if ($alleSpalten === false) return true;
+        return isset($alleSpalten[strtolower($name)]);
+    };
+
     if ($method === 'GET') {
+        $wunsch = ['points', 'streak', 'best_streak', 'solved', 'correct',
+            'badges', 'spaced', 'owls', 'goals', 'mode', 'grade',
+            'repeat_q', 'diff', 'updated_at'];
+        $selectiert = [];
+        foreach ($wunsch as $spalte) {
+            if ($spalte === 'updated_at' || $spaltenDa($spalte)) {
+                $selectiert[] = $spalte;
+            }
+        }
         $stmt = $pdo->prepare(
-            'SELECT points, streak, best_streak, solved, correct, badges, spaced, owls, goals, mode, grade, repeat_q, diff, updated_at
-             FROM progress WHERE user_id = ?'
+            'SELECT ' . implode(', ', $selectiert) . ' FROM progress WHERE user_id = ?'
         );
         $stmt->execute([$userId]);
         $progress = $stmt->fetch();
@@ -115,6 +150,10 @@ try {
         $json_spalten = ['badges', 'spaced', 'owls', 'goals', 'repeat_q'];
         $updates = [];
         $params  = [];
+        /* Spalten, die die Live-DB (noch) nicht hat. Sie stehen in der
+         * Antwort, damit der Client weiss, was nicht ankam — statt einen
+         * SQL-Fehler zu werfen und den ganzen Sync zu verweigern. */
+        $uebergangen = [];
 
         /* camelCase -> snake_case, damit die App ihre gewohnten Feldnamen
          * schicken kann. */
@@ -124,6 +163,14 @@ try {
 
         foreach ($allowed as $field) {
             if (array_key_exists($field, $input)) {
+                /* Fehlende Spalte (Live-DB aelter als das Repo)? Dann wird das
+                 * Feld still uebergangen statt den ganzen Sync zu sprengen.
+                 * Gemeldet wird es in der Antwort, damit der Client weiss,
+                 * was nicht ankam. */
+                if (!$spaltenDa($field)) {
+                    $uebergangen[] = $field;
+                    continue;
+                }
                 $updates[] = "$field = ?";
                 if (in_array($field, $json_spalten, true) && $input[$field] !== null) {
                     $params[] = json_encode($input[$field]);
@@ -157,7 +204,11 @@ try {
         $stmt->execute($params);
 
         http_response_code(200);
-        echo json_encode(['status' => 'ok', 'message' => 'Progress updated successfully']);
+        $antwort = ['status' => 'ok', 'message' => 'Progress updated successfully'];
+        if (!empty($uebergangen)) {
+            $antwort['uebergangen'] = array_values(array_unique($uebergangen));
+        }
+        echo json_encode($antwort);
     }
 
 } catch (PDOException $e) {

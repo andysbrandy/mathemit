@@ -9,19 +9,52 @@ def gh_get(url):
     r.raise_for_status()
     return r.json()
 
+def extract_chat_content(response):
+    """Holt choices[0].message.content robust heraus.
+
+    GitHub Models / HF / Pollinations antworten mitunter 200 aber mit leerem
+    oder Nicht-JSON-Body (Proxy-Loginseite, SSE-Stream, HTML). Dann wirft
+    response.json() und riss bisher den ganzen Wochenlauf mit — obwohl eine
+    Fallback-Kette existierte, die wegen des Absturzes nie erreicht wurde.
+    Deshalb: Parse und Pfad-Zugriff absichern, bei allem Unerwarteten None
+    zurueckgeben statt werfen. Der Aufrufer entscheidet dann ueber den
+    naechsten Anbieter. """
+    try:
+        data = response.json()
+    except Exception as e:
+        print("Antwort war kein JSON:", type(e).__name__, "-", (response.text or '')[:200])
+        return None
+    try:
+        content = data['choices'][0]['message']['content']
+    except (KeyError, IndexError, TypeError):
+        print("Antwort ohne choices[0].message.content:", str(data)[:200])
+        return None
+    return content
+
 def gh_models_query(prompt):
     # Primär: GitHub Models - kostenlos, Secret GH_TOKEN existiert bereits.
     API_URL = "https://models.github.ai/inference/chat/completions"
+    if not GH_TOKEN:
+        print("GitHub-Models-Fehler: GH_TOKEN nicht gesetzt.")
+        return None
     headers = {"Authorization": f"Bearer {GH_TOKEN}"}
-    response = requests.post(API_URL, headers=headers, json={
-        "model": "openai/gpt-4o-mini",
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 500
-    }, timeout=90)
-    if response.ok:
+    try:
+        response = requests.post(API_URL, headers=headers, json={
+            "model": "openai/gpt-4o-mini",
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 500
+        }, timeout=90)
+    except Exception as e:
+        print("GitHub-Models-Fehler (Netz/Timeout):", e)
+        return None
+    if not response.ok:
+        print("GitHub-Models-Fehler:", response.status_code, ":", response.text[:300])
+        return None
+    content = extract_chat_content(response)
+    if content and content.strip():
         print("KI via GitHub Models (openai/gpt-4o-mini)")
-        return response.json()['choices'][0]['message']['content']
-    print("GitHub-Models-Fehler:", response.status_code, ":", response.text[:300])
+        return content
+    print("GitHub-Models: 200 aber kein verwertbarer Inhalt:", (response.text or '')[:200])
     return None
 
 def pollinations_query(prompt):
@@ -34,8 +67,12 @@ def pollinations_query(prompt):
             timeout=90
         )
         if response.ok:
-            print("KI via Pollinations (keyless)")
-            return response.json()['choices'][0]['message']['content']
+            content = extract_chat_content(response)
+            if content and content.strip():
+                print("KI via Pollinations (keyless)")
+                return content
+            print("Pollinations: 200 aber kein verwertbarer Inhalt:", response.text[:200])
+            return None
         print("Pollinations-Fehler:", response.status_code, ":", response.text[:200])
     except Exception as e:
         print("Pollinations-Fehler:", e)
@@ -73,7 +110,7 @@ def hf_query(prompt):
                 "max_tokens": 400
             }, timeout=120)
             if response.ok:
-                content = response.json()['choices'][0]['message']['content'] or ''
+                content = extract_chat_content(response) or ''
                 if content.strip():
                     print("KI via HF:", model, f"({len(content)} Zeichen)")
                     return content
@@ -89,13 +126,18 @@ def hf_query(prompt):
 
     # Statischer Notfall-Fallback, falls das Listing leer war
     for model in ["Qwen/Qwen3-4B-Instruct-2507", "zai-org/GLM-4.5-Air"]:
-        response = requests.post(f"{API_URL}/chat/completions", headers=headers, json={
-            "model": model,
-            "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 400
-        }, timeout=120)
+        try:
+            response = requests.post(f"{API_URL}/chat/completions", headers=headers, json={
+                "model": model,
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 400
+            }, timeout=120)
+        except Exception as e:
+            last_err = f"{model} -> {e}"
+            print("HF-Fehler:", last_err)
+            continue
         if response.ok:
-            content = response.json()['choices'][0]['message']['content'] or ''
+            content = extract_chat_content(response) or ''
             if content.strip():
                 print("KI via HF (statisch):", model, f"({len(content)} Zeichen)")
                 return content

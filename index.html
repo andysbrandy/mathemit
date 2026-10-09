@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v163">
+<meta name="app-version" content="v164">
 <title>Die Formen-Werkstatt – Mathe für die Mittelschule</title>
 <meta name="description" content="Mathe üben nach dem österreichischen Lehrplan (AHS/MS 2023): 47 Übungstypen, 3 Schwierigkeitsstufen, Tipp-System, Wissensgarten & Eulenhain. Kostenlos und ohne Werbung.">
 <link rel="canonical" href="https://mathemit.andybrandy.at/">
@@ -96,8 +96,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style-base.css?v=163">
-<link rel="stylesheet" href="style-active.css?v=163">
+<link rel="stylesheet" href="style-base.css?v=164">
+<link rel="stylesheet" href="style-active.css?v=164">
+<link rel="stylesheet" href="style-info.css?v=163">
 </head>
 <body>
   <!--
@@ -301,10 +302,92 @@
 
 </div>
 
-<script src="app-base.js?v=163"></script>
-<script src="app-active.js?v=163"></script>
+<script src="app-base.js?v=164"></script>
+<script src="app-active.js?v=164"></script>
+
+<!-- ============================================================
+     P8.3 — Indexierbarer Info-Abschnitt ("Was die App abdeckt").
+     Bewusst sichtbarer Dokumentfluss (KEIN display:none), damit Google &
+     KI-Crawler den Inhalt als echten Seiten-Content lesen. Inhalte spiegeln
+     die 6 Kompetenz-Bäume (GARTEN_BEREICHE) und CURRICULUM_MAP in app-base.js?v=164.
+     ============================================================ -->
+<section class="info-section" aria-labelledby="infoTitle">
+  <div class="info-inner">
+    <h2 id="infoTitle">Mathe üben für die Mittelschule – nach dem österreichischen Lehrplan 2023</h2>
+    <p class="info-lead">
+      Mathemit ist eine kostenlose, werbefreie Mathe-Lern-App für die Sekundarstufe I
+      (Mittelstufe, ca. 10–14 Jahre). Über <strong>47 Übungstypen in 3 Schwierigkeitsstufen</strong>
+      deckt sie die zentralen Kompetenzbereiche <code>H1</code>–<code>H3</code> und <code>I1</code>–<code>I3</code>
+      des österreichischen Lehrplans AHS/MS 2023 ab. Als installierbare Web-App (PWA) auch offline nutzbar.
+    </p>
+
+    <h3>Was die App abdeckt – 6 Kompetenz-Bäume</h3>
+    <div class="info-grid">
+      <article class="info-card">
+        <span class="info-icon">🌰</span>
+        <h4>Brüche &amp; Zahlen</h4>
+        <p>Kürzen, Erweitern, Addieren, Subtrahieren, Multiplizieren und Dividieren von Brüchen,
+           Hauptnenner, Brüche vergleichen, gemischte Zahlen und Dezimalbrüche.
+           <em>Lehrplan: H1.I1, I2.M1</em></p>
+      </article>
+      <article class="info-card">
+        <span class="info-icon">🪙</span>
+        <h4>Prozente &amp; Verhältnisse</h4>
+        <p>Prozentwert, Grundwert und Prozentsatz, Zinsrechnung und proportionale
+           Zuordnungen – verankert in Alltagssituationen.
+           <em>Lehrplan: H1.I2, H2.I2</em></p>
+      </article>
+      <article class="info-card">
+        <span class="info-icon">📐</span>
+        <h4>Figuren &amp; Winkel</h4>
+        <p>Winkelsumme in Dreieck und Viereck, Dreiecks- und Vierecksarten erkennen
+           und ihre Eigenschaften begründet angeben.
+           <em>Lehrplan: H3.I1, H3.I2, H3.I5</em></p>
+      </article>
+      <article class="info-card">
+        <span class="info-icon">📏</span>
+        <h4>Umfang, Fläche &amp; Körper</h4>
+        <p>Umfang und Flächeninhalt von Dreieck, Viereck, Parallelogramm, Trapez und Kreis;
+           Volumen und Oberfläche von Quader, Würfel und Zylinder.
+           <em>Lehrplan: H3.I3, H3.I4, I2.M1</em></p>
+      </article>
+      <article class="info-card">
+        <span class="info-icon">🧺</span>
+        <h4>Sachaufgaben aus dem Alltag</h4>
+        <p>Mehrstufige Textaufgaben mit österreichischem Bezug – Wandern, Einkauf,
+           Skikurs, Eis-Café und mehr: modellieren, rechnen, interpretieren.
+           <em>Lehrplan: I1.M1, I3.M1</em></p>
+      </article>
+      <article class="info-card">
+        <span class="info-icon">🔗</span>
+        <h4>Gleichungen &amp; Daten</h4>
+        <p>Einfache lineare Gleichungen lösen, Tabellen lesen und Balkendiagramme
+           interpretieren.
+           <em>Lehrplan: H2.I1, I3.M1</em></p>
+      </article>
+    </div>
+
+    <h3>So wird gelernt</h3>
+    <ul class="info-features">
+      <li><strong>🎯 Gestuftes Tipp-System</strong> – drei Hinweisstufen statt fertiger Lösung.</li>
+      <li><strong>🔁 Wissens-Ampel</strong> – falsche Aufgaben kommen automatisch zur Wiederholung zurück.</li>
+      <li><strong>🌳 Wissensgarten</strong> – der Lernfortschritt je Lehrplanbereich auf einen Blick.</li>
+      <li><strong>🦉 Eulenhain</strong> – endlose Stufen als langfristige Motivation.</li>
+      <li><strong>👩‍🏫 Klassen-Code</strong> – Lehrkräfte können ihrer Klasse einen Code geben und den Fortschritt gebündelt einsehen.</li>
+      <li><strong>🔒 Datensparsam</strong> – keine Werbung, kein Tracking, DSGVO-konform.</li>
+    </ul>
+
+    <p class="info-note">
+      Kostenlos und ohne Werbung. Weitere Informationen in der
+      <a href="datenschutz.html">Datenschutzerklärung</a>, im
+      <a href="impressum.html">Impressum</a> und den
+      <a href="agb.html">Nutzungsbedingungen</a>.
+    </p>
+  </div>
+</section>
+
 <footer class="app-version">
-  <span class="ver" id="appVersion">v163</span>
+  <span class="ver" id="appVersion">v164</span>
   <span style="margin-left:.6rem; font-size:.75rem; opacity:.75;" class="footer-links">
     <button type="button" class="footer-link" data-legal="datenschutz.html" data-title="Datenschutzerklärung">Datenschutz</button> ·
     <button type="button" class="footer-link" data-legal="impressum.html" data-title="Impressum">Impressum</button> ·

@@ -1,0 +1,117 @@
+/* P8.3 – Indexierbarer Info-Abschnitt ("Was die App abdeckt").
+ * Self-contained: eigene Variablen, überschreibt nichts aus style-base/-active.
+ * Sichtbarer Dokumentfluss (kein display:none), damit Google & KI-Crawler den
+ * Inhalt als echten Seiten-Content lesen und indexieren. */
+
+.info-section {
+  --info-accent: #1FA294;
+  --info-ink: #1c2b2a;
+  --info-muted: #50605e;
+  --info-card: #ffffff;
+  --info-line: #dfeae8;
+  --info-bg: #f4faf9;
+  background: var(--info-bg);
+  color: var(--info-ink);
+  padding: 2.5rem 1.25rem 3rem;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.6;
+  border-top: 3px solid var(--info-accent);
+}
+
+.info-inner {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.info-section h2 {
+  font-size: 1.6rem;
+  margin: 0 0 .75rem;
+  color: var(--info-ink);
+}
+
+.info-section h3 {
+  font-size: 1.15rem;
+  margin: 2rem 0 .75rem;
+  color: var(--info-accent);
+}
+
+.info-lead {
+  font-size: 1.02rem;
+  color: var(--info-muted);
+  margin: 0 0 1rem;
+  max-width: 70ch;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.info-card {
+  background: var(--info-card);
+  border: 1px solid var(--info-line);
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+}
+
+.info-card h4 {
+  margin: .35rem 0 .4rem;
+  font-size: 1.02rem;
+  color: var(--info-ink);
+}
+
+.info-card p {
+  margin: 0;
+  font-size: .92rem;
+  color: var(--info-muted);
+}
+
+.info-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.info-card code,
+.info-lead code {
+  background: #e6f4f1;
+  color: #146b60;
+  border-radius: 5px;
+  padding: .05em .35em;
+  font-size: .85em;
+}
+
+.info-features {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: .6rem;
+}
+
+.info-features li {
+  background: var(--info-card);
+  border: 1px solid var(--info-line);
+  border-radius: 12px;
+  padding: .7rem .9rem;
+  font-size: .93rem;
+  color: var(--info-ink);
+}
+
+.info-features strong {
+  color: var(--info-accent);
+}
+
+.info-note {
+  font-size: .85rem;
+  color: var(--info-muted);
+  margin-top: 1.5rem;
+  border-top: 1px dashed var(--info-line);
+  padding-top: 1rem;
+}
+
+.info-note a {
+  color: var(--info-accent);
+}

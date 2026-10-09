@@ -1,4 +1,4 @@
-# Mathemit – Die Formen-Werkstatt
+# Mathe mit Andybrandy
 
 > Kostenlose, werbefreie Mathe-Lern-App für die österreichische Mittelschule
 > nach dem Lehrplan AHS/MS 2023. 47 Übungstypen, 3 Schwierigkeitsstufen,
@@ -7,7 +7,7 @@
 
 ## Über die App
 
-- [Mathemit – Startseite](https://mathemit.andybrandy.at/): Interaktive Matheübungen nach österreichischem Lehrplan (Kompetenzbereiche H1–I3), AHS/MS 2023.
+- [Mathe mit Andybrandy – Startseite](https://mathemit.andybrandy.at/): Interaktive Matheübungen nach österreichischem Lehrplan (Kompetenzbereiche H1–I3), AHS/MS 2023.
 - Mathematisches Üben für Schülerinnen und Schüler der Sekundarstufe I (Mittelstufe, ca. 10–14 Jahre) in Österreich.
 - Pädagogische Konzepte: gestuftes Tipp-System, Wiederholungstraining (Wissens-Ampel), Lernfortschritt, Wissensgarten und Eulenhain als langfristige Motivationssysteme.
 

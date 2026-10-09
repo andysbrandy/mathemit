@@ -42,7 +42,7 @@
 | 1.6 | Zinsrechnung / Prozent-Satz | H1.I2 | ✅ |
 | 1.7 | Proportionalität (Schattenlänge) | H2.I2 | ✅ |
 | 1.8 | Mehrstufige Sachaufgaben (Rechenweg) | I1.M1 | ✅ |
-| 1.9 | Satz des Pythagoras | H3 | ⬜ |
+| 1.9 | Satz des Pythagoras | H3 | ✅ |
 | 1.10 | Ganze/negative Zahlen (ℤ) | H1 | ⬜ |
 | 1.11 | Mittelwert / Median / Modus | I3 | ⬜ |
 | 1.12 | Einfache Wahrscheinlichkeit | I3 | ⬜ |

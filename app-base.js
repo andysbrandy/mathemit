@@ -463,6 +463,7 @@
     prozent:"Prozent heißt „von Hundert“: Grundwert × (p : 100).",
     textaufgabe:"Unterstreiche Zahlen und Frage. Welcher Rechenweg führt zur Antwort?",
     gleichung:"Bringe x allein auf eine Seite – umgekehrte Operationen auf beiden Seiten.",
+    pythagoras:"Rechter Winkel? Dann a² + b² = c². Die Hypotenuse c liegt gegenüber dem rechten Winkel und ist die längste Seite.",
     tabelle:"Suche die richtige Zeile und Spalte – lies genau ab.",
     diagramm:"Finde den Balken und lese an der Achse bzw. über dem Balken ab.",
     gemischteZahlen:"Ganze Zahl × Nenner + Zähler = neuer Zähler. Der Nenner bleibt.",
@@ -677,6 +678,54 @@
     ex.answer = (g*h)/2;
     ex.explanation = "A = (g · h) : 2 = ("+g+" cm · "+h+" cm) : 2 = "+fmt((g*h)/2)+" cm².";
     ex._svgIsPath = true;
+    return ex;
+  }
+
+  // Satz des Pythagoras (H3): rechtwinkliges Dreieck, eine Seite gesucht.
+  // Bewusst pythagoreische Zahlentripel (3-4-5, 6-8-10, 5-12-13, ...), damit die
+  // Loesungen ganzzahlig und MS-gerecht ohne Wurzel-Eingabe bleiben.
+  function genPythagoras(diff){
+    diff = diff || 2;
+    var tripel = (diff===1)
+      ? choice([[3,4,5],[6,8,10]])
+      : (diff===3
+          ? choice([[5,12,13],[9,12,15],[8,15,17],[10,24,26]])
+          : choice([[3,4,5],[6,8,10],[5,12,13],[9,12,15]]));
+    var a = tripel[0], b = tripel[1], c = tripel[2];   // a, b = Katheten; c = Hypotenuse
+    var fall = rand(1,3);   // 1 = Hypotenuse, 2 = Kathete a, 3 = Kathete b gesucht
+    var a2 = a*a, b2 = b*b, c2 = c*c;
+
+    // triangleFromSides(BC, CA, AB): BC = Hypotenuse c, CA = b, AB = a
+    // => rechter Winkel bei A (Index 0).
+    var pts = normalizeAndScale(triangleFromSides(c, b, a), 300, 220, 40);
+    var labels, answer, frage, erklaerung;
+    if(fall===1){
+      labels = ["a = "+a+" cm", "?", "b = "+b+" cm"];
+      answer = c;
+      frage = "Berechne die Länge der Hypotenuse c (die Seite gegenüber dem rechten Winkel).";
+      erklaerung = "c² = a² + b² = "+a+"² + "+b+"² = "+a2+" + "+b2+" = "+c2+", also c = √"+c2+" = "+c+" cm.";
+    } else if(fall===2){
+      labels = ["?", "c = "+c+" cm", "b = "+b+" cm"];
+      answer = a;
+      frage = "Berechne die Länge der Kathete a (eine der beiden Seiten am rechten Winkel).";
+      erklaerung = "a² = c² - b² = "+c2+" - "+b2+" = "+a2+", also a = √"+a2+" = "+a+" cm.";
+    } else {
+      labels = ["a = "+a+" cm", "c = "+c+" cm", "?"];
+      answer = b;
+      frage = "Berechne die Länge der Kathete b (eine der beiden Seiten am rechten Winkel).";
+      erklaerung = "b² = c² - a² = "+c2+" - "+a2+" = "+b2+", also b = √"+b2+" = "+b+" cm.";
+    }
+    var svg = polygonSVG(pts, {
+      color:COLORS.dreieck.main, soft:COLORS.dreieck.soft,
+      sideLabels:labels, labelOffset:16, rightAngleAt:0
+    });
+    var ex = baseEx("dreieck","pythagoras");
+    ex.question = frage;
+    ex.hint = "Satz des Pythagoras: a² + b² = c². c ist die Hypotenuse - gegenüber dem rechten Winkel.";
+    ex.svg = svg; ex.badge = "Dreieck · Pythagoras"; ex.badgeColor = COLORS.dreieck.main;
+    ex.inputType = "number"; ex.unit = "cm";
+    ex.answer = answer;
+    ex.explanation = erklaerung;
     return ex;
   }
 
@@ -1903,6 +1952,7 @@
     viereckErkennen:      withCurriculum("viereckErkennen",       genViereckErkennen),
     eigenschaftenDreieck: withCurriculum("eigenschaftenDreieck",  genEigenschaftenDreieck),
     eigenschaftenViereck: withCurriculum("eigenschaftenViereck",  genEigenschaftenViereck),
+    pythagoras:           withCurriculum("pythagoras",            genPythagoras),
     kreisUmfang:          withCurriculum("kreisUmfang",           genKreisUmfang),
     kreisFlaeche:         withCurriculum("kreisFlaeche",          genKreisFlaeche),
     quaderVolumen:        withCurriculum("quaderVolumen",         genQuaderVolumen),
@@ -1942,7 +1992,7 @@
 
   var MODES = [
     {id:"alles", label:"🎲 Alles gemischt", group:null, pool:Object.keys(GEN)},
-    {id:"dreieck", label:"🔺 Dreiecke", group:"Geometrie · H3", pool:["dreieckWinkel","dreieckUmfang","dreieckFlaeche","dreieckErkennen","eigenschaftenDreieck"]},
+    {id:"dreieck", label:"🔺 Dreiecke", group:"Geometrie · H3", pool:["dreieckWinkel","dreieckUmfang","dreieckFlaeche","dreieckErkennen","eigenschaftenDreieck","pythagoras"]},
     {id:"viereck", label:"◻ Vierecke", group:"Geometrie · H3", pool:["viereckWinkel","viereckUmfang","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","viereckErkennen","eigenschaftenViereck"]},
     {id:"winkel", label:"📐 Winkel", group:"Geometrie · H3", pool:["dreieckWinkel","viereckWinkel"]},
     {id:"umfang-flaeche", label:"📏 Umfang & Fläche", group:"Geometrie · H3", pool:["dreieckUmfang","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche"]},
@@ -1963,7 +2013,7 @@
     dreieckWinkel:[2,3], viereckWinkel:[2,3], dreieckUmfang:[2,3], viereckUmfang:[2,3],
     dreieckFlaeche:[2,3], rechteckFlaeche:[2,3], parallelogrammFlaeche:[3], trapezFlaeche:[3],
     dreieckErkennen:[2,3], viereckErkennen:[2,3], eigenschaftenDreieck:[2,3], eigenschaftenViereck:[2,3],
-    kreisUmfang:[3,4], kreisFlaeche:[3,4],
+    kreisUmfang:[3,4], kreisFlaeche:[3,4], pythagoras:[3,4],
     quaderVolumen:[2,3], wuerfelVolumen:[2,3], zylinderVolumen:[4],
     quaderOberflaeche:[3,4], wuerfelOberflaeche:[2,3], zylinderOberflaeche:[4],
     bruchKuerzen:[1,2], bruchAddition:[1,2], bruchVergleich:[1,2],
@@ -2028,6 +2078,7 @@
     viereckErkennen:      {codes:["H3.I1","H3.I2"], kompetenz:"Vierecksarten unterscheiden"},
     eigenschaftenDreieck: {codes:["H3.I2","I3.M1"], kompetenz:"Eigenschaften von Dreiecken begründet angeben"},
     eigenschaftenViereck: {codes:["H3.I2","I3.M1"], kompetenz:"Eigenschaften von Vierecken begründet angeben"},
+    pythagoras:           {codes:["H3.I2","I2.M1"], kompetenz:"Satz des Pythagoras im rechtwinkligen Dreieck anwenden"},
     kreisUmfang:          {codes:["H3.I3","I2.M1"], kompetenz:"Umfang eines Kreises berechnen (U = 2·π·r)"},
     kreisFlaeche:         {codes:["H3.I3","I2.M1"], kompetenz:"Flächeninhalt eines Kreises berechnen (A = π·r²)"},
     quaderVolumen:        {codes:["H3.I4","I2.M1"], kompetenz:"Volumen eines Quaders berechnen"},
@@ -2229,7 +2280,7 @@
     { id:"brueche",  icon:"🌰", name:"Bruch-Baum",    thema:"Brüche",     untertitel:"Zahlen & Brüche (H1.I1)",  generatoren:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal"] },
     { id:"prozente", icon:"🪙", name:"Prozent-Baum",  thema:"Prozente",   untertitel:"Prozente & Verhältnisse (H1.I2, H2.I2)", generatoren:["prozentVonZahl","prozentAnteil","zinsrechnung","proportionalitaet"] },
     { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck"] },
-    { id:"messen",   icon:"📏", name:"Flächen-Baum",  thema:"Maße",       untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },
+    { id:"messen",   icon:"📏", name:"Flächen-Baum",  thema:"Maße",       untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","pythagoras","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },
     { id:"alltag",   icon:"🧺", name:"Alltags-Baum",  thema:"Sachaufgaben", untertitel:"Sachaufgaben aus dem Alltag (I1.M1)", generatoren:["textaufgabeGarten","textaufgabePizza","textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSkikurs","textaufgabeWandertag","textaufgabeSchulheft","textaufgabeEiscafe","mehrstufig"] },
     { id:"struktur", icon:"🔗", name:"Daten-Baum",    thema:"Gleichungen", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","tabelleLesen","diagrammBalken"] }
   ];

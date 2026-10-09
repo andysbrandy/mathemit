@@ -82,7 +82,7 @@ else:
     )
 
 # Cache-Busting: ?v=X an alle lokalen Assets (idempotent)
-for asset in ("style-base.css", "style-active.css", "app-base.js", "app-active.js"):
+for asset in ("style-base.css", "style-active.css", "style-info.css", "app-base.js", "app-active.js"):
     html = re.sub(
         rf'({re.escape(asset)})(\?v=\d+)?',
         rf'\1?v={new_v}',

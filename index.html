@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v162">
+<meta name="app-version" content="v163">
 <title>Die Formen-Werkstatt – Mathe für die Mittelschule</title>
 <meta name="description" content="Mathe üben nach dem österreichischen Lehrplan (AHS/MS 2023): 47 Übungstypen, 3 Schwierigkeitsstufen, Tipp-System, Wissensgarten & Eulenhain. Kostenlos und ohne Werbung.">
 <link rel="canonical" href="https://mathemit.andybrandy.at/">
@@ -36,11 +36,68 @@
 <meta name="twitter:description" content="Mathe üben nach dem österreichischen Lehrplan: 47 Übungstypen, 3 Stufen, kostenlos und ohne Werbung.">
 <meta name="twitter:image" content="https://mathemit.andybrandy.at/og-image.png">
 
+<!-- SEO (P8.2): Strukturierte Daten (schema.org) für Suchmaschinen und
+     KI-Assistenten. WebApplication + Organization, damit Google, Perplexity
+     & ChatGPT Mathemit als kostenlose österreichische Lern-App einordnen. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://mathemit.andybrandy.at/#app",
+      "name": "Mathemit – Die Formen-Werkstatt",
+      "alternateName": "Mathemit",
+      "url": "https://mathemit.andybrandy.at/",
+      "description": "Kostenlose Mathe-Lern-App für die österreichische Mittelschule nach Lehrplan AHS/MS 2023: 47 Übungstypen, 3 Schwierigkeitsstufen, Tipp-System, Wissensgarten und Eulenhain. Ohne Werbung und ohne Tracking.",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web (PWA, offline nutzbar)",
+      "inLanguage": "de-AT",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      },
+      "featureList": [
+        "Mathe-Übungen nach österreichischem Lehrplan AHS/MS 2023 (Kompetenzbereiche H1–I3)",
+        "47 Übungstypen in 3 Schwierigkeitsstufen",
+        "Tipp-System mit pädagogischen Hilfen",
+        "Wiederholungstraining nach dem Prinzip der Wissens-Ampel",
+        "Wissensgarten und Eulenhain als Motivationssystem",
+        "Fortschrittsübersicht für Lehrkräfte über Klassen-Code"
+      ],
+      "audience": {
+        "@type": "EducationalAudience",
+        "educationalRole": "student"
+      },
+      "educationalLevel": "Sekundarstufe I (Mittelstufe)"
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://mathemit.andybrandy.at/#org",
+      "name": "Mathemit",
+      "url": "https://mathemit.andybrandy.at/",
+      "logo": "https://mathemit.andybrandy.at/logo.svg",
+      "sameAs": [
+        "https://www.instagram.com/mathemit.andybrandy.at/",
+        "https://www.tiktok.com/@mathefit.andybrandy.at",
+        "https://www.youtube.com/channel/UCLYEbAqgnCGcWASkaDOnXjw"
+      ]
+    }
+  ]
+}
+</script>
+
+<!-- KI-Assistenten (llms.txt, v2): beschreibende Markdown-Zusammenfassung
+     fuer LLM-Agenten. rel="describedby" nach llmstxt.org-Standard. -->
+<link rel="describedby" type="text/markdown" href="https://mathemit.andybrandy.at/llms.txt">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style-base.css?v=162">
-<link rel="stylesheet" href="style-active.css?v=162">
+<link rel="stylesheet" href="style-base.css?v=163">
+<link rel="stylesheet" href="style-active.css?v=163">
 </head>
 <body>
   <!--
@@ -244,10 +301,10 @@
 
 </div>
 
-<script src="app-base.js?v=162"></script>
-<script src="app-active.js?v=162"></script>
+<script src="app-base.js?v=163"></script>
+<script src="app-active.js?v=163"></script>
 <footer class="app-version">
-  <span class="ver" id="appVersion">v162</span>
+  <span class="ver" id="appVersion">v163</span>
   <span style="margin-left:.6rem; font-size:.75rem; opacity:.75;" class="footer-links">
     <button type="button" class="footer-link" data-legal="datenschutz.html" data-title="Datenschutzerklärung">Datenschutz</button> ·
     <button type="button" class="footer-link" data-legal="impressum.html" data-title="Impressum">Impressum</button> ·

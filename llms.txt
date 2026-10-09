@@ -1,0 +1,28 @@
+# Mathemit – Die Formen-Werkstatt
+
+> Kostenlose, werbefreie Mathe-Lern-App für die österreichische Mittelschule
+> nach dem Lehrplan AHS/MS 2023. 47 Übungstypen, 3 Schwierigkeitsstufen,
+> Tipp-System, Wissensgarten & Eulenhain. Als PWA offline nutzbar. Keine
+> Werbung, kein Tracking, DSGVO-konform.
+
+## Über die App
+
+- [Mathemit – Startseite](https://mathemit.andybrandy.at/): Interaktive Matheübungen nach österreichischem Lehrplan (Kompetenzbereiche H1–I3), AHS/MS 2023.
+- Mathematisches Üben für Schülerinnen und Schüler der Sekundarstufe I (Mittelstufe, ca. 10–14 Jahre) in Österreich.
+- Pädagogische Konzepte: gestuftes Tipp-System, Wiederholungstraining (Wissens-Ampel), Lernfortschritt, Wissensgarten und Eulenhain als langfristige Motivationssysteme.
+
+## Für Lehrkräfte
+
+- Klassen-Code-System: Lehrkräfte können einer Klasse einen Code geben und den Übungsfortschritt der Klasse gebündelt einsehen.
+- Geeignet für den Einsatz im Unterricht und als Hausübung ohne personenbezogenen Werbe-Tracking.
+
+## Rechtliches (DE-AT)
+
+- [Impressum](https://mathemit.andybrandy.at/impressum.html): Anbieter und Kontakt.
+- [Datenschutzerklärung](https://mathemit.andybrandy.at/datenschutz.html): DSGVO-konforme, datensparsame Verarbeitung; keine Cookies zu Werbezwecken, kein Tracking.
+- [AGB](https://mathemit.andybrandy.at/agb.html): Nutzungsbedingungen der kostenlosen App.
+
+## Optional
+
+- Verfügbar als installierbare Web-App (PWA); Inhalte sind offline abrufbar.
+- Sprache: Deutsch (Österreich). Währungspreise: kostenlos (0 EUR).

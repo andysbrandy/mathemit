@@ -16,6 +16,9 @@
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   line-height: 1.6;
   border-top: 3px solid var(--info-accent);
+  /* P8.3: Abstand zum App-Content/„Fortschritt zurücksetzen"-Button darüber,
+     damit die Section nicht direkt an die Bedienelemente klebt. */
+  margin-top: 3.5rem;
 }
 
 .info-inner {

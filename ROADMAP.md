@@ -462,7 +462,7 @@ googeln aber „Mathe üben Mittelschule / Lehrplan 2023". Komplementär zu P7
 | 8.1 | `robots.txt` + `sitemap.xml` | ✅ |
 | 8.2 | JSON-LD `WebApplication` + Meta/Open-Graph in `index.html` | ✅ |
 | 8.3 | Indexierbarer „Abdeckung"-Abschnitt (Lehrplan H1–I3) | ✅ |
-| 8.4 | FAQ-Block (`FAQPage`) + „Für Lehrkräfte" | ⬜ |
+| 8.4 | FAQ-Block (`FAQPage`) + „Für Lehrkräfte" | ✅ |
 | 8.5 | Google Search Console anmelden & Sitemap einreichen | ⬜ |
 | 8.6 | `llms.txt` (v2) für KI-Assistenten + `rel="describedby"` | ✅ |
 

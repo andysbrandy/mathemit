@@ -118,3 +118,86 @@
 .info-note a {
   color: var(--info-accent);
 }
+
+/* P8.4 – „Für Lehrkräfte" & FAQ-Block (FAQPage). Self-contained, gleiche
+ * Designsprache wie die übrige info-Section. */
+
+.info-teacher {
+  background: var(--info-card);
+  border: 1px solid var(--info-line);
+  border-left: 4px solid var(--info-accent);
+  border-radius: 14px;
+  padding: 1.2rem 1.3rem;
+  margin: 1.5rem 0;
+}
+
+.info-teacher h3 {
+  margin-top: 0;
+}
+
+.info-teacher p {
+  margin: 0 0 .75rem;
+  font-size: .95rem;
+  color: var(--info-muted);
+  max-width: 70ch;
+}
+
+.info-teacher ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: .5rem;
+}
+
+.info-teacher li {
+  font-size: .93rem;
+  color: var(--info-ink);
+}
+
+.info-teacher strong {
+  color: var(--info-accent);
+}
+
+.info-faq {
+  display: grid;
+  gap: .6rem;
+  margin: 1rem 0;
+}
+
+.info-faq-item {
+  background: var(--info-card);
+  border: 1px solid var(--info-line);
+  border-radius: 12px;
+  padding: .8rem 1rem;
+}
+
+.info-faq-item summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: .96rem;
+  color: var(--info-ink);
+  list-style: none;
+}
+
+.info-faq-item summary::before {
+  content: "＋ ";
+  color: var(--info-accent);
+  font-weight: 700;
+}
+
+.info-faq-item[open] summary::before {
+  content: "− ";
+}
+
+.info-faq-item[open] summary {
+  color: var(--info-accent);
+}
+
+.info-faq-item p {
+  margin: .6rem 0 0;
+  font-size: .92rem;
+  color: var(--info-muted);
+  max-width: 70ch;
+}

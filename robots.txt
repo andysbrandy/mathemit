@@ -1,0 +1,8 @@
+# robots.txt für Mathemit (https://mathemit.andybrandy.at/)
+# Alle Crawler dürfen die indexierbaren Seiten lesen.
+
+User-agent: *
+Allow: /
+
+# Sitemap-Hinweis für Suchmaschinen
+Sitemap: https://mathemit.andybrandy.at/sitemap.xml

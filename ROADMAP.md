@@ -28,7 +28,7 @@
 
 ---
 
-## 🏔️ Die 5 Prioritäten
+## 🏔️ Die Prioritäten (P1–P11)
 
 ### P1 — Lehrplan-Abdeckung *(größter Hebel)*
 
@@ -42,6 +42,15 @@
 | 1.6 | Zinsrechnung / Prozent-Satz | H1.I2 | ✅ |
 | 1.7 | Proportionalität (Schattenlänge) | H2.I2 | ✅ |
 | 1.8 | Mehrstufige Sachaufgaben (Rechenweg) | I1.M1 | ✅ |
+| 1.9 | Satz des Pythagoras | H3 | ⬜ |
+| 1.10 | Ganze/negative Zahlen (ℤ) | H1 | ⬜ |
+| 1.11 | Mittelwert / Median / Modus | I3 | ⬜ |
+| 1.12 | Einfache Wahrscheinlichkeit | I3 | ⬜ |
+| 1.13 | Einheiten-Umrechnung (Länge/Masse/Zeit/Geld) | H2 | ⬜ |
+| 1.14 | Weitere 3D-Körper (Pyramide, Kegel, Kugel, Prisma) | H3 | ⬜ |
+| 1.15 | Potenzen & Wurzeln (Basis) | H1/H2 | ⬜ |
+| 1.16 | Teilbarkeit, Primzahlen, kgV/ggT | H1 | ⬜ |
+| 1.17 | Terme vereinfachen / Distributivgesetz | H2 | ⬜ |
 
 ### P2 — Schwierigkeitsgrade & Differenzierung
 
@@ -439,6 +448,43 @@ Schritt.
 | 6.6 | **Feinschliff Astgeometrie**: Astreihen sitzen über der Wiese, Äste verjüngt + längenabhängig, Eulen auf der Astkurve; **Kronenbreite folgt der längsten Astreihe** (Kronenrand an der Astspitze, dichte Krone) | ✅ |
 
 > **Live-Migration P4.2:** `ALTER TABLE progress ADD COLUMN goals JSON NULL AFTER owls;` in phpMyAdmin ausführen + aktualisierte `backend/progress.php` auf den mapi-Server hochladen.
+
+---
+
+### P8 — Auffindbarkeit & SEO *(größter ungenutzter Wachstumshebel · ergänzt P7)*
+
+Die App ist eine Single-Page ohne indexierbaren Inhalts-Layer — Eltern/Lehrer
+googeln aber „Mathe üben Mittelschule / Lehrplan 2023". Komplementär zu P7
+(Shorts wecken Bekanntheit, SEO fängt die Suchnachfrage auf).
+
+| # | Aufgabe | Status |
+|---|---------|--------|
+| 8.1 | `robots.txt` + `sitemap.xml` | ✅ |
+| 8.2 | JSON-LD `WebApplication` + Meta/Open-Graph in `index.html` | ⬜ |
+| 8.3 | Indexierbarer „Abdeckung"-Abschnitt (Lehrplan H1–I3) | ⬜ |
+| 8.4 | FAQ-Block (`FAQPage`) + „Für Lehrkräfte" | ⬜ |
+| 8.5 | Google Search Console anmelden & Sitemap einreichen | ⬜ |
+
+### P9 — Wachstum: Lehrkräfte & Reichweite
+
+| # | Aufgabe | Status |
+|---|---------|--------|
+| 9.1 | Minimales Lehrer-Dashboard zum Klassen-Code (Fortschritt aggregiert) | ⬜ |
+| 9.2 | Newsletter-/E-Mail-Einstieg (Resend bereits angebunden) | ⬜ |
+| 9.3 | Datensparsame Reichweiten-Messung (self-host, kein Google) | ⬜ |
+
+### P10 — Recht & Datenschutz
+
+| # | Aufgabe | Status |
+|---|---------|--------|
+| 10.1 | Google Fonts self-hosten (schließt US-Transfer-Risiko) | ⬜ |
+| 10.2 | Datenschutzerklärung: Google Fonts + Resend als Verarbeiter ergänzen | ⬜ |
+
+### P11 — Betriebs-Robustheit
+
+| # | Aufgabe | Status |
+|---|---------|--------|
+| 11.1 | Weitere Endpunkte (`feedback`, `klassen`, …) DB-drift-tolerant wie `progress.php` | ⬜ |
 
 ---
 

@@ -26,6 +26,20 @@ if command -v python3 >/dev/null 2>&1 && [ -f "$REPO_ROOT/scripts/check-strict-v
   fi
 fi
 
+# --- Qualitätscheck: Generator-Registrierung (Chips, Wissensgarten, ...) ------
+# Jeder Generator in GEN muss vollstaendig eingebunden sein: CURRICULUM_MAP,
+# GRADE_TAGS, einen echten MODES-Topic-Chip und einen GARTEN_BEREICHE-Baum
+# (Wissensgarten). Sonst ist er fuer Nutzer unsichtbar / faellt aus der
+# Gesamtlogik. Erzwingt das fuer JEDEN neuen Generator (z. B. Roadmap-Aufgaben).
+if command -v node >/dev/null 2>&1 && [ -f "$REPO_ROOT/scripts/check-generator-surfaces.js" ]; then
+  if ! (cd "$REPO_ROOT" && node scripts/check-generator-surfaces.js); then
+    echo "❌ Generator unvollstaendig eingebunden – Commit abgebrochen."
+    echo "   Ein Generator gehoert in GEN, CURRICULUM_MAP, GRADE_TAGS,"
+    echo "   einen MODES-Chip UND einen GARTEN_BEREICHE-Baum (Wissensgarten)."
+    exit 1
+  fi
+fi
+
 # Aktuelle Version lesen
 if [ ! -f "$VERSION_FILE" ]; then
   echo "0" > "$VERSION_FILE"

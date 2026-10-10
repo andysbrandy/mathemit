@@ -528,6 +528,21 @@ googeln aber „Mathe üben Mittelschule / Lehrplan 2023". Komplementär zu P7
 - [ ] In GEN-Registry + MODES-Pool eingetragen
 - [ ] Version gebumpt + gepusht
 
+### UX-Vollständigkeit jedes Generators (Chips & Wissensgarten)
+
+Jeder neue Generator muss **an allen fünf Flächen** auftauchen, sonst ist er für
+Nutzer unsichtbar oder fällt aus der Gesamtlogik:
+
+- [ ] `GEN` (Rechenlogik)
+- [ ] `CURRICULUM_MAP` (Lehrplan-Zuordnung)
+- [ ] `GRADE_TAGS` (Stufen-Zuordnung)
+- [ ] `MODES` → echter Topic-Chip (`group !== null`, nicht nur „alles")
+- [ ] `GARTEN_BEREICHE` → Wissensgarten-Baum
+
+**Automatisch erzwungen:** `.githooks/pre-commit` ruft
+`scripts/check-generator-surfaces.js` auf und bricht jeden Commit ab, der einen
+Generator unvollständig einbindet (Positiv- und Negativfall getestet).
+
 ---
 
 ## 📚 Feature-Dokumentation (für alle Nutzer)

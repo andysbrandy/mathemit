@@ -1691,18 +1691,21 @@
       return ex;
     }
 
-    // diff 3: Temperatur-Differenz (Alltagsbezug, negatives Ergebnis gängig)
-    var morning = rand(-15, 12);
-    var drop = rand(4, 20);
-    var evening = morning - drop;
-    var svg = zahlenstrahlSVG([morning, evening], COLORS.zahl.main, COLORS.zahl.soft);
+    // diff 3: Temperatur-Differenz (Alltagsbezug, negatives Ergebnis gängig).
+    // Physikalisch korrekt: Temperaturen sinken in der NACHT (nicht tagsüber).
+    // Realistische österreichische Werte: Abend −5..8 °C, Nacht-Abkühlung 3..11 °C
+    // ⇒ Morgen −16..5 °C (selten unter −18 °C, wie im Alpenraum üblich).
+    var evening = rand(-5, 8);
+    var drop = rand(3, 11);
+    var morning = evening - drop;
+    var svg = zahlenstrahlSVG([evening, morning], COLORS.zahl.main, COLORS.zahl.soft);
     var ex = baseEx("zahl","ganzeZahlen");
-    ex.question = "Morgens sind es "+morning+" °C. Im Laufe des Tages fallen die Temperaturen um "+drop+" °C. Wie kalt ist es am Abend (in °C)?";
-    ex.hint = "Sinken heißt minus: "+morning+" − "+drop+". Rechne mit negativen Zahlen – das Ergebnis kann unter null liegen.";
+    ex.question = "Am Abend sind es "+evening+" °C. In der Nacht sinken die Temperaturen um "+drop+" °C. Wie kalt ist es in der Früh (in °C)?";
+    ex.hint = "Sinken heißt minus: "+evening+" − "+drop+". Rechne mit negativen Zahlen – das Ergebnis kann unter null liegen.";
     ex.svg=svg; ex.badge="Ganze Zahlen · Temperatur"; ex.badgeColor=COLORS.zahl.main;
     ex.inputType="number"; ex.unit="°C";
-    ex.answer = evening;
-    ex.explanation = morning+" °C − "+drop+" °C = "+evening+" °C.";
+    ex.answer = morning;
+    ex.explanation = evening+" °C − "+drop+" °C = "+morning+" °C.";
     return ex;
   }
 

@@ -93,7 +93,8 @@
     bruch: {main:"var(--bruch)", soft:"var(--bruch-soft)"},
     prozent: {main:"var(--prozent)", soft:"var(--prozent-soft)"},
     textaufgabe: {main:"var(--textaufgabe)", soft:"var(--textaufgabe-soft)"},
-    gleichung: {main:"var(--gleichung)", soft:"var(--gleichung-soft)"}
+    gleichung: {main:"var(--gleichung)", soft:"var(--gleichung-soft)"},
+    zahl: {main:"var(--zahl)", soft:"var(--zahl-soft)"}
   };
 
   /* Build full SVG markup for a polygon with optional side/angle labels & marks */
@@ -471,6 +472,7 @@
     zinsrechnung:"Z = K · p · t – setze Kapital, Zinssatz und Zeit ein.",
     proportionalitaet:"Gleiche Sonne ⇒ gleiches Verhältnis. Stelle den Dreisatz auf.",
     mehrstufig:"Teile auf in Schritte: 1) pro Kind 2) alle zusammen 3) Extras.",
+    ganzeZahlen:"Auf dem Zahlenstrahl liegt die kleinere Zahl weiter links. Bei + und −: gleiche Vorzeichen addieren die Beträge, verschiedene ziehen ab (Vorzeichen des größeren Betrags gewinnt).",
     _default:"Lies die Aufgabe noch einmal langsam – welche Zahlen und welche Frage gibt es?"
   };
   function deriveTips(ex){
@@ -1617,7 +1619,93 @@
     ex.explanation = "("+entry+" € + "+ice_cream+" €) · "+kids+" + "+bus+" € = "+total+" €.";
     return ex;
   }
-  /* Deutscher Bruch-Begriff für Textaufgaben (z. B. 1/2 → "die Hälfte", 2/5 → "zwei Fünftel") */
+
+  /* Zahlenstrahl-SVG: Punkte markieren (mit Vorzeichen-Betragung) */
+  function zahlenstrahlSVG(punkte, color, soft){
+    punkte = punkte || [];
+    var lo = Math.min.apply(null, punkte.concat([0]));
+    var hi = Math.max.apply(null, punkte.concat([0]));
+    var span = Math.max(hi - lo, 4);
+    lo = lo - Math.ceil(span*0.15); hi = hi + Math.ceil(span*0.15);
+    var x0 = 34, x1 = 266, y = 130;
+    function px(v){ return x0 + (x1 - x0) * (v - lo) / (hi - lo); }
+    var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    svg += '<line x1="24" y1="'+y+'" x2="276" y2="'+y+'" stroke="var(--ink)" stroke-width="2"/>';
+    svg += '<path d="M 276 '+y+' l -9 -4 l 0 8 z" fill="var(--ink)"/>';
+    var step = (hi - lo) <= 12 ? 1 : (hi - lo <= 30 ? 5 : 10);
+    for(var t = Math.ceil(lo/step)*step; t <= hi; t += step){
+      var tx = px(t);
+      svg += '<line x1="'+tx+'" y1="'+(y-5)+'" x2="'+tx+'" y2="'+(y+5)+'" stroke="var(--ink)" stroke-width="1.4"/>';
+      svg += '<text class="dim-label" x="'+tx+'" y="'+(y+22)+'" text-anchor="middle">'+t+'</text>';
+    }
+    var ox = px(0);
+    svg += '<line x1="'+ox+'" y1="'+(y-9)+'" x2="'+ox+'" y2="'+(y+9)+'" stroke="'+color+'" stroke-width="2.6"/>';
+    punkte.forEach(function(v){
+      var cx = px(v);
+      svg += '<circle cx="'+cx+'" cy="'+y+'" r="6" fill="'+color+'" stroke="var(--panel)" stroke-width="2"/>';
+      svg += '<text x="'+cx+'" y="'+(y-16)+'" text-anchor="middle" font-size="15" font-weight="700" fill="'+color+'">'+v+'</text>';
+    });
+    svg += '</svg>';
+    return svg;
+  }
+
+  /* Ganze/negative Zahlen (H1.I3): Ordnen, Addieren mit Vorzeichen, Betrag, Temperatur.
+   * diff 1 = Ordnen zweier Zahlen (MC), diff 2 = Addition gleicher/verschiedener Vorzeichen,
+   * diff 3 = Temperatur-Differenz bzw. Ketten-Addition. */
+  function genGanzeZahlen(diff){
+    diff = diff || 2;
+
+    if(diff === 1){
+      var a = choice([-9,-7,-5,-4,-3,-2,-1,1,2,3,4,5,7,9]);
+      var b = choice([-8,-6,-3,0,2,4,6,8]);
+      while(b === a){ b = choice([-8,-6,-3,0,2,4,6,8]); }
+      var kleiner = Math.min(a,b);
+      var svg = zahlenstrahlSVG([a,b], COLORS.zahl.main, COLORS.zahl.soft);
+      var ex = baseEx("zahl","ganzeZahlen");
+      ex.question = "Welche Zahl ist kleiner: "+a+" oder "+b+"?";
+      ex.hint = "Auf dem Zahlenstrahl liegt die kleinere Zahl weiter links. Negative Zahlen sind kleiner als 0 und als alle positiven Zahlen.";
+      ex.svg=svg; ex.badge="Ganze Zahlen · Ordnen"; ex.badgeColor=COLORS.zahl.main;
+      var opts = shuffle([String(a), String(b)]);
+      ex.inputType="mc"; ex.choices=opts; ex.correctIndex=opts.indexOf(String(kleiner));
+      ex.answer = String(kleiner);
+      ex.explanation = a+" und "+b+": "+(a<b?""+a+" < "+b:""+b+" < "+a)+", denn die kleinere Zahl liegt weiter links.";
+      return ex;
+    }
+
+    if(diff === 2){
+      var x = diff===2 ? rand(-9,9) : 0;
+      var y2 = diff===2 ? rand(-9,9) : 0;
+      while(y2 === 0){ y2 = rand(-9,9); }
+      while(x === 0){ x = rand(-9,9); }
+      var sum = x + y2;
+      var svg = zahlenstrahlSVG([x, y2, sum], COLORS.zahl.main, COLORS.zahl.soft);
+      var ex = baseEx("zahl","ganzeZahlen");
+      var schritt = (x>=0 && y2>=0) ? "beide positiv" :
+                    (x<0 && y2<0) ? "beide negativ" : "unterschiedliche Vorzeichen";
+      ex.question = "Berechne: ("+x+") + ("+y2+")";
+      ex.hint = "Addiere die Beträge. Gleiche Vorzeichen: Beträge addieren, Vorzeichen behalten. Verschiedene Vorzeichen: kleineren Betrag vom größeren abziehen, Vorzeichen des größeren Betrags behalten.";
+      ex.svg=svg; ex.badge="Ganze Zahlen · Addition"; ex.badgeColor=COLORS.zahl.main;
+      ex.inputType="number"; ex.unit="";
+      ex.answer = sum;
+      ex.explanation = "("+x+") + ("+y2+") = "+sum+" ("+schritt+").";
+      return ex;
+    }
+
+    // diff 3: Temperatur-Differenz (Alltagsbezug, negatives Ergebnis gängig)
+    var morning = rand(-15, 12);
+    var drop = rand(4, 20);
+    var evening = morning - drop;
+    var svg = zahlenstrahlSVG([morning, evening], COLORS.zahl.main, COLORS.zahl.soft);
+    var ex = baseEx("zahl","ganzeZahlen");
+    ex.question = "Morgens sind es "+morning+" °C. Im Laufe des Tages fallen die Temperaturen um "+drop+" °C. Wie kalt ist es am Abend (in °C)?";
+    ex.hint = "Sinken heißt minus: "+morning+" − "+drop+". Rechne mit negativen Zahlen – das Ergebnis kann unter null liegen.";
+    ex.svg=svg; ex.badge="Ganze Zahlen · Temperatur"; ex.badgeColor=COLORS.zahl.main;
+    ex.inputType="number"; ex.unit="°C";
+    ex.answer = evening;
+    ex.explanation = morning+" °C − "+drop+" °C = "+evening+" °C.";
+    return ex;
+  }
+
   function bruchWort(z,n){
     var zN=["","ein","zwei","drei","vier","fünf","sechs","sieben","acht","neun","zehn"];
     var nN={2:"Hälfte",3:"Drittel",4:"Viertel",5:"Fünftel",6:"Sechstel",7:"Siebtel",8:"Achtel",9:"Neuntel",10:"Zehntel"};
@@ -1987,7 +2075,8 @@
     bruchDezimal:        withCurriculum("bruchDezimal",          genBruchDezimal),
     zinsrechnung:        withCurriculum("zinsrechnung",          genZinsrechnung),
     proportionalitaet:   withCurriculum("proportionalitaet",     genProportionalitaet),
-    mehrstufig:          withCurriculum("mehrstufig",            genMehrstufig)
+    mehrstufig:          withCurriculum("mehrstufig",            genMehrstufig),
+    ganzeZahlen:         withCurriculum("ganzeZahlen",           genGanzeZahlen)
   };
 
   var MODES = [
@@ -2005,7 +2094,8 @@
     {id:"textaufgaben", label:"📖 Textaufgaben", group:"Sachrechnen · I1", pool:["textaufgabeGarten","textaufgabePizza","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag","mehrstufig"]},
     {id:"alltag", label:"🇦🇹 Alltag in Österreich", group:"Sachrechnen · I1", pool:["textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag","mehrstufig"]},
     {id:"gleichungen", label:"⚖️ Gleichungen & Verhältnisse", group:"Größen & Variablen · H2", pool:["gleichungEinfach","proportionalitaet"]},
-    {id:"daten-diagramme", label:"📊 Daten & Diagramme", group:"Daten & Statistik · H4", pool:["tabelleLesen","diagrammBalken"]}
+    {id:"daten-diagramme", label:"📊 Daten & Diagramme", group:"Daten & Statistik · H4", pool:["tabelleLesen","diagrammBalken"]},
+    {id:"ganze-zahlen", label:"🔢 Ganze Zahlen", group:"Zahlen & Operationen · H1", pool:["ganzeZahlen"]}
   ];
 
   /* Schulstufen-Zuordnung je Übungstyp (1.–4. Klasse Mittelschule) */
@@ -2026,7 +2116,8 @@
     gleichungEinfach:[3,4],
     tabelleLesen:[2,3],
     diagrammBalken:[2,3], gemischteZahlen:[1,2], bruchDezimal:[1,2],
-    zinsrechnung:[3,4], proportionalitaet:[2,3], mehrstufig:[2,3]
+    zinsrechnung:[3,4], proportionalitaet:[2,3], mehrstufig:[2,3],
+    ganzeZahlen:[1,2]
   };
   var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
   var GRADES = [
@@ -2113,7 +2204,8 @@
     bruchDezimal:        {codes:["H1.I1"], kompetenz:"Brüche in Dezimalzahlen umwandeln und umgekehrt"},
     zinsrechnung:        {codes:["H1.I2"], kompetenz:"Zinsen mit der Zinsformel (Z = K · p · t) berechnen"},
     proportionalitaet:   {codes:["H2.I2"], kompetenz:"Direkt proportionale Zusammenhänge (z. B. Schattenlängen) anwenden"},
-    mehrstufig:          {codes:["I1.M1","I2.M1"], kompetenz:"Mehrstufige Sachaufgaben in Teilschritten lösen"}
+    mehrstufig:          {codes:["I1.M1","I2.M1"], kompetenz:"Mehrstufige Sachaufgaben in Teilschritten lösen"},
+    ganzeZahlen:         {codes:["H1.I3","I2.M1"], kompetenz:"Mit ganzen und negativen Zahlen rechnen (Zahlenstrahl, Betrag, Temperatur)"}
   };
 
   /* ============ P4.3: Spaced Repetition ============
@@ -2277,7 +2369,7 @@
    * Spaced-Repetition-Leiter (state.spaced): Level 0 = unberührt, 1-2 = im Bau,
    * 3-4 = sicher, 5 = gemeistert (golden), fällig = rot. Keine neuen Persistenzfelder. */
   var GARTEN_BEREICHE = [
-    { id:"brueche",  icon:"🌰", name:"Bruch-Baum",    thema:"Brüche",     untertitel:"Zahlen & Brüche (H1.I1)",  generatoren:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal"] },
+    { id:"brueche",  icon:"🌰", name:"Zahlen-Baum",   thema:"Brüche",     untertitel:"Zahlen & Brüche (H1.I1, H1.I3)",  generatoren:["ganzeZahlen","bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal"] },
     { id:"prozente", icon:"🪙", name:"Prozent-Baum",  thema:"Prozente",   untertitel:"Prozente & Verhältnisse (H1.I2, H2.I2)", generatoren:["prozentVonZahl","prozentAnteil","zinsrechnung","proportionalitaet"] },
     { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck"] },
     { id:"messen",   icon:"📏", name:"Flächen-Baum",  thema:"Maße",       untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","pythagoras","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },

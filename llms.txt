@@ -1,7 +1,7 @@
 # Mathe mit Andybrandy
 
 > Kostenlose, werbefreie Mathe-Lern-App für die österreichische Mittelschule
-> nach dem Lehrplan AHS/MS 2023. 47 Übungstypen, 3 Schwierigkeitsstufen,
+> nach dem Lehrplan AHS/MS 2023. 49 Übungstypen, 3 Schwierigkeitsstufen,
 > Tipp-System, Wissensgarten & Eulenhain. Als PWA offline nutzbar. Keine
 > Werbung, kein Tracking, DSGVO-konform.
 

@@ -4,8 +4,8 @@
 
 ## 📊 Aktueller Stand
 
-- **48 Generatoren in 15 lehrplangetreuen Themen-Modi** (H1–H4/I1–I3):
-  Dreiecke, Vierecke, Winkel, Umfang & Fläche, Kreis, Körper (Volumen), Oberfläche, **Brüche (8 Operationen inkl. gemischte Zahlen & Bruch↔Dezimal)**, Brüche & Prozent, **Prozente & Zinsen (NEU)**, Textaufgaben (inkl. mehrstufig), Alltag in Österreich (inkl. mehrstufig), **Gleichungen & Verhältnisse** (inkl. Proportionalität), **Daten & Diagramme (NEU: Tabellen + Säulendiagramm)**
+- **49 Generatoren in 15 lehrplangetreuen Themen-Modi** (H1–H4/I1–I3):
+  Dreiecke, Vierecke, Winkel, Umfang & Fläche, Kreis, Körper (Volumen), Oberfläche, **Brüche (8 Operationen inkl. gemischte Zahlen & Bruch↔Dezimal)**, Brüche & Prozent, **Prozente & Zinsen (NEU)**, **🔢 Ganze Zahlen (NEU: Zahlenstrahl, Addition mit Vorzeichen, Temperatur)**, Textaufgaben (inkl. mehrstufig), Alltag in Österreich (inkl. mehrstufig), **Gleichungen & Verhältnisse** (inkl. Proportionalität), **Daten & Diagramme (NEU: Tabellen + Säulendiagramm)**
 - **3 Schwierigkeitsstufen** je Generator (🌱/🎯/🚀) + dynamische Anpassungs-Vorschläge
 - **Pädagogisches Tipp-System**: progressive Offenlegung (Andeuten → Formel/Ansatz) + gezielte Korrekturhinweise bei Fehlern
 - **Wiederholungstraining**: falsch gelöste Aufgaben werden exakt gespeichert und über den 🔁-Chip der Reihe nach wiederholt (bis alle geschafft sind)
@@ -35,7 +35,7 @@ welche Flächen jeder Generator braucht. Grundlage ist der **österreichische MS
 Mathematik (2023)** mit den vier Kompetenzbereichen **H1–H4** und den drei
 Handlungsbereichen **I1–I3**, abgebildet in `CURRICULUM_MAP` (Codes) + `GRADE_TAGS` (Stufen 1–4).
 
-> **Stand:** 48 Generatoren live (v172). Status-Legende: ✅ fertig · ⬜ offen (P-Nummer = zugehöriger Roadmap-Schritt).
+> **Stand:** 49 Generatoren live (v173). Status-Legende: ✅ fertig · ⬜ offen (P-Nummer = zugehöriger Roadmap-Schritt).
 
 ### Die 6 Flächen jedes Generators (automatisch erzwungen)
 
@@ -72,7 +72,7 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 | Prozentwert (Alltag) | `prozentVonZahl` | 💰 Prozente & Zinsen | ✅ |
 | Prozentanteil | `prozentAnteil` | 💰 Prozente & Zinsen | ✅ |
 | Zinsen (Z = K·p·t) | `zinsrechnung` | 💰 Prozente & Zinsen | ✅ |
-| Ganze/negative Zahlen (ℤ) | — | — | ⬜ P1.10 |
+| Ganze/negative Zahlen (ℤ) | `ganzeZahlen` | 🔢 Ganze Zahlen | ✅ |
 | Potenzen & Wurzeln (Basis) | — | — | ⬜ P1.15 |
 | Teilbarkeit, Primzahlen, kgV/ggT | — | — | ⬜ P1.16 |
 
@@ -127,13 +127,13 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 
 | Bereich | Abdeckung | Größte offene Lücke |
 |---|---|---|
-| 🟦 H1 Zahlen & Rechnen | ✅ Kern (Brüche/Prozent/Zinsen) | ℤ · Potenzen/Wurzeln · Primzahlen (P1.10/15/16) |
+| 🟦 H1 Zahlen & Rechnen | ✅ Kern + ℤ (Brüche/Prozent/Zinsen/ganze Zahlen) | Potenzen/Wurzeln · Primzahlen (P1.15/16) |
 | 🟨 H2 Gleichungen | ⚠️ Grundlagen | Terme · Funktionen · Einheiten (P1.17/13) |
 | 🟧 H3 Geometrie | ✅ sehr gut | Weitere Körper · Kongruenz (P1.14) |
 | 🟪 H4 Statistik/Wskt. | ❌ Lücke | Mittelwert · Wahrscheinlichkeit (P1.11/12) |
 | 🟩 I1–I3 Prozesse | ✅ querschnittlich | — |
 
-**Empfohlene Reihenfolge** (nach Lehrplan-Gewicht): **P1.10 ℤ** → **P1.11 Mittelwerte**
+**Empfohlene Reihenfolge** (nach Lehrplan-Gewicht): **P1.11 Mittelwerte**
 → **P1.12 Wahrscheinlichkeit** (schließt H4) → P1.13 Einheiten → P1.14 Körper.
 
 ---
@@ -154,7 +154,7 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 | 1.7 | Proportionalität (Schattenlänge) | H2.I2 | ✅ |
 | 1.8 | Mehrstufige Sachaufgaben (Rechenweg) | I1.M1 | ✅ |
 | 1.9 | Satz des Pythagoras | H3 | ✅ |
-| 1.10 | Ganze/negative Zahlen (ℤ) | H1 | ⬜ |
+| 1.10 | Ganze/negative Zahlen (ℤ) | H1 | ✅ |
 | 1.11 | Mittelwert / Median / Modus | I3 | ⬜ |
 | 1.12 | Einfache Wahrscheinlichkeit | I3 | ⬜ |
 | 1.13 | Einheiten-Umrechnung (Länge/Masse/Zeit/Geld) | H2 | ⬜ |

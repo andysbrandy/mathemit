@@ -29,6 +29,8 @@
     --textaufgabe-soft:#F5E7D2;
     --gleichung:#2E7D8F;
     --gleichung-soft:#D4EDF1;
+    --zahl:#5C8A3C;
+    --zahl-soft:#E2EED5;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}

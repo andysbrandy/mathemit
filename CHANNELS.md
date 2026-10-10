@@ -43,13 +43,13 @@ Publish-Endpunkt** und gehört deshalb nicht in den öffentlichen Footer der App
 ### Instagram (Limit: 150 Zeichen ≈ 114 genutzt)
 
 ```
-🇦🇹 Mathe üben nach dem österreichischen Lehrplan 🦉 47 Übungstypen · 3 Stufen · Eulenhain Kostenlos & ohne Werbung 👇
+🇦🇹 Mathe üben nach dem österreichischen Lehrplan 🦉 49 Übungstypen · 3 Stufen · Eulenhain Kostenlos & ohne Werbung 👇
 ```
 
 ### TikTok (Limit: 80 Zeichen ≈ 63 genutzt)
 
 ```
-Mathe nach AT-Lehrplan 🦉 47 Übungstypen · 3 Stufen · kostenlos
+Mathe nach AT-Lehrplan 🦉 49 Übungstypen · 3 Stufen · kostenlos
 ```
 
 ### YouTube — Kanalbeschreibung (Kanal „Mathemit“; verlinkter Kanal: `UCLYEbAqgnCGcWASkaDOnXjw`)
@@ -57,7 +57,7 @@ Mathe nach AT-Lehrplan 🦉 47 Übungstypen · 3 Stufen · kostenlos
 ```
 🦉 Mathemit – Mathe üben nach dem österreichischen Lehrplan (AHS/MS 2023)
 
-47 Übungstypen in 15 Themen-Modi, 3 Schwierigkeitsstufen, pädagogisches Tipp-System, Wissensgarten und Eulenhain als Belohnung. Kostenlos und ohne Werbung.
+49 Übungstypen in 15 Themen-Modi, 3 Schwierigkeitsstufen, pädagogisches Tipp-System, Wissensgarten und Eulenhain als Belohnung. Kostenlos und ohne Werbung.
 
 🎬 Hier: kurze Mathe-Tricks & AHA-Momente als Shorts — die App selbst gibt es hier:
 https://mathemit.andybrandy.at

@@ -4,7 +4,7 @@
 
 ## 📊 Aktueller Stand
 
-- **47 Generatoren in 15 lehrplangetreuen Themen-Modi** (H1–H4/I1–I3):
+- **48 Generatoren in 15 lehrplangetreuen Themen-Modi** (H1–H4/I1–I3):
   Dreiecke, Vierecke, Winkel, Umfang & Fläche, Kreis, Körper (Volumen), Oberfläche, **Brüche (8 Operationen inkl. gemischte Zahlen & Bruch↔Dezimal)**, Brüche & Prozent, **Prozente & Zinsen (NEU)**, Textaufgaben (inkl. mehrstufig), Alltag in Österreich (inkl. mehrstufig), **Gleichungen & Verhältnisse** (inkl. Proportionalität), **Daten & Diagramme (NEU: Tabellen + Säulendiagramm)**
 - **3 Schwierigkeitsstufen** je Generator (🌱/🎯/🚀) + dynamische Anpassungs-Vorschläge
 - **Pädagogisches Tipp-System**: progressive Offenlegung (Andeuten → Formel/Ansatz) + gezielte Korrekturhinweise bei Fehlern
@@ -23,10 +23,121 @@
 - **Geometrisches Eulen-Logo**: blinkt, die Pupillen folgen dem Cursor, die Flügel wedeln bei richtigen Aufgaben („Bewegung reduzieren" wird respektiert)
 - **9 Alltag-Textaufgaben** mit Österreich-Bezug
 - **Qualitätssicherung**: Pre-Commit-Check gegen nicht deklarierte Variablen (`scripts/check-strict-vars.py`) — verhindert „ReferenceError: Can't find variable"-Abstürze im `use strict`-Code der App
-- **PWA (installierbar & offline)** — P5.2 Grundversion: App per „Zum Home-Bildschirm" installierbar, startet ohne Netz mit allen 47 Generatoren, Icons aus `logo.svg`. Fortschritt geht offline **nur lokal** — die DB-Nachreichung ist bewusst noch nicht gebaut und wird auch nicht behauptet.
+- **PWA (installierbar & offline)** — P5.2 Grundversion: App per „Zum Home-Bildschirm" installierbar, startet ohne Netz mit allen 48 Generatoren, Icons aus `logo.svg`. Fortschritt geht offline **nur lokal** — die DB-Nachreichung ist bewusst noch nicht gebaut und wird auch nicht behauptet.
 - **Aufgabenleiste per Maus scrollbar** (Bugfix Windows/Edge): Die Themenleiste ließ sich mit der Maus überhaupt nicht bewegen — ein senkrechtes Mausrad scrollte die Seite, nicht die Leiste. Auf Touchpads fällt das nicht auf, auf Windows mit Maus umso mehr. Ursache war `overflow-x:auto` bei gleichzeitig `overflow-y:visible`, wodurch der Browser `overflow-y` zu `auto` rechnet; Chromium leitet das Rad dann an die Seite weiter. Behoben mit explizitem `overflow-y:hidden` **und** einem Wheel-Handler, der das senkrechte Rad auf die Leiste umleitet. Am Anschlag wird nichts geschluckt (die Seite scrollt weiter), Strg+Rad bleibt Zoom, eine echte seitliche Trackpad-Geste bleibt unangetastet. Dazu Pfeiltasten und `role="group"` für Tastatur und Screenreader.
 
 ---
+
+## 🎓 Gesamtlehrplan-Abdeckung (MS Mathematik)
+
+Vollständige Landkarte: welcher Lehrplan-Stoff ist abgedeckt, welcher fehlt noch — und
+welche Flächen jeder Generator braucht. Grundlage ist der **österreichische MS-Lehrplan
+Mathematik (2023)** mit den vier Kompetenzbereichen **H1–H4** und den drei
+Handlungsbereichen **I1–I3**, abgebildet in `CURRICULUM_MAP` (Codes) + `GRADE_TAGS` (Stufen 1–4).
+
+> **Stand:** 48 Generatoren live (v172). Status-Legende: ✅ fertig · ⬜ offen (P-Nummer = zugehöriger Roadmap-Schritt).
+
+### Die 6 Flächen jedes Generators (automatisch erzwungen)
+
+Jeder Generator muss an **allen** Flächen hängen, sonst ist er für Nutzer unsichtbar oder
+fällt aus der Gesamtlogik. Der Pre-Commit-Hook (`scripts/check-generator-surfaces.js`)
+bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** Negativfall getestet:
+
+1. **`GEN`** — Rechenlogik (valides Exercise-Objekt, mathematisch korrekt, 200-Läufe-Stabilitätstest)
+2. **`CURRICULUM_MAP`** — Lehrplan-Code + Kompetenz-Text
+3. **`GRADE_TAGS`** — Stufen-Zuordnung (1–4)
+4. **`MODES`** — echter Topic-**Chip** (`group !== null`; passender Name + `COLORS`-Eintrag)
+5. **`GARTEN_BEREICHE`** — **Wissensgarten**-Baum (Kompetenz-Baum)
+6. **SEO/GEO** — Eintrag im indexierbaren **Abdeckungs-Abschnitt** (`index.html`) + `llms.txt` (P8)
+
+> **Chip-Philosophie:** Ein *eigenes* Chip entsteht, wenn ein Stoff ein eigener
+> Lehrplan-Schwerpunkt ist (z. B. „💰 Prozente & Zinsen", „⚖️ Gleichungen & Verhältnisse",
+> „📊 Daten & Diagramme" — alle mit eigenem Namen). Ein *Sub-Thema* lebt im zugehörigen
+> Haupt-Chip (Pythagoras z. B. unter „🔺 Dreiecke").
+
+---
+
+### 🟦 H1 — Zahlen und Rechnen ✅ (Kern vollständig, Ränder offen)
+
+| Stoff | Generator-Key | Chip | Status |
+|---|---|---|---|
+| Bruch kürzen/erweitern | `bruchKuerzen` | ➗ Brüche | ✅ |
+| Bruch +/− (gleicher Nenner) | `bruchAddition` | ➗ Brüche | ✅ |
+| Bruch +/− (Hauptnenner) | `bruchAdditionVerschNenner` | ➗ Brüche | ✅ |
+| Bruch vergleichen/ordnen | `bruchVergleich` | ➗ Brüche | ✅ |
+| Bruch × (Zähler·Zähler) | `bruchMultiplikation` | ➗ Brüche | ✅ |
+| Bruch ÷ (Kehrwert) | `bruchDivision` | ➗ Brüche | ✅ |
+| Gemischte Zahlen | `gemischteZahlen` | ➗ Brüche | ✅ |
+| Bruch ↔ Dezimal | `bruchDezimal` | ➗ Brüche | ✅ |
+| Prozentwert (Alltag) | `prozentVonZahl` | 💰 Prozente & Zinsen | ✅ |
+| Prozentanteil | `prozentAnteil` | 💰 Prozente & Zinsen | ✅ |
+| Zinsen (Z = K·p·t) | `zinsrechnung` | 💰 Prozente & Zinsen | ✅ |
+| Ganze/negative Zahlen (ℤ) | — | — | ⬜ P1.10 |
+| Potenzen & Wurzeln (Basis) | — | — | ⬜ P1.15 |
+| Teilbarkeit, Primzahlen, kgV/ggT | — | — | ⬜ P1.16 |
+
+### 🟨 H2 — Variablen, Funktionen, Gleichungen ⚠️ (Grundlagen da, Algebra ausbaufähig)
+
+| Stoff | Generator-Key | Chip | Status |
+|---|---|---|---|
+| Lineare Gleichung (ax+b=c) | `gleichungEinfach` | ⚖️ Gleichungen & Verhältnisse | ✅ |
+| Direkte Proportionalität | `proportionalitaet` | ⚖️ Gleichungen & Verhältnisse | ✅ |
+| Einheiten-Umrechnung (Länge/Masse/Zeit/Geld) | — | — | ⬜ P1.13 |
+| Terme vereinfachen / Distributivgesetz | — | — | ⬜ P1.17 |
+| Lineare Funktionen (Steigung, Graph) | — | — | ⬜ (neu, noch nicht geplant) |
+
+### 🟧 H3 — Geometrische Figuren & Körper ✅ (sehr gut abgedeckt)
+
+| Stoff | Generator-Key | Chip | Status |
+|---|---|---|---|
+| Winkelsumme Dreieck | `dreieckWinkel` | 📐 Winkel / 🔺 Dreiecke | ✅ |
+| Winkelsumme Viereck | `viereckWinkel` | 📐 Winkel / ◻ Vierecke | ✅ |
+| Dreiecksarten erkennen | `dreieckErkennen` | 🔺 Dreiecke | ✅ |
+| Vierecksarten erkennen | `viereckErkennen` | ◻ Vierecke | ✅ |
+| Eigenschaften Dreieck | `eigenschaftenDreieck` | 🔺 Dreiecke | ✅ |
+| Eigenschaften Viereck | `eigenschaftenViereck` | ◻ Vierecke | ✅ |
+| **Satz des Pythagoras** | `pythagoras` | 🔺 Dreiecke (Sub-Thema) | ✅ P1.9 |
+| Umfang/Fläche Dreieck, Viereck, Rechteck, Parallelogramm, Trapez | `dreieckUmfang`, `viereckUmfang`, `dreieckFlaeche`, `rechteckFlaeche`, `parallelogrammFlaeche`, `trapezFlaeche` | 📏 Umfang & Fläche | ✅ |
+| Kreisumfang & -fläche | `kreisUmfang`, `kreisFlaeche` | ⭕ Kreis | ✅ |
+| Volumen Quader/Würfel/Zylinder | `quaderVolumen`, `wuerfelVolumen`, `zylinderVolumen` | 📦 Körper (Volumen) | ✅ |
+| Oberfläche Quader/Würfel/Zylinder | `quaderOberflaeche`, `wuerfelOberflaeche`, `zylinderOberflaeche` | 📊 Oberfläche von Körpern | ✅ |
+| Weitere 3D-Körper (Pyramide, Kegel, Kugel, Prisma) | — | — | ⬜ P1.14 |
+| Kongruenz/Ähnlichkeit, Konstruktionen | — | — | ⬜ (neu, noch nicht geplant) |
+
+### 🟪 H4 — Wahrscheinlichkeit & Statistik ❌ (größte Lehrplan-Lücke)
+
+| Stoff | Generator-Key | Chip | Status |
+|---|---|---|---|
+| Tabellen lesen (Zuordnung) | `tabelleLesen` | 📊 Daten & Diagramme (mappt auf I3.M1) | ✅ P1.2 |
+| Säulendiagramm lesen | `diagrammBalken` | 📊 Daten & Diagramme (mappt auf I3.M1) | ✅ P1.3 |
+| Mittelwert / Median / Modus | — | — | ⬜ P1.11 |
+| Einfache Wahrscheinlichkeit | — | — | ⬜ P1.12 |
+
+### 🟩 I1–I3 — Modellieren · Operieren · Interpretieren ✅ (quer durch alle Themen)
+
+| Handlungsbereich | Generator-Key(s) | Status |
+|---|---|---|
+| I1 Modellieren (Sachaufgaben) | `textaufgabeGarten`, `textaufgabePizza`, `textaufgabeWien`, `textaufgabeWandern`, `textaufgabeEinkauf`, `textaufgabeWeihnacht`, `textaufgabeSchule`, `textaufgabeSkikurs`, `textaufgabeWandertag`, `textaufgabeSchulheft`, `textaufgabeEiscafe`, `mehrstufig` | ✅ |
+| I2 Operieren (Rechenlogik) | alle Flächen-/Volumen-/Bruch-Generatoren (Code `I2.M1`) | ✅ |
+| I3 Interpretieren/Darstellen | `tabelleLesen`, `diagrammBalken` + begründete Eigenschaften | ✅ |
+
+---
+
+### Zusammenfassung & nächste Schritte
+
+| Bereich | Abdeckung | Größte offene Lücke |
+|---|---|---|
+| 🟦 H1 Zahlen & Rechnen | ✅ Kern (Brüche/Prozent/Zinsen) | ℤ · Potenzen/Wurzeln · Primzahlen (P1.10/15/16) |
+| 🟨 H2 Gleichungen | ⚠️ Grundlagen | Terme · Funktionen · Einheiten (P1.17/13) |
+| 🟧 H3 Geometrie | ✅ sehr gut | Weitere Körper · Kongruenz (P1.14) |
+| 🟪 H4 Statistik/Wskt. | ❌ Lücke | Mittelwert · Wahrscheinlichkeit (P1.11/12) |
+| 🟩 I1–I3 Prozesse | ✅ querschnittlich | — |
+
+**Empfohlene Reihenfolge** (nach Lehrplan-Gewicht): **P1.10 ℤ** → **P1.11 Mittelwerte**
+→ **P1.12 Wahrscheinlichkeit** (schließt H4) → P1.13 Einheiten → P1.14 Körper.
+
+---
+
 
 ## 🏔️ Die Prioritäten (P1–P11)
 
@@ -79,7 +190,7 @@
 
 | # | Schritt | Status |
 |---|---------|--------|
-| 4.1 | **Wissensgarten** (Kompetenz-Bäume je Lehrplanbereich, eigene Seite wie der Eulenhain) | ✅ 6 Bäume (Brüche, Prozente, Formen, Messen, Alltag, Struktur) — 47 Generatoren als Äpfel, Reife-Färbung aus der Spaced-Leiter (hellgrün/gelb/orange/rot), „fällig" als weicher Hellgrün-Lichtschein statt Uhr, Baum wächst mit Beherrschung, Tiere ziehen in goldene Bäume, Klick auf eine Frucht = gezielter Fokus-Übungsmodus; keine neuen DB-Felder (lebt von `progress.spaced`) |
+| 4.1 | **Wissensgarten** (Kompetenz-Bäume je Lehrplanbereich, eigene Seite wie der Eulenhain) | ✅ 6 Bäume (Brüche, Prozente, Formen, Messen, Alltag, Struktur) — 48 Generatoren als Äpfel, Reife-Färbung aus der Spaced-Leiter (hellgrün/gelb/orange/rot), „fällig" als weicher Hellgrün-Lichtschein statt Uhr, Baum wächst mit Beherrschung, Tiere ziehen in goldene Bäume, Klick auf eine Frucht = gezielter Fokus-Übungsmodus; keine neuen DB-Felder (lebt von `progress.spaced`) |
 | 4.2 | Wöchentliche Ziele | ✅ 3 Ziele (🎯 50 Punkte · 📚 20 Aufgaben · 🔁 5 Wiederholungen), ISO-Wochenstart montags, Fortschrittsbalken, +30 Bonus-Punkte bei allen 3 Zielen; gespeichert lokal + DB (`progress.goals`) |
 | 4.3 | Wiederholungstraining (falsch gelöste Aufgaben exakt wiederholen) | ✅ (Instanz-Speicherung inkl. Original-Grafik, lokal + DB, 🔁-Chip, Erfolgsmeldung) |
 
@@ -224,7 +335,7 @@ Jedes Paket hat eine eigene Abnahme; erst nach erfolgreichem Test wird das näch
 
 | Arbeitspaket | Inhalt | Abnahme | Status |
 |---|---|---|---|
-| **7.3.1** | **Deterministische Aufgaben-Auswahl als gemeinsames Fundament:** Seed und gewünschte Schwierigkeitsstufe vorgeben; pro Episode 3–5 echte Generatoren aus `GEN{}` aufrufen; vollständige Aufgabendaten (Frage, Antwort, Erklärung, Hinweis, Input-Typ, SVG) als versioniertes JSON ausgeben. | Zwei Läufe mit demselben Seed sind bytegleich; alle 47 Generatoren und 3 Stufen sind grundsätzlich auswählbar; ungültige Parameter ergeben einen klaren Fehler; keine App- oder Nutzerdaten werden verändert. | ✅ `select-exercises.js` + 7 Tests |
+| **7.3.1** | **Deterministische Aufgaben-Auswahl als gemeinsames Fundament:** Seed und gewünschte Schwierigkeitsstufe vorgeben; pro Episode 3–5 echte Generatoren aus `GEN{}` aufrufen; vollständige Aufgabendaten (Frage, Antwort, Erklärung, Hinweis, Input-Typ, SVG) als versioniertes JSON ausgeben. | Zwei Läufe mit demselben Seed sind bytegleich; alle 48 Generatoren und 3 Stufen sind grundsätzlich auswählbar; ungültige Parameter ergeben einen klaren Fehler; keine App- oder Nutzerdaten werden verändert. | ✅ `select-exercises.js` + 7 Tests |
 | **7.3.2** | **Browser-Datenübergabe:** Auswahl-JSON in einer isolierten Chrome-/Puppeteer-Szene an die reale App übergeben und eine gewählte Aufgabe sichtbar rendern; Login, gespeicherte Nutzerdaten und Nebenwirkungen vermeiden. | Der Browser rendert exakt die JSON-Aufgabe inklusive Blueprint-SVG; keine Anmeldung und kein Progress-Write; Fehler/Timeout brechen den Lauf ab. | ✅ `render-preview.js` + 4 Tests |
 | **7.3.3** | **Deterministisches 9:16-Rendering:** definierte 1080×1920-Szene, feste Kamera, 30 fps und reproduzierbare Blueprint-Reveal-Frames einschließlich 2-Sekunden-Pause vor der Auflösung. | 1080×1920-Frames/Media ohne schwarze oder abgeschnittene Bereiche; gleicher Seed ergibt vergleichbare Frames; Daten und SVG erscheinen korrekt. | ✅ `render-frames.js` + `lib/timeline.js` + 15 Tests |
 | **7.3.4** | **Video-Montage mit ffmpeg:** Frames zu 15–25 s zusammensetzen, fps/Codec/Aspect Ratio fixieren und Ausgabe für YouTube Shorts, TikTok und Reels vorbereiten. | Valider MP4 (H.264/AAC, 1080×1920, 9:16, planbar 15–25 s), `ffprobe` bestätigt die Spezifikationen; ffmpeg-Fehler brechen den Lauf ab. | ✅ `assemble-video.js` + `lib/ffmpeg-runner.js` + 7 Tests |
@@ -270,7 +381,7 @@ queue-episode.js     ──▶  work/queue/<slug>/        Caption, Hashtags, See
 | Geprüft | `overflowCount: 0`, `clippedTextCount: 0`, `blackFrameCount: 0` |
 | Endcard | Logo full-bleed (1080×959, Füllgrad 1,0), 2,5 s Marken-Endcard |
 | Tests | 48 grün (40 aus 7.3.1–7.3.5, 8 aus 7.3.6) |
-| Generatoren | alle 47 aus `GEN{}` in `app-base.js` auswählbar, 3 Stufen |
+| Generatoren | alle 48 aus `GEN{}` in `app-base.js` auswählbar, 3 Stufen |
 
 **Bewusste Grenzen:** kein Audio (der Clip ist stumm), eine Hook-Vorlage (die übrigen drei folgen in 7.4), keine Veröffentlichung, lokale Platte statt Datenbank.
 
@@ -515,7 +626,7 @@ googeln aber „Mathe üben Mittelschule / Lehrplan 2023". Komplementär zu P7
 - Tests: Node-Harness (`/tmp/mathemit-*.js`) — min. 200 Läufe, Antwort prüfen
 - Commits: `P1.x: <Thema> — <kurz>` + Version bump via pre-commit hook
 - SVG: dunkelgrau (#444444) für Beschriftungen, Comic-Stil
-- Konsistenzprüfung: `node scripts/konsistenz-check.js` (committeter Harness: alle 47 Generatoren × 3 Stufen × 25 Läufe gegen Pflichtfelder, Begriffs-Verbote (W38: „Radi" → „Rad"), Diagramm-Label-Abgleich und Einzelfrage-Regel (W39: genau **eine** Teilfrage je Antwortfeld; der Harness enthält dafür eine Positiv-/Negativkontrolle, damit die Regel nicht stillschweigend wirkungslos wird)
+- Konsistenzprüfung: `node scripts/konsistenz-check.js` (committeter Harness: alle 48 Generatoren × 3 Stufen × 25 Läufe gegen Pflichtfelder, Begriffs-Verbote (W38: „Radi" → „Rad"), Diagramm-Label-Abgleich und Einzelfrage-Regel (W39: genau **eine** Teilfrage je Antwortfeld; der Harness enthält dafür eine Positiv-/Negativkontrolle, damit die Regel nicht stillschweigend wirkungslos wird)
 
 ---
 
@@ -587,7 +698,7 @@ Generator unvollständig einbindet (Positiv- und Negativfall getestet).
 ### Wissensgarten (🌳) — P4.1
 - Über die 🌳-Pille in der Statistikzeile öffnet sich der **Wissensgarten als eigene Seite** (wie der Eulenhain): eine Wiese mit Sonne, Wolken und **6 Kompetenz-Bäumen** — je Lehrplanbereich: 🌰 Bruch-Baum, 🪙 Prozent-Baum, 📐 Winkel-Baum, 📏 Flächen-Baum, 🧺 Alltags-Baum, 🔗 Daten-Baum.
 - Jeder Baum steht auf einem **dreizeiligen Holzschild** (Name / Thema / Status, z. B. „Sachaufgaben" oder „Gleichungen"). Die Höhe von 34 auf 72px ermöglichte eine zweite Zeile und zugleich mehr Luft zwischen den Brettern (12px statt 4px) — vorher standen sie aneinandergereiht. Schrift 17/15/16px statt 12/13px, weil die 1000er-Bühne auf dem Handy auf ~0.39 skaliert und kleine Angaben sonst unter 5px realer Größe landen.
-- Jeder **Apfel** in der Krone ist eine genaue Mathe-Kompetenz (alle 47 Übungstypen). Einheitlich Äpfel statt einer Mischung — auf Abstand war die Birne nicht als Obst erkennbar, sondern nur als weiterer Kreis.
+- Jeder **Apfel** in der Krone ist eine genaue Mathe-Kompetenz (alle 48 Übungstypen). Einheitlich Äpfel statt einer Mischung — auf Abstand war die Birne nicht als Obst erkennbar, sondern nur als weiterer Kreis.
 - Die **Farbe ist die Reife**, wie bei einer echten Frucht: 🟢 hellgrün = noch nie geübt · 🟡 gelb = im Wuchs (Stufe 1–2) · 🟠 orange = reif (Stufe 3–4) · 🔴 rot = gemeistert (Stufe 5). Die Rampe läuft bewusst von hellgrün nach rot, damit „dunkler = besser" einen Blick genügt.
 - Eine **Wiederholung fällig** ist kein eigener Farbton (Rot gehört der Reife), sondern ein **weicher Hellgrün-Lichtschein** hinter dem Apfel. Er färbt ihn nicht ein und wächst mit seinem Radius, statt eine feste Größe zu haben. Die ⏰-Uhr als Zeichen am Baum ist entfallen.
 - Der **Stamm wächst** mit der Beherrschung des Baums — je mehr du sicher kannst, desto höher ragt er. Über jedem **goldenen Baum** zieht ein Tier ein (Eichhörnchen, Papagei, Biene …).

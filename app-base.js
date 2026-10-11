@@ -474,6 +474,7 @@
     mehrstufig:"Teile auf in Schritte: 1) pro Kind 2) alle zusammen 3) Extras.",
     ganzeZahlen:"Auf dem Zahlenstrahl liegt die kleinere Zahl weiter links. Bei + und −: gleiche Vorzeichen addieren die Beträge, verschiedene ziehen ab (Vorzeichen des größeren Betrags gewinnt).",
     wahrscheinlichkeit:"Günstige Fälle durch mögliche Fälle: zähle zuerst, wie viele Fälle gewinnen, dann teile durch alle Fälle.",
+    mittelwerte:"Mittelwert = Summe aller Werte : Anzahl. Modus = der Wert, der am häufigsten vorkommt. Median = der mittlere Wert, nachdem du alles der Größe nach sortiert hast.",
     _default:"Lies die Aufgabe noch einmal langsam – welche Zahlen und welche Frage gibt es?"
   };
   function deriveTips(ex){
@@ -1635,6 +1636,84 @@
     return ex;
   }
 
+  // Mittelwert / Modus / Median einer Datenreihe (H4, I3.M2)
+  function genMittelwerte(diff){
+    diff = diff || 2;
+    var ex = baseEx("daten","mittelwerte");
+    var mode;
+    if(diff===1) mode = "mittelwert";
+    else if(diff===2) mode = choice(["mittelwert","modus"]);
+    else mode = choice(["mittelwert","modus","median"]);
+    var vals = [], i, n, answer;
+    if(mode==="mittelwert"){
+      var meanBase, offs;
+      if(diff===1){ n=5; meanBase=rand(4,12); offs=[-2,-1,0,1,2]; }
+      else if(diff===2){ n=6; meanBase=rand(5,15); offs=[-2,-1,0,1,2,0]; }
+      else { n=7; meanBase=rand(8,20); offs=[-3,-1,0,1,2,-1,2]; }
+      for(i=0;i<n;i++) vals.push(meanBase+offs[i]);
+      vals = shuffle(vals);
+      var sum=0; for(i=0;i<n;i++) sum+=vals[i];
+      answer = sum/n;
+    } else if(mode==="modus"){
+      n = diff===3 ? 7 : 6;
+      var modeVal = rand(3,12);
+      var pool=[]; for(i=1;i<=20;i++){ if(i!==modeVal) pool.push(i); }
+      pool = shuffle(pool);
+      vals = [modeVal,modeVal,modeVal];
+      for(i=0;i<n-3;i++) vals.push(pool[i]);
+      vals = shuffle(vals);
+      answer = modeVal;
+    } else {
+      n = 7; // ungerade -> ganzzahliger Median
+      for(i=0;i<n;i++) vals.push(rand(1,15));
+      var sorted = vals.slice().sort(function(a,b){return a-b;});
+      answer = sorted[(n-1)/2];
+    }
+    // SVG: Werte als Kästen
+    var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    var boxW=30, gap=8;
+    var totalW = n*boxW + (n-1)*gap;
+    var sx = Math.round((300-totalW)/2);
+    var soft = COLORS.gleichung.soft;
+    for(i=0;i<n;i++){
+      var bx = sx + i*(boxW+gap);
+      svg += '<rect x="'+bx+'" y="70" width="'+boxW+'" height="40" rx="6" fill="'+soft+'" stroke="var(--ink)" stroke-width="2"/>';
+      svg += '<text x="'+(bx+boxW/2)+'" y="96" text-anchor="middle" font-size="18" fill="var(--ink)">'+vals[i]+'</text>';
+    }
+    svg += '<text class="dim-label" x="150" y="50" text-anchor="middle" font-size="14">'+n+' Werte</text>';
+    svg += '</svg>';
+    ex.svg = svg;
+    ex.badgeColor = COLORS.gleichung.main;
+    if(mode==="mittelwert"){
+      ex.badge = "Daten · Mittelwert";
+      ex.question = "Berechne das arithmetische Mittel (den Mittelwert) dieser "+n+" Werte. (Ganze Zahl.)";
+      ex.hint = "Addiere alle "+n+" Werte und teile die Summe durch "+n+".";
+      ex.inputType = "number"; ex.unit = ""; ex.tolerance = 0;
+      var sum2=0; for(i=0;i<n;i++) sum2+=vals[i];
+      ex.answer = sum2/n;
+      ex.explanation = "Summe = "+sum2+", Anzahl = "+n+", Mittelwert = "+sum2+" : "+n+" = "+(sum2/n)+".";
+    } else if(mode==="modus"){
+      ex.badge = "Daten · Modus";
+      var others = shuffle((function(){var p=[];for(i=1;i<=20;i++){if(i!==answer)p.push(i);}return p;})()).slice(0,3);
+      var opts = shuffle([String(answer), String(others[0]), String(others[1]), String(others[2])]);
+      ex.question = "Welcher Wert kommt in dieser Datenreihe am häufigsten vor? (Modus.)";
+      ex.hint = "Zähle, wie oft jeder Wert vorkommt. Der häufigste ist der Modus.";
+      ex.inputType = "mc"; ex.choices = opts; ex.correctIndex = opts.indexOf(String(answer));
+      ex.answer = String(answer);
+      var cnt=0; for(i=0;i<n;i++){ if(vals[i]===answer) cnt++; }
+      ex.explanation = "Der Wert "+answer+" kommt "+cnt+"× vor – häufiger als alle anderen. Also ist der Modus "+answer+".";
+    } else {
+      ex.badge = "Daten · Median";
+      ex.question = "Sortiere die Werte der Größe nach. Wie groß ist der Median (der mittlere Wert bei "+n+" Werten)? (Ganze Zahl.)";
+      ex.hint = "Bringe die Werte in eine Reihenfolge. Bei "+n+" (ungerade) Werten ist der Median der Wert in der Mitte.";
+      ex.inputType = "number"; ex.unit = ""; ex.tolerance = 0;
+      var s2 = vals.slice().sort(function(a,b){return a-b;});
+      ex.answer = s2[(n-1)/2];
+      ex.explanation = "Sortiert: "+s2.join(", ")+". Der mittlere (4.) Wert ist "+s2[3]+".";
+    }
+    return ex;
+  }
+
   // Gemischte Zahl in unechten Bruch umwandeln (H1.I1)
   function genGemischteZahlen(diff){
     diff = diff || 2;
@@ -2231,7 +2310,8 @@
     proportionalitaet:   withCurriculum("proportionalitaet",     genProportionalitaet),
     mehrstufig:          withCurriculum("mehrstufig",            genMehrstufig),
     ganzeZahlen:         withCurriculum("ganzeZahlen",           genGanzeZahlen),
-    wahrscheinlichkeit:  withCurriculum("wahrscheinlichkeit",   genWahrscheinlichkeit)
+    wahrscheinlichkeit:  withCurriculum("wahrscheinlichkeit",   genWahrscheinlichkeit),
+    mittelwerte:        withCurriculum("mittelwerte",          genMittelwerte)
   };
 
   var MODES = [
@@ -2249,7 +2329,7 @@
     {id:"textaufgaben", label:"📖 Textaufgaben", group:"Sachrechnen · I1", pool:["textaufgabeGarten","textaufgabePizza","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag","mehrstufig"]},
     {id:"alltag", label:"🇦🇹 Alltag in Österreich", group:"Sachrechnen · I1", pool:["textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag","mehrstufig"]},
     {id:"gleichungen", label:"⚖️ Gleichungen & Verhältnisse", group:"Größen & Variablen · H2", pool:["gleichungEinfach","proportionalitaet"]},
-    {id:"daten-diagramme", label:"📊 Daten & Diagramme", group:"Daten & Statistik · H4", pool:["tabelleLesen","diagrammBalken","wahrscheinlichkeit"]},
+    {id:"daten-diagramme", label:"📊 Daten & Diagramme", group:"Daten & Statistik · H4", pool:["tabelleLesen","diagrammBalken","wahrscheinlichkeit","mittelwerte"]},
     {id:"ganze-zahlen", label:"🔢 Ganze Zahlen", group:"Zahlen & Operationen · H1", pool:["ganzeZahlen"]}
   ];
 
@@ -2272,7 +2352,7 @@
     tabelleLesen:[2,3],
     diagrammBalken:[2,3], gemischteZahlen:[1,2], bruchDezimal:[1,2],
     zinsrechnung:[3,4], proportionalitaet:[2,3], mehrstufig:[2,3],
-    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4]
+    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4]
   };
   var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
   var GRADES = [
@@ -2361,7 +2441,8 @@
     proportionalitaet:   {codes:["H2.I2"], kompetenz:"Direkt proportionale Zusammenhänge (z. B. Schattenlängen) anwenden"},
     mehrstufig:          {codes:["I1.M1","I2.M1"], kompetenz:"Mehrstufige Sachaufgaben in Teilschritten lösen"},
     ganzeZahlen:         {codes:["H1.I3","I2.M1"], kompetenz:"Mit ganzen und negativen Zahlen rechnen (Zahlenstrahl, Betrag, Temperatur)"},
-    wahrscheinlichkeit:  {codes:["I3.M1"], kompetenz:"Einfache Wahrscheinlichkeiten bestimmen (günstige durch mögliche Fälle)"}
+    wahrscheinlichkeit:  {codes:["I3.M1"], kompetenz:"Einfache Wahrscheinlichkeiten bestimmen (günstige durch mögliche Fälle)"},
+    mittelwerte:        {codes:["I3.M1"], kompetenz:"Mittelwert, Modus und Median einer Datenreihe bestimmen und interpretieren"}
   };
 
   /* ============ P4.3: Spaced Repetition ============
@@ -2530,7 +2611,7 @@
     { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck"] },
     { id:"messen",   icon:"📏", name:"Flächen-Baum",  thema:"Maße",       untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","pythagoras","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },
     { id:"alltag",   icon:"🧺", name:"Alltags-Baum",  thema:"Sachaufgaben", untertitel:"Sachaufgaben aus dem Alltag (I1.M1)", generatoren:["textaufgabeGarten","textaufgabePizza","textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSkikurs","textaufgabeWandertag","textaufgabeSchulheft","textaufgabeEiscafe","mehrstufig"] },
-    { id:"struktur", icon:"🔗", name:"Daten-Baum",    thema:"Gleichungen", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","tabelleLesen","diagrammBalken","wahrscheinlichkeit"] }
+    { id:"struktur", icon:"🔗", name:"Daten-Baum",    thema:"Gleichungen", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","tabelleLesen","diagrammBalken","wahrscheinlichkeit","mittelwerte"] }
   ];
   function bereichFuerKey(key){
     var i;

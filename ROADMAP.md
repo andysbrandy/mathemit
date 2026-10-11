@@ -4,8 +4,8 @@
 
 ## 📊 Aktueller Stand
 
-- **50 Generatoren in 15 lehrplangetreuen Themen-Modi** (H1–H4/I1–I3):
-  Dreiecke, Vierecke, Winkel, Umfang & Fläche, Kreis, Körper (Volumen), Oberfläche, **Brüche (8 Operationen inkl. gemischte Zahlen & Bruch↔Dezimal)**, Brüche & Prozent, **Prozente & Zinsen (NEU)**, **🔢 Ganze Zahlen (NEU: Zahlenstrahl, Addition mit Vorzeichen, Temperatur)**, Textaufgaben (inkl. mehrstufig), Alltag in Österreich (inkl. mehrstufig), **Gleichungen & Verhältnisse** (inkl. Proportionalität), **Daten & Diagramme (NEU: Tabellen + Säulendiagramm)**
+- **51 Generatoren in 15 lehrplangetreuen Themen-Modi** (H1–H4/I1–I3):
+  Dreiecke, Vierecke, Winkel, Umfang & Fläche, Kreis, Körper (Volumen), Oberfläche, **Brüche (8 Operationen inkl. gemischte Zahlen & Bruch↔Dezimal)**, Brüche & Prozent, **Prozente & Zinsen (NEU)**, **🔢 Ganze Zahlen (NEU: Zahlenstrahl, Addition mit Vorzeichen, Temperatur)**, Textaufgaben (inkl. mehrstufig), Alltag in Österreich (inkl. mehrstufig), **Gleichungen & Verhältnisse** (inkl. Proportionalität), **Daten & Diagramme (NEU: Tabellen + Säulendiagramm + Mittelwert/Modus/Median + Wahrscheinlichkeit)**
 - **3 Schwierigkeitsstufen** je Generator (🌱/🎯/🚀) + dynamische Anpassungs-Vorschläge
 - **Pädagogisches Tipp-System**: progressive Offenlegung (Andeuten → Formel/Ansatz) + gezielte Korrekturhinweise bei Fehlern
 - **Wiederholungstraining**: falsch gelöste Aufgaben werden exakt gespeichert und über den 🔁-Chip der Reihe nach wiederholt (bis alle geschafft sind)
@@ -104,13 +104,13 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 | Weitere 3D-Körper (Pyramide, Kegel, Kugel, Prisma) | — | — | ⬜ P1.14 |
 | Kongruenz/Ähnlichkeit, Konstruktionen | — | — | ⬜ (neu, noch nicht geplant) |
 
-### 🟪 H4 — Wahrscheinlichkeit & Statistik ❌ (größte Lehrplan-Lücke)
+### 🟪 H4 — Wahrscheinlichkeit & Statistik ✅ (komplett)
 
 | Stoff | Generator-Key | Chip | Status |
 |---|---|---|---|
 | Tabellen lesen (Zuordnung) | `tabelleLesen` | 📊 Daten & Diagramme (mappt auf I3.M1) | ✅ P1.2 |
 | Säulendiagramm lesen | `diagrammBalken` | 📊 Daten & Diagramme (mappt auf I3.M1) | ✅ P1.3 |
-| Mittelwert / Median / Modus | — | — | ⬜ P1.11 |
+| Mittelwert / Median / Modus | `mittelwerte` | 📊 Daten & Diagramme | ✅ P1.11 |
 | Einfache Wahrscheinlichkeit | `wahrscheinlichkeit` | 📊 Daten & Diagramme | ✅ P1.12 |
 
 ### 🟩 I1–I3 — Modellieren · Operieren · Interpretieren ✅ (quer durch alle Themen)
@@ -130,11 +130,11 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 | 🟦 H1 Zahlen & Rechnen | ✅ Kern + ℤ (Brüche/Prozent/Zinsen/ganze Zahlen) | Potenzen/Wurzeln · Primzahlen (P1.15/16) |
 | 🟨 H2 Gleichungen | ⚠️ Grundlagen | Terme · Funktionen · Einheiten (P1.17/13) |
 | 🟧 H3 Geometrie | ✅ sehr gut | Weitere Körper · Kongruenz (P1.14) |
-| 🟪 H4 Statistik/Wskt. | ⚠️ teilw. (Wskt. ✅) | Mittelwert (P1.11) |
+| 🟪 H4 Statistik/Wskt. | ✅ komplett | — |
 | 🟩 I1–I3 Prozesse | ✅ querschnittlich | — |
 
-**Empfohlene Reihenfolge** (nach Lehrplan-Gewicht): **P1.11 Mittelwerte**
-→ **P1.12 Wahrscheinlichkeit** (schließt H4) → P1.13 Einheiten → P1.14 Körper.
+**Empfohlene Reihenfolge** (nach Lehrplan-Gewicht): H4 komplett ✅ (Mittelwerte + Wahrscheinlichkeit).
+→ Nächstes: **P1.13 Einheiten-Umrechnung** (H2) → P1.14 Körper (H3) → P1.15/16 H1-Ränder.
 
 ---
 
@@ -155,7 +155,7 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 | 1.8 | Mehrstufige Sachaufgaben (Rechenweg) | I1.M1 | ✅ |
 | 1.9 | Satz des Pythagoras | H3 | ✅ |
 | 1.10 | Ganze/negative Zahlen (ℤ) | H1 | ✅ |
-| 1.11 | Mittelwert / Median / Modus | I3 | ⬜ |
+| 1.11 | Mittelwert / Median / Modus | I3 | ✅ |
 | 1.12 | Einfache Wahrscheinlichkeit | I3 | ✅ |
 | 1.13 | Einheiten-Umrechnung (Länge/Masse/Zeit/Geld) | H2 | ⬜ |
 | 1.14 | Weitere 3D-Körper (Pyramide, Kegel, Kugel, Prisma) | H3 | ⬜ |

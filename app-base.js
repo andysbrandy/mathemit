@@ -473,6 +473,7 @@
     proportionalitaet:"Gleiche Sonne ⇒ gleiches Verhältnis. Stelle den Dreisatz auf.",
     mehrstufig:"Teile auf in Schritte: 1) pro Kind 2) alle zusammen 3) Extras.",
     ganzeZahlen:"Auf dem Zahlenstrahl liegt die kleinere Zahl weiter links. Bei + und −: gleiche Vorzeichen addieren die Beträge, verschiedene ziehen ab (Vorzeichen des größeren Betrags gewinnt).",
+    wahrscheinlichkeit:"Günstige Fälle durch mögliche Fälle: zähle zuerst, wie viele Fälle gewinnen, dann teile durch alle Fälle.",
     _default:"Lies die Aufgabe noch einmal langsam – welche Zahlen und welche Frage gibt es?"
   };
   function deriveTips(ex){
@@ -1483,6 +1484,156 @@
     return ex;
   }
 
+  // Einfache Wahrscheinlichkeit: günstige Fälle / mögliche Fälle (H4, I3.M1)
+  // diff 1: Urne mit zwei Farben (MC, Bruch-Antwort). diff 2: Urne/Münze/Würfel
+  // gemischt (MC, Bruch). diff 3: Würfel/Glücksrad/Komplement (Zahl, %).
+  function genWahrscheinlichkeit(diff){
+    diff = diff || 2;
+    var ex = baseEx("daten","wahrscheinlichkeit");
+    var mode;
+    if(diff===1) mode = "urne";
+    else if(diff===2) mode = choice(["urne","muenze","wuerfel"]);
+    else mode = choice(["wuerfel2","glueck","komplement"]);
+    var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    if(mode==="urne"){
+      // Urne mit roten + blauen Kugeln; gefragt: P(rot) als Bruch
+      var rot = diff===1 ? rand(1,4) : rand(2,6);
+      var blau = diff===1 ? rand(1,4) : rand(2,6);
+      var total = rot+blau;
+      var g = gcd(rot,total);
+      var correct = (rot/g)+"/"+(total/g);
+      // Distraktoren: wertverschieden vom Correct (Bruchwert-Vergeich),
+      // sonst doppelte richtige Antworten (z. B. 1/2 vs. 3/6).
+      var cVal = rot/total;
+      var candPool = [(blau)+"/"+(total), total+"/"+rot, rot+"/"+(total+1),
+        (rot+1)+"/"+total, (total-rot)+"/"+total, "1/"+(total+1), "1/"+total];
+      var dSeen = {}, distractSet = [];
+      candPool.forEach(function(c){
+        var parts = c.split("/");
+        var v = (+parts[0])/(+parts[1]);
+        if(Math.abs(v-cVal)>1e-9 && !dSeen[c]){ dSeen[c]=1; distractSet.push(c); }
+      });
+      var options = shuffle([correct].concat(distractSet.slice(0,3)));
+      var i, cx;
+      svg += '<ellipse cx="150" cy="60" rx="70" ry="18" fill="none" stroke="var(--ink)" stroke-width="3"/>';
+      svg += '<path d="M80 60 L95 180 Q150 195 205 180 L220 60" fill="'+COLORS.gleichung.soft+'" stroke="var(--ink)" stroke-width="3"/>';
+      for(i=0;i<Math.min(total,8);i++){
+        cx = 110+(i%4)*28;
+        var cy = 120+Math.floor(i/4)*28;
+        var col = i<rot ? COLORS.kreis.main : COLORS.koerper.main;
+        svg += '<circle cx="'+cx+'" cy="'+cy+'" r="11" fill="'+col+'" stroke="var(--ink)" stroke-width="2"/>';
+      }
+      if(total>8) svg += '<text class="dim-label" x="150" y="205" text-anchor="middle">… insgesamt '+rot+' rote + '+blau+' blaue</text>';
+      else svg += '<text class="dim-label" x="150" y="205" text-anchor="middle">'+rot+' rote · '+blau+' blaue Kugeln</text>';
+      svg += '</svg>';
+      ex.question = "In einer Urne liegen "+rot+" rote und "+blau+" blaue Kugeln. Du ziehst blind eine Kugel. Wie groß ist die Wahrscheinlichkeit, dass sie rot ist? (Antwort als gekürzter Bruch, z. B. 1/2.)";
+      ex.hint = "Günstige Fälle (rot: "+rot+") durch mögliche Fälle (alle: "+total+"). Kürze den Bruch so weit wie möglich.";
+      ex.svg=svg; ex.badge="Wahrscheinlichkeit · Urne"; ex.badgeColor=COLORS.gleichung.main;
+      ex.inputType="mc"; ex.choices=options; ex.correctIndex=options.indexOf(correct);
+      ex.answer = correct;
+      ex.explanation = "P(rot) = "+rot+"/"+total+" = "+correct+".";
+    } else if(mode==="muenze"){
+      // Münzwurf: P(Kopf) = 1/2
+      svg += '<circle cx="150" cy="100" r="55" fill="'+COLORS.gleichung.soft+'" stroke="var(--ink)" stroke-width="3"/>';
+      svg += '<text class="dim-label" x="150" y="95" text-anchor="middle" font-size="22">Kopf</text>';
+      svg += '<text class="dim-label" x="150" y="120" text-anchor="middle" font-size="14">oder Zahl?</text>';
+      svg += '<text class="dim-label" x="150" y="195" text-anchor="middle">fairer Münzwurf</text>';
+      svg += '</svg>';
+      var mCorrect = "1/2";
+      var mOptions = shuffle([mCorrect,"1/3","1/4","2/3"]);
+      ex.question = "Du wirfst eine faire Münze. Wie groß ist die Wahrscheinlichkeit für „Kopf“? (Antwort als Bruch.)";
+      ex.hint = "Zwei gleich wahrscheinliche Fälle (Kopf, Zahl) – einer davon gewinnt.";
+      ex.svg=svg; ex.badge="Wahrscheinlichkeit · Münze"; ex.badgeColor=COLORS.gleichung.main;
+      ex.inputType="mc"; ex.choices=mOptions; ex.correctIndex=mOptions.indexOf(mCorrect);
+      ex.answer = mCorrect;
+      ex.explanation = "P(Kopf) = 1/2 = 50 %.";
+    } else if(mode==="wuerfel"){
+      // Würfel: P(gewünschte Augenzahl) = 1/6 als Bruch
+      var augen = rand(1,6);
+      var wCorrect = "1/6";
+      var wOptions = shuffle([wCorrect,"1/5","1/3","1/2"]);
+      var dx = 120, dy = 70, ds = 60;
+      svg += '<rect x="'+dx+'" y="'+dy+'" width="'+ds+'" height="'+ds+'" rx="10" fill="'+COLORS.gleichung.soft+'" stroke="var(--ink)" stroke-width="3"/>';
+      var pips = {1:[[0,0]],2:[[-1,-1],[1,1]],3:[[-1,-1],[0,0],[1,1]],4:[[-1,-1],[1,-1],[-1,1],[1,1]],5:[[-1,-1],[1,-1],[0,0],[-1,1],[1,1]],6:[[-1,-1],[1,-1],[-1,0],[1,0],[-1,1],[1,1]]}[augen];
+      pips.forEach(function(p){
+        svg += '<circle cx="'+(dx+ds/2+p[0]*15)+'" cy="'+(dy+ds/2+p[1]*15)+'" r="5" fill="var(--ink)"/>';
+      });
+      svg += '<text class="dim-label" x="150" y="175" text-anchor="middle" font-size="16">P(du würfelst eine '+augen+')?</text>';
+      svg += '<text class="dim-label" x="150" y="200" text-anchor="middle">fairer Würfel (1–6)</text>';
+      svg += '</svg>';
+      ex.question = "Du würfelst mit einem fairen Würfel. Wie groß ist die Wahrscheinlichkeit, dass du eine "+augen+" würfelst? (Antwort als Bruch.)";
+      ex.hint = "Sechs gleich wahrscheinliche Augenzahlen (1–6) – nur eine davon ist die "+augen+".";
+      ex.svg=svg; ex.badge="Wahrscheinlichkeit · Würfel"; ex.badgeColor=COLORS.gleichung.main;
+      ex.inputType="mc"; ex.choices=wOptions; ex.correctIndex=wOptions.indexOf(wCorrect);
+      ex.answer = wCorrect;
+      ex.explanation = "P("+augen+") = 1/6 (eine von sechs gleich wahrscheinlichen Augenzahlen).";
+    } else if(mode==="wuerfel2"){
+      // Würfel: P(gerade Zahl) = 3/6 = 50 % (Zahl-Antwort in %)
+      svg += '<rect x="120" y="60" width="60" height="60" rx="10" fill="'+COLORS.gleichung.soft+'" stroke="var(--ink)" stroke-width="3"/>';
+      [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(p){
+        svg += '<circle cx="'+(150+p[0]*15)+'" cy="'+(90+p[1]*15)+'" r="5" fill="var(--ink)"/>';
+      });
+      svg += '<text class="dim-label" x="150" y="160" text-anchor="middle" font-size="16">P(gerade Augenzahl)?</text>';
+      svg += '<text class="dim-label" x="150" y="185" text-anchor="middle">gerade: 2, 4, 6</text>';
+      svg += '<text class="dim-label" x="150" y="208" text-anchor="middle">fairer Würfel (1–6)</text>';
+      svg += '</svg>';
+      ex.question = "Du würfelst mit einem fairen Würfel. Wie groß ist die Wahrscheinlichkeit für eine gerade Augenzahl (2, 4, 6)? (Antwort in Prozent, ganze Zahl ohne %-Zeichen.)";
+      ex.hint = "Drei günstige Fälle (2, 4, 6) von sechs möglichen: 3/6 = 1/2. Rechne in Prozent um (mal 100).";
+      ex.svg=svg; ex.badge="Wahrscheinlichkeit · Würfel"; ex.badgeColor=COLORS.gleichung.main;
+      ex.inputType="number"; ex.unit="%";
+      ex.answer = 50;
+      ex.explanation = "P(gerade) = 3/6 = 1/2 = 50 %.";
+    } else if(mode==="glueck"){
+      // Glücksrad: n Sektoren, k Gewinn – Antwort in % (nur ganzzahlige Paare)
+      var n = choice([4,5,8,10]);
+      var k = rand(1,n-1);
+      while((k*100)%n!==0){ k = rand(1,n-1); }
+      var pct = (k*100)/n;
+      var ang = 360/n;
+      var j, a0, a1, x1, y1, x2, y2, large;
+      for(j=0;j<n;j++){
+        a0 = (j*ang-90)*Math.PI/180; a1 = ((j+1)*ang-90)*Math.PI/180;
+        x1 = 150+75*Math.cos(a0); y1 = 100+75*Math.sin(a0);
+        x2 = 150+75*Math.cos(a1); y2 = 100+75*Math.sin(a1);
+        large = ang>180 ? 1 : 0;
+        var fill = j<k ? COLORS.kreis.main : COLORS.gleichung.soft;
+        svg += '<path d="M150 100 L'+Math.round(x1)+' '+Math.round(y1)+' A75 75 0 '+large+' 1 '+Math.round(x2)+' '+Math.round(y2)+' Z" fill="'+fill+'" stroke="var(--ink)" stroke-width="2"/>';
+      }
+      svg += '<circle cx="150" cy="100" r="10" fill="var(--ink)"/>';
+      svg += '<text class="dim-label" x="150" y="200" text-anchor="middle">'+k+' von '+n+' Sektoren gewinnen</text>';
+      svg += '</svg>';
+      ex.question = "Ein Glücksrad hat "+n+" gleich große Sektoren, davon sind "+k+" Gewinn-Sektoren. Wie groß ist die Gewinn-Wahrscheinlichkeit? (Antwort in Prozent, ganze Zahl ohne %-Zeichen.)";
+      ex.hint = k+"/"+n+" der Sektoren gewinnen – rechne den Bruch in Prozent um (mal 100).";
+      ex.svg=svg; ex.badge="Wahrscheinlichkeit · Glücksrad"; ex.badgeColor=COLORS.gleichung.main;
+      ex.inputType="number"; ex.unit="%";
+      ex.answer = pct;
+      ex.explanation = "P(Gewinn) = "+k+"/"+n+" = "+pct+" %.";
+    } else {
+      // Komplement: Urne, gefragt P(NICHT rot) = P(blau) in %
+      var kr = rand(1,5), kb = rand(1,5);
+      var kt = kr+kb;
+      while((kb*100)%kt!==0){ kr = rand(1,5); kb = rand(1,5); kt = kr+kb; }
+      var kpct = (kb*100)/kt;
+      svg += '<ellipse cx="150" cy="60" rx="70" ry="18" fill="none" stroke="var(--ink)" stroke-width="3"/>';
+      svg += '<path d="M80 60 L95 180 Q150 195 205 180 L220 60" fill="'+COLORS.gleichung.soft+'" stroke="var(--ink)" stroke-width="3"/>';
+      var m2, cx2;
+      for(m2=0;m2<Math.min(kt,8);m2++){
+        cx2 = 110+(m2%4)*28;
+        var cy2 = 120+Math.floor(m2/4)*28;
+        var col2 = m2<kr ? COLORS.kreis.main : COLORS.koerper.main;
+        svg += '<circle cx="'+cx2+'" cy="'+cy2+'" r="11" fill="'+col2+'" stroke="var(--ink)" stroke-width="2"/>';
+      }
+      svg += '<text class="dim-label" x="150" y="205" text-anchor="middle">'+kr+' rote · '+kb+' blaue Kugeln</text>';
+      svg += '</svg>';
+      ex.question = "In einer Urne liegen "+kr+" rote und "+kb+" blaue Kugeln. Du ziehst blind eine Kugel. Wie groß ist die Wahrscheinlichkeit, dass sie NICHT rot ist? (Antwort in Prozent, ganze Zahl ohne %-Zeichen.)";
+      ex.hint = "„Nicht rot“ heißt blau: "+kb+" von "+kt+" Kugeln. Rechne "+kb+"/"+kt+" in Prozent um.";
+      ex.svg=svg; ex.badge="Wahrscheinlichkeit · Urne"; ex.badgeColor=COLORS.gleichung.main;
+      ex.inputType="number"; ex.unit="%";
+      ex.answer = kpct;
+      ex.explanation = "P(nicht rot) = P(blau) = "+kb+"/"+kt+" = "+kpct+" %.";
+    }
+    return ex;
+  }
 
   // Gemischte Zahl in unechten Bruch umwandeln (H1.I1)
   function genGemischteZahlen(diff){
@@ -2079,7 +2230,8 @@
     zinsrechnung:        withCurriculum("zinsrechnung",          genZinsrechnung),
     proportionalitaet:   withCurriculum("proportionalitaet",     genProportionalitaet),
     mehrstufig:          withCurriculum("mehrstufig",            genMehrstufig),
-    ganzeZahlen:         withCurriculum("ganzeZahlen",           genGanzeZahlen)
+    ganzeZahlen:         withCurriculum("ganzeZahlen",           genGanzeZahlen),
+    wahrscheinlichkeit:  withCurriculum("wahrscheinlichkeit",   genWahrscheinlichkeit)
   };
 
   var MODES = [
@@ -2097,7 +2249,7 @@
     {id:"textaufgaben", label:"📖 Textaufgaben", group:"Sachrechnen · I1", pool:["textaufgabeGarten","textaufgabePizza","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag","mehrstufig"]},
     {id:"alltag", label:"🇦🇹 Alltag in Österreich", group:"Sachrechnen · I1", pool:["textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag","mehrstufig"]},
     {id:"gleichungen", label:"⚖️ Gleichungen & Verhältnisse", group:"Größen & Variablen · H2", pool:["gleichungEinfach","proportionalitaet"]},
-    {id:"daten-diagramme", label:"📊 Daten & Diagramme", group:"Daten & Statistik · H4", pool:["tabelleLesen","diagrammBalken"]},
+    {id:"daten-diagramme", label:"📊 Daten & Diagramme", group:"Daten & Statistik · H4", pool:["tabelleLesen","diagrammBalken","wahrscheinlichkeit"]},
     {id:"ganze-zahlen", label:"🔢 Ganze Zahlen", group:"Zahlen & Operationen · H1", pool:["ganzeZahlen"]}
   ];
 
@@ -2120,7 +2272,7 @@
     tabelleLesen:[2,3],
     diagrammBalken:[2,3], gemischteZahlen:[1,2], bruchDezimal:[1,2],
     zinsrechnung:[3,4], proportionalitaet:[2,3], mehrstufig:[2,3],
-    ganzeZahlen:[1,2]
+    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4]
   };
   var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
   var GRADES = [
@@ -2208,7 +2360,8 @@
     zinsrechnung:        {codes:["H1.I2"], kompetenz:"Zinsen mit der Zinsformel (Z = K · p · t) berechnen"},
     proportionalitaet:   {codes:["H2.I2"], kompetenz:"Direkt proportionale Zusammenhänge (z. B. Schattenlängen) anwenden"},
     mehrstufig:          {codes:["I1.M1","I2.M1"], kompetenz:"Mehrstufige Sachaufgaben in Teilschritten lösen"},
-    ganzeZahlen:         {codes:["H1.I3","I2.M1"], kompetenz:"Mit ganzen und negativen Zahlen rechnen (Zahlenstrahl, Betrag, Temperatur)"}
+    ganzeZahlen:         {codes:["H1.I3","I2.M1"], kompetenz:"Mit ganzen und negativen Zahlen rechnen (Zahlenstrahl, Betrag, Temperatur)"},
+    wahrscheinlichkeit:  {codes:["I3.M1"], kompetenz:"Einfache Wahrscheinlichkeiten bestimmen (günstige durch mögliche Fälle)"}
   };
 
   /* ============ P4.3: Spaced Repetition ============
@@ -2377,7 +2530,7 @@
     { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck"] },
     { id:"messen",   icon:"📏", name:"Flächen-Baum",  thema:"Maße",       untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","pythagoras","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },
     { id:"alltag",   icon:"🧺", name:"Alltags-Baum",  thema:"Sachaufgaben", untertitel:"Sachaufgaben aus dem Alltag (I1.M1)", generatoren:["textaufgabeGarten","textaufgabePizza","textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSkikurs","textaufgabeWandertag","textaufgabeSchulheft","textaufgabeEiscafe","mehrstufig"] },
-    { id:"struktur", icon:"🔗", name:"Daten-Baum",    thema:"Gleichungen", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","tabelleLesen","diagrammBalken"] }
+    { id:"struktur", icon:"🔗", name:"Daten-Baum",    thema:"Gleichungen", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","tabelleLesen","diagrammBalken","wahrscheinlichkeit"] }
   ];
   function bereichFuerKey(key){
     var i;

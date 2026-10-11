@@ -4,7 +4,7 @@
 
 ## 📊 Aktueller Stand
 
-- **49 Generatoren in 15 lehrplangetreuen Themen-Modi** (H1–H4/I1–I3):
+- **50 Generatoren in 15 lehrplangetreuen Themen-Modi** (H1–H4/I1–I3):
   Dreiecke, Vierecke, Winkel, Umfang & Fläche, Kreis, Körper (Volumen), Oberfläche, **Brüche (8 Operationen inkl. gemischte Zahlen & Bruch↔Dezimal)**, Brüche & Prozent, **Prozente & Zinsen (NEU)**, **🔢 Ganze Zahlen (NEU: Zahlenstrahl, Addition mit Vorzeichen, Temperatur)**, Textaufgaben (inkl. mehrstufig), Alltag in Österreich (inkl. mehrstufig), **Gleichungen & Verhältnisse** (inkl. Proportionalität), **Daten & Diagramme (NEU: Tabellen + Säulendiagramm)**
 - **3 Schwierigkeitsstufen** je Generator (🌱/🎯/🚀) + dynamische Anpassungs-Vorschläge
 - **Pädagogisches Tipp-System**: progressive Offenlegung (Andeuten → Formel/Ansatz) + gezielte Korrekturhinweise bei Fehlern
@@ -35,7 +35,7 @@ welche Flächen jeder Generator braucht. Grundlage ist der **österreichische MS
 Mathematik (2023)** mit den vier Kompetenzbereichen **H1–H4** und den drei
 Handlungsbereichen **I1–I3**, abgebildet in `CURRICULUM_MAP` (Codes) + `GRADE_TAGS` (Stufen 1–4).
 
-> **Stand:** 49 Generatoren live (v173). Status-Legende: ✅ fertig · ⬜ offen (P-Nummer = zugehöriger Roadmap-Schritt).
+> **Stand:** 50 Generatoren live (v173). Status-Legende: ✅ fertig · ⬜ offen (P-Nummer = zugehöriger Roadmap-Schritt).
 
 ### Die 6 Flächen jedes Generators (automatisch erzwungen)
 
@@ -111,7 +111,7 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 | Tabellen lesen (Zuordnung) | `tabelleLesen` | 📊 Daten & Diagramme (mappt auf I3.M1) | ✅ P1.2 |
 | Säulendiagramm lesen | `diagrammBalken` | 📊 Daten & Diagramme (mappt auf I3.M1) | ✅ P1.3 |
 | Mittelwert / Median / Modus | — | — | ⬜ P1.11 |
-| Einfache Wahrscheinlichkeit | — | — | ⬜ P1.12 |
+| Einfache Wahrscheinlichkeit | `wahrscheinlichkeit` | 📊 Daten & Diagramme | ✅ P1.12 |
 
 ### 🟩 I1–I3 — Modellieren · Operieren · Interpretieren ✅ (quer durch alle Themen)
 
@@ -130,7 +130,7 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 | 🟦 H1 Zahlen & Rechnen | ✅ Kern + ℤ (Brüche/Prozent/Zinsen/ganze Zahlen) | Potenzen/Wurzeln · Primzahlen (P1.15/16) |
 | 🟨 H2 Gleichungen | ⚠️ Grundlagen | Terme · Funktionen · Einheiten (P1.17/13) |
 | 🟧 H3 Geometrie | ✅ sehr gut | Weitere Körper · Kongruenz (P1.14) |
-| 🟪 H4 Statistik/Wskt. | ❌ Lücke | Mittelwert · Wahrscheinlichkeit (P1.11/12) |
+| 🟪 H4 Statistik/Wskt. | ⚠️ teilw. (Wskt. ✅) | Mittelwert (P1.11) |
 | 🟩 I1–I3 Prozesse | ✅ querschnittlich | — |
 
 **Empfohlene Reihenfolge** (nach Lehrplan-Gewicht): **P1.11 Mittelwerte**
@@ -156,7 +156,7 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 | 1.9 | Satz des Pythagoras | H3 | ✅ |
 | 1.10 | Ganze/negative Zahlen (ℤ) | H1 | ✅ |
 | 1.11 | Mittelwert / Median / Modus | I3 | ⬜ |
-| 1.12 | Einfache Wahrscheinlichkeit | I3 | ⬜ |
+| 1.12 | Einfache Wahrscheinlichkeit | I3 | ✅ |
 | 1.13 | Einheiten-Umrechnung (Länge/Masse/Zeit/Geld) | H2 | ⬜ |
 | 1.14 | Weitere 3D-Körper (Pyramide, Kegel, Kugel, Prisma) | H3 | ⬜ |
 | 1.15 | Potenzen & Wurzeln (Basis) | H1/H2 | ⬜ |
@@ -167,7 +167,7 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 
 | # | Schritt | Status |
 |---|---------|--------|
-| 2.1 | 3 Stufen pro Generator (Einstieg/Training/Anforderung) | ✅ 48/48 (Erkennen/Eigenschaften: template-basiert, stufenunabhängig) |
+| 2.1 | 3 Stufen pro Generator (Einstieg/Training/Anforderung) | ✅ 50/50 (Erkennen/Eigenschaften: template-basiert, stufenunabhängig) |
 | 2.2 | Dynamische Anpassung (Stufen-Wechsel) | ✅ (2× falsch in Folge → ⬇️-Button, 3× richtig in Folge → ⬆️-Button; ein Klick wechselt direkt die Stufe, beide Richtungen) |
 
 ### P3 — Pädagogischer Support

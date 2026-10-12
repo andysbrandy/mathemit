@@ -475,6 +475,7 @@
     ganzeZahlen:"Auf dem Zahlenstrahl liegt die kleinere Zahl weiter links. Bei + und −: gleiche Vorzeichen addieren die Beträge, verschiedene ziehen ab (Vorzeichen des größeren Betrags gewinnt).",
     wahrscheinlichkeit:"Günstige Fälle durch mögliche Fälle: zähle zuerst, wie viele Fälle gewinnen, dann teile durch alle Fälle.",
     mittelwerte:"Mittelwert = Summe aller Werte : Anzahl. Modus = der Wert, der am häufigsten vorkommt. Median = der mittlere Wert, nachdem du alles der Größe nach sortiert hast.",
+    einheiten:"Größere in kleinere Einheit: mal dem Faktor (Komma nach rechts). Kleinere in größere: durch den Faktor (Komma nach links). Länge und Masse in 10er-Schritten, Geld 1 € = 100 ct.",
     _default:"Lies die Aufgabe noch einmal langsam – welche Zahlen und welche Frage gibt es?"
   };
   function deriveTips(ex){
@@ -1939,6 +1940,102 @@
     return ex;
   }
 
+  /* Dezimalzahl als String mit Komma (österreichische Schreibweise), genau
+   * d Nachkommastellen — NICH über fmtAT, das auf 2 Stellen rundet und bei
+   * 3 Dezimalen (Faktor 1000) die Anzeige verfälschen würde. */
+  function dezimalStr(intTeil, d){
+    if(d <= 0) return String(intTeil);
+    var frac = "";
+    for(var i=0;i<d;i++) frac += String(rand(0,9));
+    return intTeil + "," + frac;
+  }
+
+  /* ============ P1.13: Einheiten-Umrechnung (Länge, Masse, Geld) ============
+   * Didaktisch saubere Dezimal-Treppen: Länge (km·m·cm·mm), Masse (t·kg·g) und
+   * Geld (€·ct) laufen über ×10/×100/×1000 — alle schulen dasselbe Modell
+   * „Stufen-Tabelle / Komma verschieben". Zeit (×60) bleibt bewusst draußen,
+   * um dieses Modell beim ersten Kontakt nicht zu verwässern.
+   * Drei Stufen: eine Stufe ×10/×100 (Einstieg) → eine Stufe ×1000 in beide
+   * Richtungen (Training) → Dezimal-Komma als Eingabe, ganzzahlige Ausgabe
+   * (Anforderung, teils im Alltagssatz). Antwort ist immer ganzzahlig. */
+  var EINHEIT_QUANT = {
+    laenge: { name:"Länge", steps:[ ["km","m",1000], ["m","cm",100], ["cm","mm",10] ] },
+    masse: { name:"Masse", steps:[ ["t","kg",1000], ["kg","g",1000] ] },
+    geld:  { name:"Geld",  steps:[ ["€","ct",100] ] }
+  };
+
+  function genEinheiten(diff){
+    diff = diff || 2;
+    var qKey = choice(Object.keys(EINHEIT_QUANT));
+    var q = EINHEIT_QUANT[qKey];
+    var farbe = COLORS.gleichung.main, weich = COLORS.gleichung.soft;
+
+    // Referenz: die Umrechnungen dieser Größe als kleine Tabelle
+    var tabRows = q.steps.map(function(s){ return ["1 "+s[0], fmtAT(s[2])+" "+s[1]]; });
+    var svg = tableSVG(["Umrechnung","="], tabRows, farbe, weich);
+
+    var ex = baseEx("einheiten","einheiten");
+    ex.svg = svg; ex.badge = "Einheiten · " + q.name; ex.badgeColor = farbe;
+
+    // Schritt wählen (größere → kleinere Einheit ist immer ×factor)
+    var step;
+    if(diff === 1){
+      var einf = q.steps.filter(function(s){ return s[2] <= 100; });
+      step = choice(einf.length ? einf : q.steps);
+    } else if(diff === 2){
+      var tausend = q.steps.filter(function(s){ return s[2] === 1000; });
+      step = choice(tausend.length ? tausend : q.steps);
+    } else {
+      step = choice(q.steps);
+    }
+    var bigger = step[0], smaller = step[1], factor = step[2];
+
+    // Richtung & Wert bestimmen
+    var toSmaller, d = 0, valueNum, valueStr;
+    if(diff === 1){
+      toSmaller = true;
+      var v = rand(2,9); valueNum = v; valueStr = String(v);
+    } else if(diff === 2){
+      toSmaller = Math.random() < 0.5;
+      if(toSmaller){ var v2 = rand(1,9); valueNum = v2; valueStr = String(v2); }
+      else { var gross = rand(2,9)*factor; valueNum = gross; valueStr = String(gross); }
+    } else {
+      // Dezimal-Eingabe (d Nachkommastellen, d ≤ Stellen von factor) → ganzzahlige Ausgabe
+      toSmaller = true;
+      var k = String(factor).length - 1;   // 10→1, 100→2, 1000→3
+      d = rand(1, k);
+      valueStr = dezimalStr(rand(1,9), d);
+      valueNum = parseFloat(valueStr.replace(",", "."));
+    }
+
+    var fromUnit = toSmaller ? bigger : smaller;
+    var toUnit   = toSmaller ? smaller : bigger;
+    var answer   = toSmaller ? valueNum * factor : valueNum / factor;
+
+    ex.inputType = "number"; ex.unit = toUnit; ex.tolerance = 0;
+    ex.answer = answer;
+
+    var kern = valueStr + " " + fromUnit + " = ? " + toUnit;
+    if(diff === 3 && Math.random() < 0.6){
+      var sz = {
+        laenge: "Ein Wanderweg ist " + valueStr + " " + fromUnit + " lang. Wie viele " + toUnit + " sind das?",
+        masse:  "Ein Koffer wiegt " + valueStr + " " + fromUnit + ". Wie viele " + toUnit + " sind das?",
+        geld:   "Ein Sackerl kostet " + valueStr + " " + fromUnit + ". Wie viele " + toUnit + " sind das?"
+      };
+      ex.question = sz[qKey];
+    } else {
+      ex.question = "Rechne um: " + kern;
+    }
+
+    var opWort = toSmaller ? "mal" : "durch";
+    var richtungWort = toSmaller ? "kleineren" : "größeren";
+    ex.hint = "1 " + bigger + " = " + fmtAT(factor) + " " + smaller +
+              ". Du gehst zur " + richtungWort + " Einheit, also " + opWort + " " + fmtAT(factor) + ".";
+    ex.explanation = "1 " + bigger + " = " + fmtAT(factor) + " " + smaller + ", also " + kern +
+                     " = " + fmtAT(answer) + " " + toUnit + ".";
+    return ex;
+  }
+
   function bruchWort(z,n){
     var zN=["","ein","zwei","drei","vier","fünf","sechs","sieben","acht","neun","zehn"];
     var nN={2:"Hälfte",3:"Drittel",4:"Viertel",5:"Fünftel",6:"Sechstel",7:"Siebtel",8:"Achtel",9:"Neuntel",10:"Zehntel"};
@@ -2311,7 +2408,8 @@
     mehrstufig:          withCurriculum("mehrstufig",            genMehrstufig),
     ganzeZahlen:         withCurriculum("ganzeZahlen",           genGanzeZahlen),
     wahrscheinlichkeit:  withCurriculum("wahrscheinlichkeit",   genWahrscheinlichkeit),
-    mittelwerte:        withCurriculum("mittelwerte",          genMittelwerte)
+    mittelwerte:        withCurriculum("mittelwerte",          genMittelwerte),
+    einheiten:          withCurriculum("einheiten",            genEinheiten)
   };
 
   var MODES = [
@@ -2330,7 +2428,8 @@
     {id:"alltag", label:"🇦🇹 Alltag in Österreich", group:"Sachrechnen · I1", pool:["textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag","mehrstufig"]},
     {id:"gleichungen", label:"⚖️ Gleichungen & Verhältnisse", group:"Größen & Variablen · H2", pool:["gleichungEinfach","proportionalitaet"]},
     {id:"daten-diagramme", label:"📊 Daten & Diagramme", group:"Daten & Statistik · H4", pool:["tabelleLesen","diagrammBalken","wahrscheinlichkeit","mittelwerte"]},
-    {id:"ganze-zahlen", label:"🔢 Ganze Zahlen", group:"Zahlen & Operationen · H1", pool:["ganzeZahlen"]}
+    {id:"ganze-zahlen", label:"🔢 Ganze Zahlen", group:"Zahlen & Operationen · H1", pool:["ganzeZahlen"]},
+    {id:"einheiten", label:"📐 Maße & Einheiten", group:"Zahlen & Operationen · H1", pool:["einheiten"]}
   ];
 
   /* Schulstufen-Zuordnung je Übungstyp (1.–4. Klasse Mittelschule) */
@@ -2352,7 +2451,7 @@
     tabelleLesen:[2,3],
     diagrammBalken:[2,3], gemischteZahlen:[1,2], bruchDezimal:[1,2],
     zinsrechnung:[3,4], proportionalitaet:[2,3], mehrstufig:[2,3],
-    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4]
+    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], einheiten:[2,3,4]
   };
   var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
   var GRADES = [
@@ -2442,7 +2541,8 @@
     mehrstufig:          {codes:["I1.M1","I2.M1"], kompetenz:"Mehrstufige Sachaufgaben in Teilschritten lösen"},
     ganzeZahlen:         {codes:["H1.I3","I2.M1"], kompetenz:"Mit ganzen und negativen Zahlen rechnen (Zahlenstrahl, Betrag, Temperatur)"},
     wahrscheinlichkeit:  {codes:["I3.M1"], kompetenz:"Einfache Wahrscheinlichkeiten bestimmen (günstige durch mögliche Fälle)"},
-    mittelwerte:        {codes:["I3.M1"], kompetenz:"Mittelwert, Modus und Median einer Datenreihe bestimmen und interpretieren"}
+    mittelwerte:        {codes:["I3.M1"], kompetenz:"Mittelwert, Modus und Median einer Datenreihe bestimmen und interpretieren"},
+    einheiten:          {codes:["H1.I3","I2.M1"], kompetenz:"Größen in unterschiedlichen Maßeinheiten umrechnen (Länge, Masse, Geld)"}
   };
 
   /* ============ P4.3: Spaced Repetition ============
@@ -2606,7 +2706,7 @@
    * Spaced-Repetition-Leiter (state.spaced): Level 0 = unberührt, 1-2 = im Bau,
    * 3-4 = sicher, 5 = gemeistert (golden), fällig = rot. Keine neuen Persistenzfelder. */
   var GARTEN_BEREICHE = [
-    { id:"brueche",  icon:"🌰", name:"Zahlen-Baum",   thema:"Brüche",     untertitel:"Zahlen & Brüche (H1.I1, H1.I3)",  generatoren:["ganzeZahlen","bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal"] },
+    { id:"brueche",  icon:"🌰", name:"Zahlen-Baum",   thema:"Brüche",     untertitel:"Zahlen & Brüche (H1.I1, H1.I3)",  generatoren:["einheiten","ganzeZahlen","bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal"] },
     { id:"prozente", icon:"🪙", name:"Prozent-Baum",  thema:"Prozente",   untertitel:"Prozente & Verhältnisse (H1.I2, H2.I2)", generatoren:["prozentVonZahl","prozentAnteil","zinsrechnung","proportionalitaet"] },
     { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck"] },
     { id:"messen",   icon:"📏", name:"Flächen-Baum",  thema:"Maße",       untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","pythagoras","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },

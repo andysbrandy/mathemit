@@ -82,7 +82,7 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 |---|---|---|---|
 | Lineare Gleichung (ax+b=c) | `gleichungEinfach` | ⚖️ Gleichungen & Verhältnisse | ✅ |
 | Direkte Proportionalität | `proportionalitaet` | ⚖️ Gleichungen & Verhältnisse | ✅ |
-| Einheiten-Umrechnung (Länge/Masse/Zeit/Geld) | — | — | ⬜ P1.13 |
+| Einheiten-Umrechnung (Länge/Masse/Geld) | `einheiten` | 📐 Maße & Einheiten | ✅ P1.13 (H1.I3) |
 | Terme vereinfachen / Distributivgesetz | — | — | ⬜ P1.17 |
 | Lineare Funktionen (Steigung, Graph) | — | — | ⬜ (neu, noch nicht geplant) |
 
@@ -128,13 +128,13 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 | Bereich | Abdeckung | Größte offene Lücke |
 |---|---|---|
 | 🟦 H1 Zahlen & Rechnen | ✅ Kern + ℤ (Brüche/Prozent/Zinsen/ganze Zahlen) | Potenzen/Wurzeln · Primzahlen (P1.15/16) |
-| 🟨 H2 Gleichungen | ⚠️ Grundlagen | Terme · Funktionen · Einheiten (P1.17/13) |
+| 🟨 H2 Gleichungen | ⚠️ Grundlagen | Terme · Funktionen (P1.17; Einheiten ✅ H1.I3) |
 | 🟧 H3 Geometrie | ✅ sehr gut | Weitere Körper · Kongruenz (P1.14) |
 | 🟪 H4 Statistik/Wskt. | ✅ komplett | — |
 | 🟩 I1–I3 Prozesse | ✅ querschnittlich | — |
 
-**Empfohlene Reihenfolge** (nach Lehrplan-Gewicht): H4 komplett ✅ (Mittelwerte + Wahrscheinlichkeit).
-→ Nächstes: **P1.13 Einheiten-Umrechnung** (H2) → P1.14 Körper (H3) → P1.15/16 H1-Ränder.
+**Empfohlene Reihenfolge** (nach Lehrplan-Gewicht): H4 komplett ✅ (Mittelwerte + Wahrscheinlichkeit), Einheiten ✅ (P1.13, H1.I3).
+→ Nächstes: **P1.14 Weitere 3D-Körper** (H3) → P1.15/16 H1-Ränder → P1.17 Terme (H2).
 
 ---
 
@@ -157,7 +157,7 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 | 1.10 | Ganze/negative Zahlen (ℤ) | H1 | ✅ |
 | 1.11 | Mittelwert / Median / Modus | I3 | ✅ |
 | 1.12 | Einfache Wahrscheinlichkeit | I3 | ✅ |
-| 1.13 | Einheiten-Umrechnung (Länge/Masse/Zeit/Geld) | H2 | ⬜ |
+| 1.13 | Einheiten-Umrechnung (Länge/Masse/Geld) | H1.I3 | ✅ |
 | 1.14 | Weitere 3D-Körper (Pyramide, Kegel, Kugel, Prisma) | H3 | ⬜ |
 | 1.15 | Potenzen & Wurzeln (Basis) | H1/H2 | ⬜ |
 | 1.16 | Teilbarkeit, Primzahlen, kgV/ggT | H1 | ⬜ |

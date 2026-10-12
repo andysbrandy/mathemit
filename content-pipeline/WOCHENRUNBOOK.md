@@ -157,6 +157,23 @@ Der Link in der Mail zeigt auf den **Tailscale-Hostnamen** dieses Macs, z. B.
 Handy und außer Haus auf — ohne die Queue öffentlich zu machen. Fällt Tailscale
 aus, zeigt er auf `localhost` (dann nur am Mac).
 
+### Nützliche Befehle (Kurzreferenz)
+
+| Aufgabe | Befehl |
+|---|---|
+| Beide Agents laden & starten (einmalig) | `bash launchd/install.sh` |
+| Zustand beider Agents prüfen | `bash content-pipeline/launchd/install.sh --status` |
+| Agents entfernen | `bash content-pipeline/launchd/install.sh --uninstall` |
+| Tageslauf sofort von Hand (rendert, queued, mailt) | `npm run woche:daily` |
+| Tageslauf nur simulieren (rendert nichts, mailt nichts) | `npm run woche:daily:dry` |
+| Freigabe-Server-Log ansehen | `tail -n +1 content-pipeline/work/logs/review.out.log` |
+| Letzten Tageslauf-Log ansehen | `tail -n +1 content-pipeline/work/logs/daily-*.log` |
+| Klassischer Wochenlauf (lokal, eigener Server) | `npm run woche` |
+| Nur Vorschau des Wochenlaufs | `npm run woche:dry` |
+
+> Die ausführlichen Schritte (Einrichten, Uhrzeit ändern, Testen, Entfernen)
+> stehen in den nächsten Abschnitten.
+
 ### Einmalig einrichten
 
 ```bash

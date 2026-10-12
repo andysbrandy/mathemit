@@ -397,6 +397,17 @@ queue-episode.js     ──▶  work/queue/<slug>/        Caption, Hashtags, See
 
 **Bedienoberfläche (P7.5):** `npm run review` bündelt alles in einer lokalen Werkstatt — Lauf starten, Protokoll, Zustand und Warteschlange. Die Startseite hat bewusst **keinen Videoplayer**: sie ist reine Steuerung, den Clip prüft man über die Warteschlange. Vier Seiten, auf allen eine Leiste zurück zur Werkstatt, damit kein Link eine Sackgasse ist; die ausführliche Prüfung mit Clip, Aufbau-Zeitleiste, Caption und Hashtags liegt unter `/p/<slug>`. Jedes Feld ist für Menschen beschriftet, nicht nach seinem internen Namen. Bewusst ohne Framework und ohne Build: das Werkzeug läuft neben dem Server aus einem Quellbaum, eine Abhängigkeit nur für eine Seite wäre Aufwand ohne Gegenwert.
 
+**Tagesautomatik — Betrieb (P7.5):** Zwei launchd-Agents (`content-pipeline/launchd/`) übernehmen Erzeugung + Benachrichtigung; **Freigabe und Posten bleiben manuell** (7.4, „Bewusste Reihenfolge“). Der Freigabe-Link in der Mail zeigt auf den **Tailscale-Host** (`http://<mac>.<tailnet>.ts.net:8787/?token=…`) und geht damit am Handy auf, ohne die Queue öffentlich zu machen. Fixer Token in `.review-token`, Mail-Key in `.mail-key` — beide git-ignoriert. Betriebs-Befehle (Details im [Wochenrunbook](content-pipeline/WOCHENRUNBOOK.md#täglicher-automatismus-einmal-einrichten-dann-läuft-es)):
+
+| Aufgabe | Befehl |
+|---|---|
+| Agents laden & starten (einmalig) | `bash content-pipeline/launchd/install.sh` |
+| Zustand prüfen | `bash content-pipeline/launchd/install.sh --status` |
+| Agents entfernen | `bash content-pipeline/launchd/install.sh --uninstall` |
+| Tageslauf sofort von Hand | `npm run woche:daily` (in `content-pipeline/`) |
+| Tageslauf simulieren | `npm run woche:daily:dry` |
+| Server-/Lauf-Logs | `content-pipeline/work/logs/` (`review.*.log`, `daily-*.log`) |
+
 **Caption folgt dem Bild (P7.5.2):** Ein Clip zeigt genau **eine** Aufgabe, die Auswahl aber drei bis fünf. `queue-episode.js` hat die Caption dennoch fest aus der ersten Aufgabe gebaut — wählte man in der Oberfläche „die 2.", stand im Video die Winkel-Aufgabe und in der Caption das Säulendiagramm. Der Slug landete zusätzlich immer unter `-i0`, sodass die Vorschau „1. von 3" anzeigte. Der Index kommt jetzt aus dem **Frame-Manifest**, also aus dem Beleg des Laufs: Caption, Tags und Slug folgen der Aufgabe, die tatsächlich gerendert wurde. Ohne diesen Beleg — oder bei einem Generator, der nicht zur Aufgabenliste passt — ist die Episode `unvollstaendig` und nicht freigabefähig; die Vorschau sagt dann „unbekannt", statt eine Nummer zu erfinden. Zwei Tests halten den Fehler fest: einer prüft, dass die Caption die Aufgabe aus dem Bild nennt und keine andere, einer prüft, dass ein fehlender Beleg nicht still geglaubt wird.
 
 **Stack:** Puppeteer + ffmpeg, alles kostenlos — kein bezahlter Dienst nötig.

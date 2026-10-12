@@ -101,7 +101,7 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 | Kreisumfang & -fläche | `kreisUmfang`, `kreisFlaeche` | ⭕ Kreis | ✅ |
 | Volumen Quader/Würfel/Zylinder | `quaderVolumen`, `wuerfelVolumen`, `zylinderVolumen` | 📦 Körper (Volumen) | ✅ |
 | Oberfläche Quader/Würfel/Zylinder | `quaderOberflaeche`, `wuerfelOberflaeche`, `zylinderOberflaeche` | 📊 Oberfläche von Körpern | ✅ |
-| Weitere 3D-Körper (Pyramide, Kegel, Kugel, Prisma) | — | — | ⬜ P1.14 |
+| Weitere 3D-Körper (Pyramide, Kegel, Kugel, Prisma) | `weitereKoerper` | 📦 Körper (Volumen) | ✅ P1.14 |
 | Kongruenz/Ähnlichkeit, Konstruktionen | — | — | ⬜ (neu, noch nicht geplant) |
 
 ### 🟪 H4 — Wahrscheinlichkeit & Statistik ✅ (komplett)
@@ -129,12 +129,12 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 |---|---|---|
 | 🟦 H1 Zahlen & Rechnen | ✅ Kern + ℤ (Brüche/Prozent/Zinsen/ganze Zahlen) | Potenzen/Wurzeln · Primzahlen (P1.15/16) |
 | 🟨 H2 Gleichungen | ⚠️ Grundlagen | Terme · Funktionen (P1.17; Einheiten ✅ H1.I3) |
-| 🟧 H3 Geometrie | ✅ sehr gut | Weitere Körper · Kongruenz (P1.14) |
+| 🟧 H3 Geometrie | ✅ sehr gut | Kongruenz/Ähnlichkeit, Konstruktionen (nicht geplant) |
 | 🟪 H4 Statistik/Wskt. | ✅ komplett | — |
 | 🟩 I1–I3 Prozesse | ✅ querschnittlich | — |
 
-**Empfohlene Reihenfolge** (nach Lehrplan-Gewicht): H4 komplett ✅ (Mittelwerte + Wahrscheinlichkeit), Einheiten ✅ (P1.13, H1.I3).
-→ Nächstes: **P1.14 Weitere 3D-Körper** (H3) → P1.15/16 H1-Ränder → P1.17 Terme (H2).
+**Empfohlene Reihenfolge** (nach Lehrplan-Gewicht): H4 komplett ✅ (Mittelwerte + Wahrscheinlichkeit), Einheiten ✅ (P1.13, H1.I3), weitere Körper ✅ (P1.14, H3).
+→ Nächstes: **P1.15/16 H1-Ränder** (Potenzen/Wurzeln · Teilbarkeit/Primzahlen) → P1.17 Terme (H2).
 
 ---
 
@@ -158,7 +158,7 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 | 1.11 | Mittelwert / Median / Modus | I3 | ✅ |
 | 1.12 | Einfache Wahrscheinlichkeit | I3 | ✅ |
 | 1.13 | Einheiten-Umrechnung (Länge/Masse/Geld) | H1.I3 | ✅ |
-| 1.14 | Weitere 3D-Körper (Pyramide, Kegel, Kugel, Prisma) | H3 | ⬜ |
+| 1.14 | Weitere 3D-Körper (Pyramide, Kegel, Kugel, Prisma) | H3 | ✅ |
 | 1.15 | Potenzen & Wurzeln (Basis) | H1/H2 | ⬜ |
 | 1.16 | Teilbarkeit, Primzahlen, kgV/ggT | H1 | ⬜ |
 | 1.17 | Terme vereinfachen / Distributivgesetz | H2 | ⬜ |

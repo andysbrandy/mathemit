@@ -1086,6 +1086,134 @@
     return ex;
   }
 
+  /* ============ P1.14: Weitere 3D-Körper (Pyramide, Prisma, Kegel, Kugel) ============ */
+
+  function pyramideSVG(a,h,color,soft){
+    var scale=Math.min(110/Math.max(a,4),11);
+    var half=Math.max(a*scale*0.5,26);
+    var apexY=32, baseY=apexY+Math.min(h*7,105);
+    var cx=150, dep=half*0.55;
+    var FL={x:cx-half,y:baseY}, FR={x:cx+half,y:baseY};
+    var BR={x:FR.x+dep,y:FR.y-dep*0.6}, BL={x:FL.x+dep,y:FL.y-dep*0.6};
+    var A={x:cx+dep*0.5,y:apexY};
+    function P(pts){return pts.map(function(p){return p.x+" "+p.y;}).join(" L ");}
+    var s='<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    s+='<path d="M '+P([FL,FR,BR,BL])+' Z" fill="'+soft+'" fill-opacity="0.55" stroke="'+color+'" stroke-width="2.5" stroke-linejoin="round"/>';
+    s+='<path d="M '+P([FL,BL,A])+' Z" fill="'+color+'" fill-opacity="0.28" stroke="'+color+'" stroke-width="2.5" stroke-linejoin="round"/>';
+    s+='<path class="shape-outline" d="M '+P([FL,FR,A])+' Z" fill="'+soft+'" stroke="'+color+'" stroke-width="3.5" stroke-linejoin="round"/>';
+    s+='<line class="measure-line" x1="'+FL.x+'" y1="'+(baseY+16)+'" x2="'+FR.x+'" y2="'+(baseY+16)+'"/>';
+    s+='<text class="dim-label" x="'+cx+'" y="'+(baseY+32)+'" text-anchor="middle">a = '+a+' cm</text>';
+    s+='<line class="measure-line" x1="'+(A.x+22)+'" y1="'+A.y+'" x2="'+(A.x+22)+'" y2="'+baseY+'"/>';
+    s+='<text class="dim-label" x="'+(A.x+28)+'" y="'+((A.y+baseY)/2)+'" text-anchor="start" dominant-baseline="middle">h = '+h+' cm</text>';
+    s+='</svg>';
+    return s;
+  }
+
+  function prismaSVG(g,hg,H,color,soft){
+    var scale=Math.min(120/Math.max(g,4),12);
+    var halfW=Math.max(g*scale*0.5,26);
+    var triH=Math.max(hg*scale*0.5,22);
+    var botY=168, topY=botY-triH;
+    var cx=132, dep=Math.min(H*scale*0.4,42);
+    var FL={x:cx-halfW,y:botY}, FR={x:cx+halfW,y:botY}, T={x:cx,y:topY};
+    var FL2={x:FL.x+dep,y:FL.y-dep*0.5}, FR2={x:FR.x+dep,y:FR.y-dep*0.5}, T2={x:T.x+dep,y:T.y-dep*0.5};
+    function P(pts){return pts.map(function(p){return p.x+" "+p.y;}).join(" L ");}
+    var s='<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    s+='<path d="M '+P([FL2,FR2,T2])+' Z" fill="'+color+'" fill-opacity="0.18" stroke="'+color+'" stroke-width="2"/>';
+    s+='<path d="M '+P([T,FR,FR2,T2])+' Z" fill="'+color+'" fill-opacity="0.28" stroke="'+color+'" stroke-width="2.5" stroke-linejoin="round"/>';
+    s+='<path d="M '+P([FR,FL,FL2,FR2])+' Z" fill="'+soft+'" fill-opacity="0.6" stroke="'+color+'" stroke-width="2.5" stroke-linejoin="round"/>';
+    s+='<path class="shape-outline" d="M '+P([FL,FR,T])+' Z" fill="'+soft+'" stroke="'+color+'" stroke-width="3.5" stroke-linejoin="round"/>';
+    s+='<text class="dim-label" x="'+cx+'" y="'+(botY+18)+'" text-anchor="middle">g = '+g+' cm</text>';
+    s+='<text class="dim-label" x="'+(cx-8)+'" y="'+((topY+botY)/2)+'" text-anchor="end" dominant-baseline="middle">'+hg+' cm</text>';
+    s+='<text class="dim-label" x="'+((FR.x+FR2.x)/2+6)+'" y="'+((FR.y+FR2.y)/2)+'" text-anchor="start">H = '+H+' cm</text>';
+    s+='</svg>';
+    return s;
+  }
+
+  function kegelSVG(r,h,color,soft){
+    var scaleR=Math.min(60/Math.max(r,4),12);
+    var Rpx=r*scaleR;
+    var Hpx=Math.min(h*7,120);
+    var cx=150, baseY=162, apexY=baseY-Hpx;
+    var ry=Math.max(Rpx*0.3,9);
+    var s='<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    s+='<path class="shape-outline" d="M '+(cx-Rpx)+' '+baseY+' L '+cx+' '+apexY+' L '+(cx+Rpx)+' '+baseY+' Z" fill="'+soft+'" stroke="'+color+'" stroke-width="3.5" stroke-linejoin="round"/>';
+    s+='<ellipse cx="'+cx+'" cy="'+baseY+'" rx="'+Rpx+'" ry="'+ry+'" fill="'+soft+'" fill-opacity="0.5" stroke="'+color+'" stroke-width="3"/>';
+    s+='<line class="measure-line" x1="'+cx+'" y1="'+apexY+'" x2="'+cx+'" y2="'+baseY+'" stroke-dasharray="4 3"/>';
+    s+='<text class="dim-label" x="'+(cx+8)+'" y="'+((apexY+baseY)/2)+'" text-anchor="start">h = '+h+' cm</text>';
+    s+='<line class="measure-line" x1="'+cx+'" y1="'+baseY+'" x2="'+(cx+Rpx)+'" y2="'+baseY+'"/>';
+    s+='<text class="dim-label" x="'+(cx+Rpx/2)+'" y="'+(baseY+18)+'" text-anchor="middle">r = '+r+' cm</text>';
+    s+='</svg>';
+    return s;
+  }
+
+  function kugelSVG(r,color,soft){
+    var scale=Math.min(76/Math.max(r,4),12);
+    var Rpx=r*scale;
+    var cx=150, cy=112;
+    var s='<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+Rpx+'" fill="'+soft+'" stroke="'+color+'" stroke-width="3.5"/>';
+    s+='<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+Rpx+'" ry="'+(Rpx*0.3)+'" fill="none" stroke="'+color+'" stroke-width="1.8" stroke-dasharray="5 4"/>';
+    s+='<line class="measure-line" x1="'+cx+'" y1="'+cy+'" x2="'+(cx+Rpx)+'" y2="'+cy+'"/>';
+    s+='<circle cx="'+cx+'" cy="'+cy+'" r="2.5" fill="'+color+'"/>';
+    s+='<text class="dim-label" x="'+(cx+Rpx/2)+'" y="'+(cy-8)+'" text-anchor="middle">r = '+r+' cm</text>';
+    s+='</svg>';
+    return s;
+  }
+
+  /* Weitere 3D-Körper: Pyramide, Prisma (ganzzahlige Antworten), Kegel, Kugel (π, Toleranz). */
+  function genWeitereKoerper(diff){
+    diff = diff || 2;
+    var farbe=COLORS.koerper.main, weich=COLORS.koerper.soft;
+    var ex = baseEx("koerper","volumen");
+    ex.badgeColor = farbe; ex.inputType="number"; ex.unit="cm³";
+    var bodies = diff===1 ? ["pyramide","prisma"] : ["pyramide","prisma","kegel","kugel"];
+    var body = choice(bodies);
+
+    if(body==="pyramide"){
+      var a = diff===1?choice([3,6]):(diff===3?choice([6,9,12]):choice([3,6,9]));
+      var h = diff===1?rand(2,4):(diff===3?rand(6,15):rand(3,8));
+      var V = a*a*h/3;
+      ex.question="Berechne das Volumen dieser Pyramide (Grundseite a = "+a+" cm, Höhe h = "+h+" cm).";
+      ex.hint="V = (1/3) · G · h, Grundfläche G = a². Also V = a² · h : 3.";
+      ex.svg=pyramideSVG(a,h,farbe,weich); ex.badge="Pyramide · Volumen";
+      ex.answer=V; ex.tolerance=0;
+      ex.explanation="G = a² = "+a+"² = "+(a*a)+" cm². V = (1/3)·"+(a*a)+"·"+h+" = "+(a*a*h)+" : 3 = "+V+" cm³.";
+    } else if(body==="prisma"){
+      var g = diff===1?choice([4,6]):(diff===3?choice([6,8,10,12]):choice([4,6,8]));
+      var hg = diff===1?rand(2,4):(diff===3?rand(3,9):rand(2,6));
+      var H = diff===1?rand(3,8):(diff===3?rand(6,18):rand(4,12));
+      var Vp = (g*hg/2)*H;
+      ex.question="Berechne das Volumen dieses Prismas (Grundseite g = "+g+" cm, Höhe des Grunddreiecks "+hg+" cm, Körperhöhe H = "+H+" cm).";
+      ex.hint="V = G · H, Grundfläche G = Dreieck = g · hg : 2. Also V = (g · hg : 2) · H.";
+      ex.svg=prismaSVG(g,hg,H,farbe,weich); ex.badge="Prisma · Volumen";
+      ex.answer=Vp; ex.tolerance=0;
+      ex.explanation="G = g · hg : 2 = "+g+" · "+hg+" : 2 = "+(g*hg/2)+" cm². V = G · H = "+(g*hg/2)+" · "+H+" = "+Vp+" cm³.";
+    } else if(body==="kegel"){
+      var r = diff===3?choice([3,6,9]):rand(2,6), h2 = diff===3?rand(6,18):rand(3,10);
+      ex.question="Berechne das Volumen dieses Kegels (Radius r = "+r+" cm, Höhe h = "+h2+" cm).";
+      ex.hint="V = (1/3) · π · r² · h. Rechne mit π ≈ 3,14.";
+      ex.svg=kegelSVG(r,h2,farbe,weich); ex.badge="Kegel · Volumen";
+      ex.tolerance=Math.max(1, r*r*h2/3*0.02); ex.answer=Math.PI*r*r*h2/3;
+      ex.explanation="V = (1/3)·π·r²·h ≈ 3,14 · "+r+"² · "+h2+" : 3 = "+fmt(3.14*r*r*h2/3)+" cm³.";
+    } else { // kugel
+      var giveD = diff===3 && Math.random()<0.5;
+      var rk = diff===3?choice([3,6,9]):rand(2,6);
+      if(giveD){
+        var dk=2*rk;
+        ex.question="Berechne das Volumen dieser Kugel (Durchmesser d = "+dk+" cm).";
+        ex.hint="V = (4/3) · π · r³. Der Radius ist die Hälfte des Durchmessers: r = d : 2. Rechne mit π ≈ 3,14.";
+      } else {
+        ex.question="Berechne das Volumen dieser Kugel (Radius r = "+rk+" cm).";
+        ex.hint="V = (4/3) · π · r³. Rechne mit π ≈ 3,14.";
+      }
+      ex.svg=kugelSVG(rk,farbe,weich); ex.badge="Kugel · Volumen";
+      ex.tolerance=Math.max(1, rk*rk*rk*0.03); ex.answer=4/3*Math.PI*rk*rk*rk;
+      ex.explanation="V = (4/3)·π·r³ ≈ (4/3)·3,14·"+rk+"³ = "+fmt(4/3*3.14*rk*rk*rk)+" cm³.";
+    }
+    return ex;
+  }
+
   /* ============ Phase 3: Brüche ============ */
 
   function gcd(a,b){ return b===0 ? a : gcd(b, a%b); }
@@ -2376,6 +2504,7 @@
     quaderVolumen:        withCurriculum("quaderVolumen",         genQuaderVolumen),
     wuerfelVolumen:       withCurriculum("wuerfelVolumen",        genWuerfelVolumen),
     zylinderVolumen:      withCurriculum("zylinderVolumen",       genZylinderVolumen),
+    weitereKoerper:       withCurriculum("weitereKoerper",        genWeitereKoerper),
     quaderOberflaeche:    withCurriculum("quaderOberflaeche",     genQuaderOberflaeche),
     wuerfelOberflaeche:   withCurriculum("wuerfelOberflaeche",    genWuerfelOberflaeche),
     zylinderOberflaeche:  withCurriculum("zylinderOberflaeche",   genZylinderOberflaeche),
@@ -2419,7 +2548,7 @@
     {id:"winkel", label:"📐 Winkel", group:"Geometrie · H3", pool:["dreieckWinkel","viereckWinkel"]},
     {id:"umfang-flaeche", label:"📏 Umfang & Fläche", group:"Geometrie · H3", pool:["dreieckUmfang","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche"]},
     {id:"kreis", label:"⭕ Kreis", group:"Geometrie · H3", pool:["kreisUmfang","kreisFlaeche"]},
-    {id:"koerper", label:"📦 Körper (Volumen)", group:"Geometrie · H3", pool:["quaderVolumen","wuerfelVolumen","zylinderVolumen"]},
+    {id:"koerper", label:"📦 Körper (Volumen)", group:"Geometrie · H3", pool:["quaderVolumen","wuerfelVolumen","zylinderVolumen","weitereKoerper"]},
     {id:"oberflaeche", label:"📊 Oberfläche von Körpern", group:"Geometrie · H3", pool:["quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"]},
     {id:"bruche", label:"➗ Brüche (alle Operationen)", group:"Zahlen & Operationen · H1", pool:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal"]},
     {id:"bruch-prozent", label:"➗ Brüche & Prozent", group:"Zahlen & Operationen · H1", pool:["bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","prozentVonZahl","prozentAnteil"]},
@@ -2438,7 +2567,7 @@
     dreieckFlaeche:[2,3], rechteckFlaeche:[2,3], parallelogrammFlaeche:[3], trapezFlaeche:[3],
     dreieckErkennen:[2,3], viereckErkennen:[2,3], eigenschaftenDreieck:[2,3], eigenschaftenViereck:[2,3],
     kreisUmfang:[3,4], kreisFlaeche:[3,4], pythagoras:[3,4],
-    quaderVolumen:[2,3], wuerfelVolumen:[2,3], zylinderVolumen:[4],
+    quaderVolumen:[2,3], wuerfelVolumen:[2,3], zylinderVolumen:[4], weitereKoerper:[3,4],
     quaderOberflaeche:[3,4], wuerfelOberflaeche:[2,3], zylinderOberflaeche:[4],
     bruchKuerzen:[1,2], bruchAddition:[1,2], bruchVergleich:[1,2],
     bruchAdditionVerschNenner:[2,3], bruchMultiplikation:[3,4], bruchDivision:[4],
@@ -2509,6 +2638,7 @@
     quaderVolumen:        {codes:["H3.I4","I2.M1"], kompetenz:"Volumen eines Quaders berechnen"},
     wuerfelVolumen:       {codes:["H3.I4","I2.M1"], kompetenz:"Volumen eines Würfels berechnen"},
     zylinderVolumen:      {codes:["H3.I4","I2.M1"], kompetenz:"Volumen eines Zylinders berechnen"},
+    weitereKoerper:       {codes:["H3.I4","I2.M1"], kompetenz:"Volumen von Pyramide, Prisma, Kegel und Kugel berechnen"},
     quaderOberflaeche:    {codes:["H3.I4","I2.M1"], kompetenz:"Oberfläche eines Quaders berechnen (O = 2·(a·b + b·c + a·c))"},
     wuerfelOberflaeche:   {codes:["H3.I4","I2.M1"], kompetenz:"Oberfläche eines Würfels berechnen (O = 6·a²)"},
     zylinderOberflaeche:  {codes:["H3.I4","I2.M1"], kompetenz:"Oberfläche eines Zylinders berechnen (O = 2·π·r·(r+h))"},
@@ -2709,7 +2839,7 @@
     { id:"brueche",  icon:"🌰", name:"Zahlen-Baum",   thema:"Brüche",     untertitel:"Zahlen & Brüche (H1.I1, H1.I3)",  generatoren:["einheiten","ganzeZahlen","bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal"] },
     { id:"prozente", icon:"🪙", name:"Prozent-Baum",  thema:"Prozente",   untertitel:"Prozente & Verhältnisse (H1.I2, H2.I2)", generatoren:["prozentVonZahl","prozentAnteil","zinsrechnung","proportionalitaet"] },
     { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck"] },
-    { id:"messen",   icon:"📏", name:"Flächen-Baum",  thema:"Maße",       untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","pythagoras","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },
+    { id:"messen",   icon:"📏", name:"Flächen-Baum",  thema:"Maße",       untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","pythagoras","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","weitereKoerper","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },
     { id:"alltag",   icon:"🧺", name:"Alltags-Baum",  thema:"Sachaufgaben", untertitel:"Sachaufgaben aus dem Alltag (I1.M1)", generatoren:["textaufgabeGarten","textaufgabePizza","textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSkikurs","textaufgabeWandertag","textaufgabeSchulheft","textaufgabeEiscafe","mehrstufig"] },
     { id:"struktur", icon:"🔗", name:"Daten-Baum",    thema:"Gleichungen", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","tabelleLesen","diagrammBalken","wahrscheinlichkeit","mittelwerte"] }
   ];

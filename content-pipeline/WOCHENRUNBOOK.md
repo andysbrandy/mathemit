@@ -4,6 +4,10 @@
 Alles außer dem eigentlichen Hochladen macht **ein Befehl**. Hochgeladen wird
 weiterhin von Hand — das ist Absicht, siehe [Warum manuell](#warum-manuell).
 
+> **Täglich statt wöchentlich?** Siehe [Täglicher Automatismus](#täglicher-automatismus-einmal-einrichten-dann-läuft-es):
+> ein launchd-Agent rendert jeden Tag automatisch und schickt die Freigabe-Mail.
+> Gepostet wird weiterhin von Hand.
+
 **Dauer:** ~5 Minuten für dich, Rest ist Wartezeit beim Rendern.
 
 ---
@@ -19,7 +23,7 @@ cd content-pipeline
 echo -n 're_XXXXXXXXXXXXXXXX' > .mail-key
 ```
 
-Empfänger ist `andybrandy@gmx.at`. Die Datei `.mail-key` steht in `.gitignore`
+Empfänger ist `mathemit@andybrandy.at`. Die Datei `.mail-key` steht in `.gitignore`
 und wird nie eingecheckt. Es geht auch `MAIL_TO=... npm run woche` für ein
 anderes Ziel.
 
@@ -134,6 +138,82 @@ Zwei Gründe, beide bewusst:
    eigene Abbruchregel: steht ein API-Zugang nicht, wird **nicht** ersetzt,
    sondern läuft 7.5 manuell weiter. Automatisierung wäre Komfort, nicht
    Engpass.
+
+---
+
+## Täglicher Automatismus (einmal einrichten, dann läuft es)
+
+Zwei Dinge können vollautomatisch laufen, ohne am „manuell"-Grundsatz oben zu
+rühren — denn **erzeugt und benachrichtigt** wird automatisch, **gepostet**
+weiterhin von Hand:
+
+1. **Der Freigabe-Server läuft immer** (`com.mathemit.review`) — `KeepAlive`,
+   startet bei der Anmeldung, startet neu falls er abstürzt.
+2. **Jeden Tag wird ein Clip gerendert** (`com.mathemit.daily`) und danach
+   geht eine Mail mit dem Freigabe-Link an **`mathemit@andybrandy.at`**.
+
+Der Link in der Mail zeigt auf den **Tailscale-Hostnamen** dieses Macs, z. B.
+`http://macbook-pro.<tailnet>.ts.net:8787/?token=…`. Damit geht er auch am
+Handy und außer Haus auf — ohne die Queue öffentlich zu machen. Fällt Tailscale
+aus, zeigt er auf `localhost` (dann nur am Mac).
+
+### Einmalig einrichten
+
+```bash
+cd content-pipeline
+bash launchd/install.sh          # lädt und startet beide Agents
+bash launchd/install.sh --status # Zustand prüfen
+```
+
+Voraussetzungen:
+
+- **Mail-Schlüssel** in `content-pipeline/.mail-key` ablegen (Resend), sonst
+  rendert der Lauf, verschickt aber keine Mail — der Link steht dann im Log.
+- **Tailscale** am Mac auf „Bei Anmeldung starten" stellen (einmalig in der
+  Tailscale-GUI), sonst ist der Server nur nach dem ersten manuellen Start
+  dauerhaft erreichbar.
+
+### Uhrzeit ändern
+
+Standard ist **06:30**. In `launchd/com.mathemit.daily.plist` `Hour`/`Minute`
+anpassen, dann:
+
+```bash
+launchctl bootout gui/$(id -u)/com.mathemit.daily
+bash launchd/install.sh
+```
+
+### Logs ansehen
+
+```
+content-pipeline/work/logs/
+  daily-<datum>_<zeit>.log   # ein Log pro Tageslauf (vom Wrapper)
+  daily.out.log / daily.err.log   # launchd stdout/stderr des Tageslaufs
+  review.out.log / review.err.log # Freigabe-Server
+```
+
+### Sofort testen, ohne auf 06:30 zu warten
+
+```bash
+npm run woche:daily:dry   # zeigt nur, was heute passieren würde (rendert nichts)
+npm run woche:daily       # echter Tageslauf sofort (rendert, queued, mailt)
+```
+
+### Entfernen
+
+```bash
+bash launchd/install.sh --uninstall
+```
+
+### Was die Automatik bewusst NICHT tut
+
+- **Kein Posten.** Der Freigabe-Klick und das Hochladen bleiben von Hand.
+- **Kein Doppel-Rendern.** Läuft schon ein Lauf (manuell oder ein hängender
+  Tageslauf), überspringt der Tageslauf sicher über eine Lock-Datei
+  (`work/.weekly.lock`) und schreibt nur eine Log-Zeile.
+- **Kein Token-Leak.** Der Freigabe-Token liegt in `content-pipeline/.review-token`
+  (git-ignoriert, `chmod`-geschützt durch den Wrapper). Ohne ihn weist der
+  Server jeden Zugriff ab (`401`).
 
 ---
 

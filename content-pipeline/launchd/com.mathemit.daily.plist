@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  com.mathemit.daily — Tageslauf: jeden Tag ein Video rendern + Freigabe-Mail (Agent B).
+
+  StartCalendarInterval feuert taeglich zur angegebenen Uhrzeit (Standard
+  06:30 Ortszeit). Der Lauf rendert einen Clip, legt ihn in die Queue und
+  schickt eine Mail mit dem Freigabe-Link an mathemit@andybrandy.at.
+
+  Uhrzeit aendern: Stunde/Minute unten anpassen, dann den Agent neu laden:
+    launchctl bootout gui/$(id -u)/com.mathemit.daily
+    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.mathemit.daily.plist
+  Oder bequem:  bash content-pipeline/launchd/install.sh
+
+  Voraussetzung: com.mathemit.review laeuft (Freigabe-Server), sonst ist der
+  Link aus der Mail tot. Laeuft schon ein Lauf, ueberspringt weekly.js sicher.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.mathemit.daily</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>-l</string>
+        <string>/Users/andybrandy/SynologyDrive/0_Projekte/Mathemit.andybrandy.at Lern-App/git/mathemit/content-pipeline/launchd/run-daily.sh</string>
+    </array>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>6</integer>
+        <key>Minute</key>
+        <integer>30</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/andybrandy/SynologyDrive/0_Projekte/Mathemit.andybrandy.at Lern-App/git/mathemit/content-pipeline/work/logs/daily.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/andybrandy/SynologyDrive/0_Projekte/Mathemit.andybrandy.at Lern-App/git/mathemit/content-pipeline/work/logs/daily.err.log</string>
+</dict>
+</plist>

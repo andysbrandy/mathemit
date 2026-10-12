@@ -309,7 +309,7 @@ Auch `apple-touch-icon` zeigt jetzt auf ein PNG: iOS rendert kein SVG.
 | 7.2 | Kanäle anlegen: YouTube (Shorts), TikTok, Instagram — URLs & Handles hinterlegt in `CHANNELS.md` | ✅ |
 | 7.3 | Video-Pipeline-MVP: Puppeteer (headless) → Blueprint-Reveal → ffmpeg 9:16 (15–25 s) → Overlay + Endcard → Warteschlange | ✅ 6/6 Pakete |
 | 7.4 | Hook-Bibliothek: 4 Formate (Countdown, Erwachsenen-Challenge, Streak-Flex, Vorher/Nachher) als Vorlagen + Freigabe per Link | ✅ 7.4.1–7.4.3 + Freigabelink + **erste Posts live (7.4.4–7.4.6)** |
-| 7.5 | Wöchentlicher Rhythmus: 30-Sek.-Freigabe → Cross-Post auf 3 Kanäle (~1 Std./Woche) | ✅ Werkzeugkette (`weekly.js`) + [`WOCHENRUNBOOK.md`](content-pipeline/WOCHENRUNBOOK.md) — Posting bleibt manuell |
+| 7.5 | Wöchentlicher Rhythmus: 30-Sek.-Freigabe → Cross-Post auf 3 Kanäle (~1 Std./Woche) | ✅ Werkzeugkette (`weekly.js`) + [`WOCHENRUNBOOK.md`](content-pipeline/WOCHENRUNBOOK.md) — Posting bleibt manuell. Zusätzlich **Tagesautomatik** (`--daily`/`--kein-server` + launchd-Agents `com.mathemit.review`/`com.mathemit.daily`): Server läuft dauerhaft, jeden Tag wird gerendert und eine Freigabe-Mail an `mathemit@andybrandy.at` mit Tailscale-Link geschickt; Freigabe & Posten bleiben manuell |
 | 7.6 | Schutz & Recht: Kommentare bei Kinder-Content moderieren/deaktivieren; bezahlte Ads nur ab 13 (EU/AT) | ✅ je Plattform entschieden |
 | 7.7 | Phase 2: Klassen-Code aktiv bewerben, Lehrer-Netzwerke, SEO-Seiten, Pinterest, Newsletter | ⏳ Phase 2 |
 

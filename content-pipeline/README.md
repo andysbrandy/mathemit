@@ -16,13 +16,20 @@ npm run woche -- --hook streak    # bestimmten Hook erzwingen
 Der Hook kommt sonst aus einer festen Rotation über alle fünf Vorlagen, gesteuert
 von der Kalenderwoche; der Seed ist daraus abgeleitet, derselbe Clip ist also
 reproduzierbar. Nach dem Lauf kommt eine Mail mit Freigabe-Link, Caption,
-Hashtags und MP4-Pfad an `andybrandy@gmx.at`. **Das Hochladen bleibt manuell** —
+Hashtags und MP4-Pfad an `mathemit@andybrandy.at`. **Das Hochladen bleibt manuell** —
 der Freigabeschritt ist zwingend (7.4, „Bewusste Reihenfolge" Punkt 2).
 
 Für den Mailversand wird ein Resend-Schlüssel gebraucht, der **lokal** abgelegt
 wird (in der Umgebung als `RESEND_API_KEY` oder in `content-pipeline/.mail-key`,
 steht in `.gitignore`). Fehlt er, läuft der Durchlauf trotzdem durch — nur ohne
 Mail, und der Freigabe-Link steht im Terminal.
+
+**Täglich automatisch** (einmal einrichten, dann ohne Zutun): zwei launchd-Agents
+halten den Freigabe-Server dauerhaft am Leben und rendern jeden Tag einen Clip mit
+anschließender Freigabe-Mail. Der Link zeigt auf den Tailscale-Host und geht damit
+auch am Handy auf. Einrichten mit `bash launchd/install.sh`, Details im
+[Täglichen Automatismus](WOCHENRUNBOOK.md#täglicher-automatismus-einmal-einrichten-dann-läuft-es)
+des Runbooks.
 
 **Ausführlich:** [`WOCHENRUNBOOK.md`](WOCHENRUNBOOK.md) ·
 **Messwerte eintragen:** [`MESSPROTOKOLL.md`](MESSPROTOKOLL.md)

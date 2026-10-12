@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  com.mathemit.review — Persistenter Freigabe-Server (Agent A).
+
+  Haelt den Freigabe-Server dauerhaft am Leben, damit der Link aus der
+  taeglichen Mail jederzeit aufgeht. KeepAlive startet ihn neu, falls er
+  abstuerzt; RunAtLoad startet ihn bei der Anmeldung.
+
+  Installieren (einmalig):
+    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.mathemit.review.plist
+  Oder bequem:  bash content-pipeline/launchd/install.sh
+
+  Der Freigabe-Link lautet:
+    http://<tailscale-dns>:8787/?token=<token aus .review-token>
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.mathemit.review</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>-l</string>
+        <string>/Users/andybrandy/SynologyDrive/0_Projekte/Mathemit.andybrandy.at Lern-App/git/mathemit/content-pipeline/launchd/run-review.sh</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/andybrandy/SynologyDrive/0_Projekte/Mathemit.andybrandy.at Lern-App/git/mathemit/content-pipeline/work/logs/review.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/andybrandy/SynologyDrive/0_Projekte/Mathemit.andybrandy.at Lern-App/git/mathemit/content-pipeline/work/logs/review.err.log</string>
+</dict>
+</plist>

@@ -13,6 +13,8 @@
     "review": "node review-server.js",
     "woche": "node weekly.js",
     "woche:dry": "node weekly.js --dry-run",
+    "woche:daily": "node weekly.js --daily --kein-server",
+    "woche:daily:dry": "node weekly.js --daily --kein-server --dry-run",
     "test": "node test/runs.js",
     "test:changed": "node test/runs.js --changed",
     "test:bloecke": "node test/runs.js --bloecke",

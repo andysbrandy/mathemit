@@ -11,3 +11,6 @@
 
 # Lokaler Mail-Schluessel (weekly.js) — niemals einchecken
 /content-pipeline/.mail-key
+
+# Fixer Freigabe-Token des persistenten Review-Servers (launchd) — niemals einchecken
+/content-pipeline/.review-token

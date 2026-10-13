@@ -4,7 +4,7 @@
   com.mathemit.daily — Tageslauf: jeden Tag ein Video rendern + Freigabe-Mail (Agent B).
 
   StartCalendarInterval feuert taeglich zur angegebenen Uhrzeit (Standard
-  06:30 Ortszeit). Der Lauf rendert einen Clip, legt ihn in die Queue und
+  19:00 Ortszeit). Der Lauf rendert einen Clip, legt ihn in die Queue und
   schickt eine Mail mit dem Freigabe-Link an mathemit@andybrandy.at.
 
   Uhrzeit aendern: Stunde/Minute unten anpassen, dann den Agent neu laden:
@@ -30,9 +30,9 @@
     <key>StartCalendarInterval</key>
     <dict>
         <key>Hour</key>
-        <integer>6</integer>
+        <integer>19</integer>
         <key>Minute</key>
-        <integer>30</integer>
+        <integer>0</integer>
     </dict>
 
     <key>StandardOutPath</key>

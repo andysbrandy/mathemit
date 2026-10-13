@@ -7,7 +7,7 @@
 #
 # Die Agents:
 #   com.mathemit.review  Freigabe-Server, immer an (KeepAlive)
-#   com.mathemit.daily   jeden Tag rendern + Freigabe-Mail (06:30)
+#   com.mathemit.daily   jeden Tag rendern + Freigabe-Mail (19:00)
 #
 # Achtung Pfad: Die .plist-Dateien enthalten den absoluten Repo-Pfad. Liegt
 # das Repo woanders, muessen die Pfade in beiden .plist angepasst werden (oder

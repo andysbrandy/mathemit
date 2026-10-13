@@ -192,7 +192,7 @@ Voraussetzungen:
 
 ### Uhrzeit ändern
 
-Standard ist **06:30**. In `launchd/com.mathemit.daily.plist` `Hour`/`Minute`
+Standard ist **19:00**. In `launchd/com.mathemit.daily.plist` `Hour`/`Minute`
 anpassen, dann:
 
 ```bash
@@ -209,7 +209,7 @@ content-pipeline/work/logs/
   review.out.log / review.err.log # Freigabe-Server
 ```
 
-### Sofort testen, ohne auf 06:30 zu warten
+### Sofort testen, ohne auf 19:00 zu warten
 
 ```bash
 npm run woche:daily:dry   # zeigt nur, was heute passieren würde (rendert nichts)

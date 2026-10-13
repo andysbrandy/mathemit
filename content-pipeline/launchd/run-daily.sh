@@ -1,7 +1,7 @@
 #!/bin/bash
 # Daily video render (launchd Agent B: com.mathemit.daily).
 #
-# Laeuft einmal taeglich (Standard 06:30), rendert einen Clip, legt ihn in die
+# Laeuft einmal taeglich (Standard 19:00), rendert einen Clip, legt ihn in die
 # Queue und schickt eine Mail mit dem Freigabe-Link an mathemit@andybrandy.at.
 # Der Link zeigt auf den persistenten Review-Server (--kein-server), weil der
 # schon per com.mathemit.review laeuft.

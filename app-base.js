@@ -477,6 +477,7 @@
     mittelwerte:"Mittelwert = Summe aller Werte : Anzahl. Modus = der Wert, der am häufigsten vorkommt. Median = der mittlere Wert, nachdem du alles der Größe nach sortiert hast.",
     einheiten:"Größere in kleinere Einheit: mal dem Faktor (Komma nach rechts). Kleinere in größere: durch den Faktor (Komma nach links). Länge und Masse in 10er-Schritten, Geld 1 € = 100 ct.",
     potenzen:"aⁿ = a · a · … · a (n Faktoren). Wurzel √a fragt: welche Zahl malgenommen mit sich selbst ergibt a? Bei ³√a nimmst du die Zahl dreimal.",
+    teilbarkeit:"Teilbarkeitsregeln: durch 2 (gerade), 5 (endet auf 0/5), 10 (endet auf 0), 3/9 (Quersumme). Primzahl = nur durch 1 und sich selbst teilbar. kgV = kleinstes gemeinsames Vielfaches, ggT = größter gemeinsamer Teiler.",
     _default:"Lies die Aufgabe noch einmal langsam – welche Zahlen und welche Frage gibt es?"
   };
   function deriveTips(ex){
@@ -2285,6 +2286,86 @@
     return ex;
   }
 
+  /* P1.16: Teilbarkeit, Primzahlen, kgV/ggT — H1 */
+  function genTeilbarkeit(diff){
+    diff = diff || 2;
+    var farbe = COLORS.zahl.main, weich = COLORS.zahl.soft;
+    var ex = baseEx("teilbarkeit","teilbarkeit");
+    ex.inputType = "number"; ex.tolerance = 0;
+    var typ = rand(0,3);
+    var a, b, ergebnis, svgHtml, badge;
+    var maxZahl = diff === 1 ? 12 : diff === 2 ? 30 : diff === 3 ? 60 : 100;
+    function istPrimzahl(n){ if(n < 2) return false; for(var i = 2; i * i <= n; i++) if(n % i === 0) return false; return true; }
+    function naechstePrimzahl(n){ var k = n + 1; while(!istPrimzahl(k)) k++; return k; }
+    function ggt(x,y){ while(y !== 0){ var t = y; y = x % y; x = t; } return x; }
+    function kgV(x,y){ return x * y / ggt(x,y); }
+    function punktReihe(n, cs, x, y, f, s){ var o = ""; for(var i = 0; i < n; i++){ o += '<circle cx="'+(x + i*cs)+'" cy="'+y+'" r="'+(cs/2-1)+'" fill="'+f+'" stroke="'+s+'" stroke-width="1"/>'; } return o; }
+    if(typ === 0){
+      b = rand(2, Math.min(10, maxZahl));
+      a = rand(b+1, maxZahl);
+      ergebnis = a % b;
+      badge = "Teilbarkeit · ÷";
+      svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+        punktReihe(a, Math.floor(260/a), 20, 110, farbe, weich) +
+        '<text x="150" y="40" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+a+' Punkte – Gruppen zu '+b+'</text>' +
+        '<text x="150" y="200" font-size="14" fill="'+farbe+'" text-anchor="middle">Wie viele Punkte bleiben übrig?</text>' +
+        '</svg>';
+      ex.question = a+" ÷ "+b+" = … Rest ?";
+      ex.hint = "Teile "+a+" in Gruppen zu "+b+" auf. Was bleibt übrig?";
+      ex.explanation = a+" ÷ "+b+" = "+Math.floor(a/b)+" Rest "+ergebnis+", denn "+Math.floor(a/b)+"×"+b+"+"+ergebnis+" = "+a+".";
+    } else if(typ === 1){
+      a = rand(2, Math.min(40, maxZahl-2));
+      ergebnis = naechstePrimzahl(a);
+      badge = "Primzahl";
+      svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+        punktReihe(a, Math.floor(260/a), 20, 110, farbe, weich) +
+        '<text x="150" y="40" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+a+' Punkte</text>' +
+        '<text x="150" y="200" font-size="14" fill="'+farbe+'" text-anchor="middle">Welche ist die nächste Primzahl?</text>' +
+        '</svg>';
+      ex.question = "Nächste Primzahl nach "+a+" ?";
+      ex.hint = "Eine Primzahl ist nur durch 1 und sich selbst teilbar. Probier "+(a+1)+", "+(a+2)+", … aus.";
+      ex.explanation = "Die nächste Primzahl nach "+a+" ist "+ergebnis+", denn "+ergebnis+" ist nur durch 1 und "+ergebnis+" teilbar.";
+    } else if(typ === 2){
+      var z1 = rand(2, Math.min(12, maxZahl/2));
+      var z2 = rand(2, Math.min(12, maxZahl/2));
+      ergebnis = kgV(z1, z2);
+      badge = "kgV";
+      svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+        '<line x1="40" y1="90" x2="260" y2="90" stroke="'+weich+'" stroke-width="2"/>' +
+        '<line x1="40" y1="140" x2="260" y2="140" stroke="'+weich+'" stroke-width="2"/>' +
+        '<text x="40" y="80" font-size="13" fill="'+farbe+'" text-anchor="middle">Schritte von '+z1+'</text>' +
+        '<text x="40" y="130" font-size="13" fill="'+farbe+'" text-anchor="middle">Schritte von '+z2+'</text>' +
+        '<text x="150" y="40" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">kgV('+z1+", "+z2+") = ?</text>" +
+        '<text x="150" y="200" font-size="14" fill="'+farbe+'" text-anchor="middle">Wann treffen sich beide Zahlenstrahlen erstmals?</text>' +
+        '</svg>';
+      ex.question = "kgV("+z1+", "+z2+") = ?";
+      ex.hint = "Schreibe die Vielfachen von "+z1+" und "+z2+" auf. Welche Zahl kommt in beiden Listen vor?";
+      ex.explanation = "kgV("+z1+", "+z2+") = "+ergebnis+", denn "+ergebnis+" ist die kleinste Zahl, die sowohl durch "+z1+" als auch durch "+z2+" teilbar ist.";
+    } else {
+      var z1 = rand(2, Math.min(20, maxZahl));
+      var z2 = rand(2, Math.min(20, maxZahl));
+      ergebnis = ggt(z1, z2);
+      badge = "ggT";
+      svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+        '<rect x="40" y="70" width="120" height="40" fill="'+farbe+'" stroke="'+weich+'" stroke-width="1"/>' +
+        '<rect x="40" y="130" width="180" height="40" fill="'+farbe+'" stroke="'+weich+'" stroke-width="1"/>' +
+        '<text x="40" y="65" font-size="13" fill="'+farbe+'" text-anchor="left">'+z1+"×"+'…</text>' +
+        '<text x="40" y="125" font-size="13" fill="'+farbe+'" text-anchor="left">'+z2+"×"+'…</text>' +
+        '<text x="150" y="40" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">ggT('+z1+", "+z2+") = ?</text>" +
+        '<text x="150" y="200" font-size="14" fill="'+farbe+'" text-anchor="middle">Welche ist die größte gleiche Teilgröße?</text>' +
+        '</svg>';
+      ex.question = "ggT("+z1+", "+z2+") = ?";
+      ex.hint = "Zerlege beide Zahlen in Primfaktoren. Welche Faktoren haben beide gemeinsam?";
+      ex.explanation = "ggT("+z1+", "+z2+") = "+ergebnis+", denn "+ergebnis+" ist die größte Zahl, durch die sowohl "+z1+" als auch "+z2+" ohne Rest teilbar sind.";
+    }
+    ex.answer = ergebnis;
+    ex.svg = svgHtml;
+    ex.unit = "";
+    ex.badge = badge;
+    ex.badgeColor = farbe;
+    return ex;
+  }
+
   function bruchWort(z,n){
     var zN=["","ein","zwei","drei","vier","fünf","sechs","sieben","acht","neun","zehn"];
     var nN={2:"Hälfte",3:"Drittel",4:"Viertel",5:"Fünftel",6:"Sechstel",7:"Siebtel",8:"Achtel",9:"Neuntel",10:"Zehntel"};
@@ -2660,7 +2741,8 @@
     wahrscheinlichkeit:  withCurriculum("wahrscheinlichkeit",   genWahrscheinlichkeit),
     mittelwerte:        withCurriculum("mittelwerte",          genMittelwerte),
     einheiten:          withCurriculum("einheiten",            genEinheiten),
-    potenzenWurzeln:    withCurriculum("potenzenWurzeln",      genPotenzenWurzeln)
+    potenzenWurzeln:    withCurriculum("potenzenWurzeln",      genPotenzenWurzeln),
+    teilbarkeit:        withCurriculum("teilbarkeit",          genTeilbarkeit)
   };
 
   var MODES = [
@@ -2681,7 +2763,8 @@
     {id:"daten-diagramme", label:"📊 Daten & Diagramme", group:"Daten & Statistik · H4", pool:["tabelleLesen","diagrammBalken","wahrscheinlichkeit","mittelwerte"]},
     {id:"ganze-zahlen", label:"🔢 Ganze Zahlen", group:"Zahlen & Operationen · H1", pool:["ganzeZahlen"]},
     {id:"einheiten", label:"📐 Maße & Einheiten", group:"Zahlen & Operationen · H1", pool:["einheiten"]},
-    {id:"potenzen-wurzeln", label:"⚡ Potenzen & Wurzeln", group:"Zahlen & Operationen · H1", pool:["potenzenWurzeln"]}
+    {id:"potenzen-wurzeln", label:"⚡ Potenzen & Wurzeln", group:"Zahlen & Operationen · H1", pool:["potenzenWurzeln"]},
+    {id:"teilbarkeit", label:"➗ Teilbarkeit, Primzahlen, kgV/ggT", group:"Zahlen & Operationen · H1", pool:["teilbarkeit"]}
   ];
 
   /* Schulstufen-Zuordnung je Übungstyp (1.–4. Klasse Mittelschule) */
@@ -2703,7 +2786,7 @@
     tabelleLesen:[2,3],
     diagrammBalken:[2,3], gemischteZahlen:[1,2], bruchDezimal:[1,2],
     zinsrechnung:[3,4], proportionalitaet:[2,3], mehrstufig:[2,3],
-    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], einheiten:[2,3,4], potenzenWurzeln:[3,4]
+    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], einheiten:[2,3,4], potenzenWurzeln:[3,4], teilbarkeit:[3,4]
   };
   var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
   var GRADES = [
@@ -2796,7 +2879,8 @@
     wahrscheinlichkeit:  {codes:["I3.M1"], kompetenz:"Einfache Wahrscheinlichkeiten bestimmen (günstige durch mögliche Fälle)"},
     mittelwerte:        {codes:["I3.M1"], kompetenz:"Mittelwert, Modus und Median einer Datenreihe bestimmen und interpretieren"},
     einheiten:          {codes:["H1.I3","I2.M1"], kompetenz:"Größen in unterschiedlichen Maßeinheiten umrechnen (Länge, Masse, Geld)"},
-    potenzenWurzeln:    {codes:["H1.I1","H2.I2"], kompetenz:"Potenzen mit ganzzahligem Exponenten bilden und auswerten; Wurzeln ziehen (Quadrat-, Kubikwurzel)"}
+    potenzenWurzeln:   {codes:["H1.I1","H2.I2"], kompetenz:"Potenzen mit ganzzahligem Exponenten bilden und auswerten; Wurzeln ziehen (Quadrat-, Kubikwurzel)"},
+    teilbarkeit:       {codes:["H1.I1"], kompetenz:"Teilbarkeitsregeln anwenden; Primzahlen erkennen; kgV und ggT kleinerer Zahlen bestimmen"}
   };
 
   /* ============ P4.3: Spaced Repetition ============
@@ -2960,7 +3044,7 @@
    * Spaced-Repetition-Leiter (state.spaced): Level 0 = unberührt, 1-2 = im Bau,
    * 3-4 = sicher, 5 = gemeistert (golden), fällig = rot. Keine neuen Persistenzfelder. */
   var GARTEN_BEREICHE = [
-    { id:"brueche",  icon:"🌰", name:"Zahlen-Baum",   thema:"Brüche",     untertitel:"Zahlen & Brüche (H1.I1, H1.I3)",  generatoren:["einheiten","ganzeZahlen","bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal","potenzenWurzeln"] },
+    { id:"brueche",  icon:"🌰", name:"Zahlen-Baum",   thema:"Brüche",     untertitel:"Zahlen & Brüche (H1.I1, H1.I3)",  generatoren:["einheiten","ganzeZahlen","bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal","potenzenWurzeln","teilbarkeit"] },
     { id:"prozente", icon:"🪙", name:"Prozent-Baum",  thema:"Prozente",   untertitel:"Prozente & Verhältnisse (H1.I2, H2.I2)", generatoren:["prozentVonZahl","prozentAnteil","zinsrechnung","proportionalitaet"] },
     { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck"] },
     { id:"messen",   icon:"📏", name:"Flächen-Baum",  thema:"Maße",       untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","pythagoras","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","weitereKoerper","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },

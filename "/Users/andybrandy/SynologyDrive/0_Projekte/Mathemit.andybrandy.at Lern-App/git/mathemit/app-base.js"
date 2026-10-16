@@ -1,0 +1,36 @@
+      if(exp === 2){
+        var cs = Math.floor(150 / dispB);
+        if(cs < 5) cs = 5;
+        var gs = dispB * cs;
+        var x0 = (300 - gs) / 2;
+        var y0 = 45;
+        svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+          quadGrid(dispB, cs, x0, y0, farbe, weich) +
+          '<text x="150" y="24" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+basis+'² = '+ergebnis+'</text>' +
+          '<text x="150" y="208" font-size="13" fill="'+farbe+'" text-anchor="middle">'+
+            labelKurz + dispB + ' × ' + dispB + ' = ' + ergebnis + ' Einheitsquadrate</text>' +
+          '</svg>';
+      } else {
+        var maxLay = Math.min(exp, 4);
+        var cs = Math.floor(110 / dispB);
+        if(cs < 4) cs = 4;
+        var gs = dispB * cs;
+        var layOff = 10;
+        var x0 = (300 - gs - layOff*(maxLay-1)) / 2;
+        var y0 = 32;
+        var parts = "";
+        for(var l = 0; l < maxLay; l++){
+          var ox = x0 + l * layOff;
+          var oy = y0 - l * 5;
+          var op = 1 - l * 0.18;
+          parts += quadGrid(dispB, cs, ox, oy, farbe, weich, op);
+        }
+        svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+          parts +
+          '<text x="150" y="18" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+basis+'<tspan font-size="14" dy="-8">'+exp+'</tspan> = '+ergebnis+'</text>' +
+          '<text x="150" y="208" font-size="13" fill="'+farbe+'" text-anchor="middle">'+
+            maxLay+' Schichten à '+dispB+'×'+dispB+' = '+ergebnis+' Einheitswürfel'+
+            (gekuerzt ? ' (beispielhaft)' : '')+
+          '</text>' +
+          '</svg>';
+      }

@@ -2210,39 +2210,43 @@
 
     if(istWurzel){
       // Wurzel ziehen: √ergebnis (exp. Wurzel) = basis
+      // Die Visualisierung zeigt ein Quadrat aus Einheitsquadraten (Fläche = ergebnis).
+      // Die Seitenlänge (= Antwort) wird NICHT angezeigt – Schüler:innen sollen selbst darauf kommen.
       var gradText = exp === 2 ? "" : "<sup>"+exp+"</sup>";
       var cs = Math.floor(150 / dispB);
       if(cs < 5) cs = 5;
       var gs = dispB * cs;
       var x0 = (300 - gs) / 2;
-      var y0 = 40;
+      var y0 = 42;
       var parts = quadGrid(dispB, cs, x0, y0, farbe, weich);
       var wurzelGrad = exp === 2 ? "" : "<tspan font-size=\"14\" dy=\"-8\">"+exp+"</tspan>";
+      // Bei Wurzeln ist dispB === basis (niemals gekürzt im Zahlenbereich), daher niemals Seitenlänge nennen.
+      var wurzelLabel = gekuerzt
+        ? labelKurz + '(beispielhaft) ' + dispB + ' × ' + dispB + ' Felder'
+        : ergebnis + ' Einheitsquadrate';
       svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
         parts +
-        '<text x="150" y="20" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">√'+ergebnis+wurzelGrad+' = '+basis+'</text>' +
-        '<text x="150" y="208" font-size="13" fill="'+farbe+'" text-anchor="middle">'+
-          (gekuerzt ? labelKurz + '(beispielhaft) ' + dispB + ' × ' + dispB + ' Felder; Kantenlänge wäre ' + basis
-                    : dispB + ' × ' + dispB + ' = ' + ergebnis + ' Felder → Kantenlänge = ' + basis) +
-        '</text>' +
+        '<text x="150" y="22" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">√'+ergebnis+wurzelGrad+' = ?</text>' +
+        '<text x="150" y="208" font-size="13" fill="'+farbe+'" text-anchor="middle">'+wurzelLabel+'</text>' +
         '</svg>';
       ex.question = "Wurzel ziehen: √"+ergebnis+gradText+" = ?";
       ex.hint = "Welche Zahl, "+exp+"-mal mit sich selbst malgenommen, ergibt "+ergebnis+"?";
       ex.explanation = "√"+ergebnis+" = "+basis+", denn "+basis+"<sup>"+exp+"</sup> = "+fmtAT(ergebnis)+".";
     } else {
       // Potenz bilden: basis^exp = ergebnis
+      // Die Visualisierung zeigt das Raster, aber weder das Gesamtergebnis noch eine "="-Rechnung.
       if(exp === 2){
         var cs = Math.floor(150 / dispB);
         if(cs < 5) cs = 5;
         var gs = dispB * cs;
         var x0 = (300 - gs) / 2;
-        var y0 = 45;
+        var y0 = 46;
         svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
           quadGrid(dispB, cs, x0, y0, farbe, weich) +
-          '<text x="150" y="24" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+basis+'² = '+ergebnis+'</text>' +
+          '<text x="150" y="24" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+basis+'² = ?</text>' +
           '<text x="150" y="208" font-size="13" fill="'+farbe+'" text-anchor="middle">'+
-            (gekuerzt ? labelKurz + '(beispielhaft) ' + dispB + ' × ' + dispB + ' Felder; Kantenlänge wäre ' + basis
-                      : dispB + ' × ' + dispB + ' = ' + ergebnis + ' Einheitsquadrate') +
+            (gekuerzt ? labelKurz + '(beispielhaft) ' + dispB + ' × ' + dispB + ' Felder'
+                      : dispB + ' × ' + dispB + ' Felder') +
           '</text>' +
           '</svg>';
       } else {
@@ -2252,7 +2256,7 @@
         var gs = dispB * cs;
         var layOff = 10;
         var x0 = (300 - gs - layOff*(maxLay-1)) / 2;
-        var y0 = 32;
+        var y0 = 34;
         var parts = "";
         for(var l = 0; l < maxLay; l++){
           var ox = x0 + l * layOff;
@@ -2262,10 +2266,10 @@
         }
         svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
           parts +
-          '<text x="150" y="18" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+basis+'<tspan font-size="14" dy="-8">'+exp+'</tspan> = '+ergebnis+'</text>' +
+          '<text x="150" y="18" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+basis+'<tspan font-size="14" dy="-8">'+exp+'</tspan> = ?</text>' +
           '<text x="150" y="208" font-size="13" fill="'+farbe+'" text-anchor="middle">'+
-            (gekuerzt ? labelKurz + '(beispielhaft) ' + maxLay + ' Schichten à ' + dispB + '×' + dispB + '; Kantenlänge wäre ' + basis
-                      : maxLay+' Schichten à '+dispB+'×'+dispB+' = '+ergebnis+' Einheitswürfel')+
+            (gekuerzt ? labelKurz + '(beispielhaft) ' + maxLay + ' Schichten à ' + dispB + '×' + dispB
+                      : maxLay+' Schichten à '+dispB+'×'+dispB)+
           '</text>' +
           '</svg>';
       }

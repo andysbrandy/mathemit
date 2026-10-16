@@ -476,6 +476,7 @@
     wahrscheinlichkeit:"Günstige Fälle durch mögliche Fälle: zähle zuerst, wie viele Fälle gewinnen, dann teile durch alle Fälle.",
     mittelwerte:"Mittelwert = Summe aller Werte : Anzahl. Modus = der Wert, der am häufigsten vorkommt. Median = der mittlere Wert, nachdem du alles der Größe nach sortiert hast.",
     einheiten:"Größere in kleinere Einheit: mal dem Faktor (Komma nach rechts). Kleinere in größere: durch den Faktor (Komma nach links). Länge und Masse in 10er-Schritten, Geld 1 € = 100 ct.",
+    potenzen:"aⁿ = a·a·…·a (n Faktoren). Wurzel √a fragt: welche Zahl malgenommen mit sich selbst ergibt a? Bei ³√a nimmst du die Zahl dreimal.",
     _default:"Lies die Aufgabe noch einmal langsam – welche Zahlen und welche Frage gibt es?"
   };
   function deriveTips(ex){
@@ -2164,6 +2165,45 @@
     return ex;
   }
 
+  /* P1.15: Potenzen & Wurzeln (Basis) — H1/H2 */
+  function genPotenzenWurzeln(diff){
+    diff = diff || 2;
+    var farbe = COLORS.zahl.main, weich = COLORS.zahl.soft;
+    var ex = baseEx("potenzenWurzeln","potenzen");
+    ex.inputType = "number"; ex.tolerance = 0;
+
+    var istWurzel = Math.random() < 0.5;
+    var basis, exp, ergebnis, svgHtml;
+
+    // Zahlenbereich je nach Schwierigkeit
+    if(diff === 1){ basis = rand(2,9); exp = 2; }
+    else if(diff === 2){ basis = rand(2,12); exp = rand(2,3); }
+    else { basis = rand(2,20); exp = rand(2,4); }
+
+    ergebnis = Math.pow(basis, exp);
+
+    if(istWurzel){
+      // Wurzel ziehen: √ergebnis (exp. Wurzel) = basis
+      var gradText = exp === 2 ? "" : "<sup>"+exp+"</sup>";
+      svgHtml = '<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><text x="150" y="100" font-size="40" fill="'+farbe+'" text-anchor="middle">√'+ergebnis+gradText+'</text></svg>';
+      ex.question = "Wurzel ziehen: √"+ergebnis+gradText+" = ?";
+      ex.hint = "Welche Zahl, "+exp+"-mal mit sich selbst malgenommen, ergibt "+ergebnis+"?";
+      ex.explanation = "√"+ergebnis+" = "+basis+", denn "+basis+"<sup>"+exp+"</sup> = "+fmtAT(ergebnis)+".";
+    } else {
+      // Potenz bilden: basis^exp = ergebnis
+      svgHtml = '<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><text x="150" y="100" font-size="32" fill="'+farbe+'" text-anchor="middle">'+basis+'<tspan font-size="18" dy="-14">'+exp+'</tspan></text></svg>';
+      ex.question = "Potenz bilden: "+basis+"<sup>"+exp+"</sup> = ?";
+      ex.hint = "Multipliziere "+basis+" "+exp+"-mal mit sich selbst.";
+      ex.explanation = basis+"<sup>"+exp+"</sup> = "+fmtAT(ergebnis)+".";
+    }
+    ex.answer = basis;
+    ex.svg = svgHtml;
+    ex.unit = "";
+    ex.badge = istWurzel ? "Wurzel · √" : "Potenz · ^"+exp;
+    ex.badgeColor = farbe;
+    return ex;
+  }
+
   function bruchWort(z,n){
     var zN=["","ein","zwei","drei","vier","fünf","sechs","sieben","acht","neun","zehn"];
     var nN={2:"Hälfte",3:"Drittel",4:"Viertel",5:"Fünftel",6:"Sechstel",7:"Siebtel",8:"Achtel",9:"Neuntel",10:"Zehntel"};
@@ -2538,7 +2578,8 @@
     ganzeZahlen:         withCurriculum("ganzeZahlen",           genGanzeZahlen),
     wahrscheinlichkeit:  withCurriculum("wahrscheinlichkeit",   genWahrscheinlichkeit),
     mittelwerte:        withCurriculum("mittelwerte",          genMittelwerte),
-    einheiten:          withCurriculum("einheiten",            genEinheiten)
+    einheiten:          withCurriculum("einheiten",            genEinheiten),
+    potenzenWurzeln:    withCurriculum("potenzenWurzeln",      genPotenzenWurzeln)
   };
 
   var MODES = [
@@ -2558,7 +2599,8 @@
     {id:"gleichungen", label:"⚖️ Gleichungen & Verhältnisse", group:"Größen & Variablen · H2", pool:["gleichungEinfach","proportionalitaet"]},
     {id:"daten-diagramme", label:"📊 Daten & Diagramme", group:"Daten & Statistik · H4", pool:["tabelleLesen","diagrammBalken","wahrscheinlichkeit","mittelwerte"]},
     {id:"ganze-zahlen", label:"🔢 Ganze Zahlen", group:"Zahlen & Operationen · H1", pool:["ganzeZahlen"]},
-    {id:"einheiten", label:"📐 Maße & Einheiten", group:"Zahlen & Operationen · H1", pool:["einheiten"]}
+    {id:"einheiten", label:"📐 Maße & Einheiten", group:"Zahlen & Operationen · H1", pool:["einheiten"]},
+    {id:"potenzen-wurzeln", label:"⚡ Potenzen & Wurzeln", group:"Zahlen & Operationen · H1", pool:["potenzenWurzeln"]}
   ];
 
   /* Schulstufen-Zuordnung je Übungstyp (1.–4. Klasse Mittelschule) */
@@ -2580,7 +2622,7 @@
     tabelleLesen:[2,3],
     diagrammBalken:[2,3], gemischteZahlen:[1,2], bruchDezimal:[1,2],
     zinsrechnung:[3,4], proportionalitaet:[2,3], mehrstufig:[2,3],
-    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], einheiten:[2,3,4]
+    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], einheiten:[2,3,4], potenzenWurzeln:[3,4]
   };
   var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
   var GRADES = [
@@ -2672,7 +2714,8 @@
     ganzeZahlen:         {codes:["H1.I3","I2.M1"], kompetenz:"Mit ganzen und negativen Zahlen rechnen (Zahlenstrahl, Betrag, Temperatur)"},
     wahrscheinlichkeit:  {codes:["I3.M1"], kompetenz:"Einfache Wahrscheinlichkeiten bestimmen (günstige durch mögliche Fälle)"},
     mittelwerte:        {codes:["I3.M1"], kompetenz:"Mittelwert, Modus und Median einer Datenreihe bestimmen und interpretieren"},
-    einheiten:          {codes:["H1.I3","I2.M1"], kompetenz:"Größen in unterschiedlichen Maßeinheiten umrechnen (Länge, Masse, Geld)"}
+    einheiten:          {codes:["H1.I3","I2.M1"], kompetenz:"Größen in unterschiedlichen Maßeinheiten umrechnen (Länge, Masse, Geld)"},
+    potenzenWurzeln:    {codes:["H1.I1","H2.I2"], kompetenz:"Potenzen mit ganzzahligem Exponenten bilden und auswerten; Wurzeln ziehen (Quadrat-, Kubikwurzel)"}
   };
 
   /* ============ P4.3: Spaced Repetition ============
@@ -2836,7 +2879,7 @@
    * Spaced-Repetition-Leiter (state.spaced): Level 0 = unberührt, 1-2 = im Bau,
    * 3-4 = sicher, 5 = gemeistert (golden), fällig = rot. Keine neuen Persistenzfelder. */
   var GARTEN_BEREICHE = [
-    { id:"brueche",  icon:"🌰", name:"Zahlen-Baum",   thema:"Brüche",     untertitel:"Zahlen & Brüche (H1.I1, H1.I3)",  generatoren:["einheiten","ganzeZahlen","bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal"] },
+    { id:"brueche",  icon:"🌰", name:"Zahlen-Baum",   thema:"Brüche",     untertitel:"Zahlen & Brüche (H1.I1, H1.I3)",  generatoren:["einheiten","ganzeZahlen","bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal","potenzenWurzeln"] },
     { id:"prozente", icon:"🪙", name:"Prozent-Baum",  thema:"Prozente",   untertitel:"Prozente & Verhältnisse (H1.I2, H2.I2)", generatoren:["prozentVonZahl","prozentAnteil","zinsrechnung","proportionalitaet"] },
     { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck"] },
     { id:"messen",   icon:"📏", name:"Flächen-Baum",  thema:"Maße",       untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","pythagoras","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","weitereKoerper","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },

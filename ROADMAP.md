@@ -73,7 +73,7 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 | Prozentanteil | `prozentAnteil` | 💰 Prozente & Zinsen | ✅ |
 | Zinsen (Z = K·p·t) | `zinsrechnung` | 💰 Prozente & Zinsen | ✅ |
 | Ganze/negative Zahlen (ℤ) | `ganzeZahlen` | 🔢 Ganze Zahlen | ✅ |
-| Potenzen & Wurzeln (Basis) | — | — | ⬜ P1.15 |
+| Potenzen & Wurzeln (Basis) | `potenzenWurzeln` | ⚡ Potenzen & Wurzeln | ✅ P1.15 |
 | Teilbarkeit, Primzahlen, kgV/ggT | — | — | ⬜ P1.16 |
 
 ### 🟨 H2 — Variablen, Funktionen, Gleichungen ⚠️ (Grundlagen da, Algebra ausbaufähig)
@@ -127,14 +127,14 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 
 | Bereich | Abdeckung | Größte offene Lücke |
 |---|---|---|
-| 🟦 H1 Zahlen & Rechnen | ✅ Kern + ℤ (Brüche/Prozent/Zinsen/ganze Zahlen) | Potenzen/Wurzeln · Primzahlen (P1.15/16) |
+| 🟦 H1 Zahlen & Rechnen | ✅ Kern + ℤ (Brüche/Prozent/Zinsen/ganze Zahlen/Potenzen-Wurzeln) | Teilbarkeit/Primzahlen (P1.16) |
 | 🟨 H2 Gleichungen | ⚠️ Grundlagen | Terme · Funktionen (P1.17; Einheiten ✅ H1.I3) |
 | 🟧 H3 Geometrie | ✅ sehr gut | Kongruenz/Ähnlichkeit, Konstruktionen (nicht geplant) |
 | 🟪 H4 Statistik/Wskt. | ✅ komplett | — |
 | 🟩 I1–I3 Prozesse | ✅ querschnittlich | — |
 
 **Empfohlene Reihenfolge** (nach Lehrplan-Gewicht): H4 komplett ✅ (Mittelwerte + Wahrscheinlichkeit), Einheiten ✅ (P1.13, H1.I3), weitere Körper ✅ (P1.14, H3).
-→ Nächstes: **P1.15/16 H1-Ränder** (Potenzen/Wurzeln · Teilbarkeit/Primzahlen) → P1.17 Terme (H2).
+→ Nächstes: **P1.16 Teilbarkeit, Primzahlen, kgV/ggT (H1)** → P1.17 Terme (H2).
 
 ---
 
@@ -159,7 +159,7 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 | 1.12 | Einfache Wahrscheinlichkeit | I3 | ✅ |
 | 1.13 | Einheiten-Umrechnung (Länge/Masse/Geld) | H1.I3 | ✅ |
 | 1.14 | Weitere 3D-Körper (Pyramide, Kegel, Kugel, Prisma) | H3 | ✅ |
-| 1.15 | Potenzen & Wurzeln (Basis) | H1/H2 | ⬜ |
+| 1.15 | Potenzen & Wurzeln (Basis) | H1/H2 | ✅ |
 | 1.16 | Teilbarkeit, Primzahlen, kgV/ggT | H1 | ⬜ |
 | 1.17 | Terme vereinfachen / Distributivgesetz | H2 | ⬜ |
 

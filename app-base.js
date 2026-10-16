@@ -2182,16 +2182,84 @@
 
     ergebnis = Math.pow(basis, exp);
 
+    // Maximale Kantenlänge für die SVG-Darstellung (Performance)
+    var MAX_DISP = 9;
+    var dispB = Math.min(basis, MAX_DISP);
+    var gekuerzt = basis > MAX_DISP;
+    var labelKurz = gekuerzt ? '(beispielhaft) ' : '';
+
+    // Hilfsfunktion: zeichnet ein n×n-Grid von Einheitsquadraten
+    function quadGrid(n, cs, x, y, f, s, op){
+      var o = "";
+      for(var i = 0; i < n; i++){
+        for(var j = 0; j < n; j++){
+          o += '<rect x="'+(x + j*cs)+'" y="'+(y + i*cs)+'" ' +
+            'width="'+(cs-1)+'" height="'+(cs-1)+'" ' +
+            'fill="'+f+'" stroke="'+s+'" stroke-width="1" ' +
+            (op!==undefined ? 'opacity="'+op+'" ' : '') + '/>';
+        }
+      }
+      return o;
+    }
+
     if(istWurzel){
       // Wurzel ziehen: √ergebnis (exp. Wurzel) = basis
       var gradText = exp === 2 ? "" : "<sup>"+exp+"</sup>";
-      svgHtml = '<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><text x="150" y="100" font-size="40" fill="'+farbe+'" text-anchor="middle">√'+ergebnis+gradText+'</text></svg>';
+      var cs = Math.floor(150 / dispB);
+      if(cs < 5) cs = 5;
+      var gs = dispB * cs;
+      var x0 = (300 - gs) / 2;
+      var y0 = 40;
+      var parts = quadGrid(dispB, cs, x0, y0, farbe, weich);
+      var wurzelGrad = exp === 2 ? "" : "<tspan font-size=\"14\" dy=\"-8\">"+exp+"</tspan>";
+      svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+        parts +
+        '<text x="150" y="20" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">√'+ergebnis+wurzelGrad+' = '+basis+'</text>' +
+        '<text x="150" y="208" font-size="13" fill="'+farbe+'" text-anchor="middle">'+
+          labelKurz + dispB + ' × ' + dispB + ' = ' + ergebnis + ' Felder → Kantenlänge = ' + basis +
+        '</text>' +
+        '</svg>';
       ex.question = "Wurzel ziehen: √"+ergebnis+gradText+" = ?";
       ex.hint = "Welche Zahl, "+exp+"-mal mit sich selbst malgenommen, ergibt "+ergebnis+"?";
       ex.explanation = "√"+ergebnis+" = "+basis+", denn "+basis+"<sup>"+exp+"</sup> = "+fmtAT(ergebnis)+".";
     } else {
       // Potenz bilden: basis^exp = ergebnis
-      svgHtml = '<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><text x="150" y="100" font-size="32" fill="'+farbe+'" text-anchor="middle">'+basis+'<tspan font-size="18" dy="-14">'+exp+'</tspan></text></svg>';
+      if(exp === 2){
+        var cs = Math.floor(150 / dispB);
+        if(cs < 5) cs = 5;
+        var gs = dispB * cs;
+        var x0 = (300 - gs) / 2;
+        var y0 = 45;
+        svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+          quadGrid(dispB, cs, x0, y0, farbe, weich) +
+          '<text x="150" y="24" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+basis+'² = '+ergebnis+'</text>' +
+          '<text x="150" y="208" font-size="13" fill="'+farbe+'" text-anchor="middle">'+
+            labelKurz + dispB + ' × ' + dispB + ' = ' + ergebnis + ' Einheitsquadrate</text>' +
+          '</svg>';
+      } else {
+        var maxLay = Math.min(exp, 4);
+        var cs = Math.floor(110 / dispB);
+        if(cs < 4) cs = 4;
+        var gs = dispB * cs;
+        var layOff = 10;
+        var x0 = (300 - gs - layOff*(maxLay-1)) / 2;
+        var y0 = 32;
+        var parts = "";
+        for(var l = 0; l < maxLay; l++){
+          var ox = x0 + l * layOff;
+          var oy = y0 - l * 5;
+          var op = 1 - l * 0.18;
+          parts += quadGrid(dispB, cs, ox, oy, farbe, weich, op);
+        }
+        svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+          parts +
+          '<text x="150" y="18" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+basis+'<tspan font-size="14" dy="-8">'+exp+'</tspan> = '+ergebnis+'</text>' +
+          '<text x="150" y="208" font-size="13" fill="'+farbe+'" text-anchor="middle">'+
+            maxLay+' Schichten à '+dispB+'×'+dispB+' = '+ergebnis+' Einheitswürfel'+
+            (gekuerzt ? ' (beispielhaft)' : '')+
+          '</text>' +
+          '</svg>';
+      }
       ex.question = "Potenz bilden: "+basis+"<sup>"+exp+"</sup> = ?";
       ex.hint = "Multipliziere "+basis+" "+exp+"-mal mit sich selbst.";
       ex.explanation = basis+"<sup>"+exp+"</sup> = "+fmtAT(ergebnis)+".";

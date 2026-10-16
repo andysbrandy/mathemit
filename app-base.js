@@ -476,7 +476,7 @@
     wahrscheinlichkeit:"Günstige Fälle durch mögliche Fälle: zähle zuerst, wie viele Fälle gewinnen, dann teile durch alle Fälle.",
     mittelwerte:"Mittelwert = Summe aller Werte : Anzahl. Modus = der Wert, der am häufigsten vorkommt. Median = der mittlere Wert, nachdem du alles der Größe nach sortiert hast.",
     einheiten:"Größere in kleinere Einheit: mal dem Faktor (Komma nach rechts). Kleinere in größere: durch den Faktor (Komma nach links). Länge und Masse in 10er-Schritten, Geld 1 € = 100 ct.",
-    potenzen:"aⁿ = a·a·…·a (n Faktoren). Wurzel √a fragt: welche Zahl malgenommen mit sich selbst ergibt a? Bei ³√a nimmst du die Zahl dreimal.",
+    potenzen:"aⁿ = a · a · … · a (n Faktoren). Wurzel √a fragt: welche Zahl malgenommen mit sich selbst ergibt a? Bei ³√a nimmst du die Zahl dreimal.",
     _default:"Lies die Aufgabe noch einmal langsam – welche Zahlen und welche Frage gibt es?"
   };
   function deriveTips(ex){
@@ -2196,7 +2196,7 @@
       ex.hint = "Multipliziere "+basis+" "+exp+"-mal mit sich selbst.";
       ex.explanation = basis+"<sup>"+exp+"</sup> = "+fmtAT(ergebnis)+".";
     }
-    ex.answer = basis;
+    ex.answer = istWurzel ? basis : ergebnis;
     ex.svg = svgHtml;
     ex.unit = "";
     ex.badge = istWurzel ? "Wurzel · √" : "Potenz · ^"+exp;

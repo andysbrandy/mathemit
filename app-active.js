@@ -685,7 +685,7 @@ function nextExercise(){
   state.answered = false;
 
   document.getElementById("eyebrow").textContent = eyebrowMap[ex.topic] || "Aufgabe";
-  document.getElementById("questionText").textContent = ex.question;
+  document.getElementById("questionText").innerHTML = ex.question;
   document.getElementById("hintText").textContent = "";
   var tips = deriveTips(ex);
   state.tipCount = tips.length;

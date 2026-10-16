@@ -2177,13 +2177,19 @@
 
     // Zahlenbereich je nach Schwierigkeit
     if(diff === 1){ basis = rand(2,9); exp = 2; }
-    else if(diff === 2){ basis = rand(2,12); exp = rand(2,3); }
-    else { basis = rand(2,20); exp = rand(2,4); }
+    else if(diff === 2){
+      if(istWurzel){ exp = 2; basis = rand(2,10); }      // nur Quadratwurzel: √4…√100
+      else         { exp = rand(2,3); basis = rand(2,10);} // 2²…10² oder 2³…10³
+    }
+    else {
+      exp = rand(2,4); basis = rand(2,20);
+      if(istWurzel){ if(exp===3) basis = rand(2,6); if(exp===4) basis = rand(2,4); } // kleine Wurzeln
+    }
 
     ergebnis = Math.pow(basis, exp);
 
     // Maximale Kantenlänge für die SVG-Darstellung (Performance)
-    var MAX_DISP = 9;
+    var MAX_DISP = 12;
     var dispB = Math.min(basis, MAX_DISP);
     var gekuerzt = basis > MAX_DISP;
     var labelKurz = gekuerzt ? '(beispielhaft) ' : '';
@@ -2216,7 +2222,8 @@
         parts +
         '<text x="150" y="20" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">√'+ergebnis+wurzelGrad+' = '+basis+'</text>' +
         '<text x="150" y="208" font-size="13" fill="'+farbe+'" text-anchor="middle">'+
-          labelKurz + dispB + ' × ' + dispB + ' = ' + ergebnis + ' Felder → Kantenlänge = ' + basis +
+          (gekuerzt ? labelKurz + '(beispielhaft) ' + dispB + ' × ' + dispB + ' Felder; Kantenlänge wäre ' + basis
+                    : dispB + ' × ' + dispB + ' = ' + ergebnis + ' Felder → Kantenlänge = ' + basis) +
         '</text>' +
         '</svg>';
       ex.question = "Wurzel ziehen: √"+ergebnis+gradText+" = ?";
@@ -2234,7 +2241,9 @@
           quadGrid(dispB, cs, x0, y0, farbe, weich) +
           '<text x="150" y="24" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+basis+'² = '+ergebnis+'</text>' +
           '<text x="150" y="208" font-size="13" fill="'+farbe+'" text-anchor="middle">'+
-            labelKurz + dispB + ' × ' + dispB + ' = ' + ergebnis + ' Einheitsquadrate</text>' +
+            (gekuerzt ? labelKurz + '(beispielhaft) ' + dispB + ' × ' + dispB + ' Felder; Kantenlänge wäre ' + basis
+                      : dispB + ' × ' + dispB + ' = ' + ergebnis + ' Einheitsquadrate') +
+          '</text>' +
           '</svg>';
       } else {
         var maxLay = Math.min(exp, 4);
@@ -2255,8 +2264,8 @@
           parts +
           '<text x="150" y="18" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+basis+'<tspan font-size="14" dy="-8">'+exp+'</tspan> = '+ergebnis+'</text>' +
           '<text x="150" y="208" font-size="13" fill="'+farbe+'" text-anchor="middle">'+
-            maxLay+' Schichten à '+dispB+'×'+dispB+' = '+ergebnis+' Einheitswürfel'+
-            (gekuerzt ? ' (beispielhaft)' : '')+
+            (gekuerzt ? labelKurz + '(beispielhaft) ' + maxLay + ' Schichten à ' + dispB + '×' + dispB + '; Kantenlänge wäre ' + basis
+                      : maxLay+' Schichten à '+dispB+'×'+dispB+' = '+ergebnis+' Einheitswürfel')+
           '</text>' +
           '</svg>';
       }

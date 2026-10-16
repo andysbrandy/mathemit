@@ -33,15 +33,26 @@
     }
     .stage-head {
       display: flex;
-      align-items: baseline;
+      align-items: center;
       justify-content: space-between;
       gap: 20px;
     }
     .stage-brand {
-      font-size: 58px;
-      line-height: 1;
+      display: flex;
+      align-items: center;
+      gap: 14px;
       margin: 0;
+    }
+    .stage-brand-owl {
+      width: 64px;
+      height: 64px;
+      flex: 0 0 auto;
+    }
+    .stage-brand-name {
+      font-size: 40px;
+      line-height: 1.1;
       letter-spacing: -0.5px;
+      white-space: nowrap;
     }
     .stage-kicker {
       font-size: 26px;
@@ -366,7 +377,7 @@
 
   <main id="stage" data-measure="stage">
     <header class="stage-head" data-measure="head">
-      <h1 class="stage-brand">Mathemit</h1>
+      <h1 class="stage-brand"><svg class="stage-brand-owl" xmlns="http://www.w3.org/2000/svg" viewBox="5.5 21 89 79" preserveAspectRatio="xMidYMid meet" focusable="false" aria-hidden="true"><ellipse cx="19" cy="64" rx="12.5" ry="20" fill="#D9502E"/><ellipse cx="81" cy="64" rx="12.5" ry="20" fill="#D9502E"/><ellipse cx="50" cy="58" rx="30" ry="35" fill="#FF6B4A"/><ellipse cx="50" cy="73" rx="17" ry="14" fill="#FFE3DA"/><path d="M32 33 L35 22 L42 31 Z" fill="#F2A93B"/><path d="M68 33 L65 22 L58 31 Z" fill="#F2A93B"/><circle cx="38" cy="49" r="13.5" fill="#FFFFFF" stroke="#1F2E45" stroke-width="2.5"/><circle cx="62" cy="49" r="13.5" fill="#FFFFFF" stroke="#1F2E45" stroke-width="2.5"/><circle cx="38" cy="49" r="5.5" fill="#1F2E45"/><circle cx="62" cy="49" r="5.5" fill="#1F2E45"/><path d="M43 56 L57 56 L50 66 Z" fill="#F2A93B" stroke="#1F2E45" stroke-width="1.5" stroke-linejoin="round"/><path d="M40 92 L50 92 L45 99 Z" fill="#F2A93B"/><path d="M50 92 L60 92 L55 99 Z" fill="#F2A93B"/></svg><span class="stage-brand-name">Mathemit.andybrandy.at</span></h1>
       <span class="stage-kicker">Trick in 15 Sekunden</span>
     </header>
 
@@ -411,7 +422,7 @@
     </section>
 
     <footer class="stage-foot" data-measure="foot">
-      <span>Mathemit</span>
+      <span>Mathemit.andybrandy.at</span>
       <span id="stageFootMeta"></span>
     </footer>
   </main>

@@ -479,6 +479,7 @@
     potenzen:"aⁿ = a · a · … · a (n Faktoren). Wurzel √a fragt: welche Zahl malgenommen mit sich selbst ergibt a? Bei ³√a nimmst du die Zahl dreimal.",
     teilbarkeit:"Teilung mit Rest: „Was bleibt übrig, wenn du in Gruppen aufteilst?“. Primzahl: nur durch 1 und sich selbst teilbar (gerade Zahlen außer 2 nie, endet auf 5/0 nie außer 5). kgV: kleinste Zahl, die in beide Zahlenstrahlen passt. ggT: größte Zahl, die beide ohne Rest teilt.",
     terme:"Klammern auflösen: den Faktor vor der Klammer mit jedem Term in der Klammer multiplizieren. Gleiche Terme (mit x) zusammenfassen.",
+    lineareFunktionen:"Steigung m = Anstieg : Lauf (wie steil geht die Gerade hoch/runter?). y-Achsenabschnitt t: Wo schneidet die Gerade die y-Achse (x = 0)? y = m·x + t",
     _default:"Lies die Aufgabe noch einmal langsam – welche Zahlen und welche Frage gibt es?"
   };
   function deriveTips(ex){
@@ -1924,6 +1925,110 @@
     return ex;
   }
 
+  /* H2: Lineare Funktionen y = m·x + t (Steigung, Graph) */
+  function genLineareFunktionen(diff){
+    diff = diff || 2;
+    var farbe = COLORS.gleichung.main, weich = COLORS.gleichung.soft;
+    var ex = baseEx("gleichung","lineareFunktionen");
+    ex.inputType = "number"; ex.tolerance = 0;
+
+    var m, t, aufgabeTyp, frage, antwort, hint, erklaerung, badge;
+
+    if(diff === 1){
+      m = 1; t = [0,1,2][Math.floor(Math.random()*3)];
+      aufgabeTyp = "steigung";
+    } else if(diff === 2){
+      m = [1,-1][Math.floor(Math.random()*2)]; t = [-1,0,1][Math.floor(Math.random()*3)];
+      aufgabeTyp = "abschnitt";
+    } else if(diff === 3){
+      m = [2,-2,1,-1][Math.floor(Math.random()*4)]; t = [-2,-1,0,1,2][Math.floor(Math.random()*5)];
+      aufgabeTyp = "steigung";
+    } else {
+      m = [3,-3,2,-2,1,-1][Math.floor(Math.random()*6)]; t = [-3,-2,-1,0,1,2,3][Math.floor(Math.random()*7)];
+      aufgabeTyp = "abschnitt";
+    }
+
+    // SVG Koordinatensystem: x=-5..5, y=-6..6
+    var x0 = 60, y0 = 130;
+    var sx = 24, sy = 18;
+    var yMin = -6, yMax = 6;
+    var xMin = -5, xMax = 5;
+
+    // Zwei Endpunkte der Gerade im sichtbaren Bereich berechnen
+    var xe1 = xMin, xe2 = xMax;
+    var ye1 = m*xe1 + t, ye2 = m*xe2 + t;
+
+    // Clip auf y-Bereich
+    if(ye1 < yMin){ xe1 = (yMin - t)/m; ye1 = yMin; }
+    if(ye1 > yMax){ xe1 = (yMax - t)/m; ye1 = yMax; }
+    if(ye2 < yMin){ xe2 = (yMin - t)/m; ye2 = yMin; }
+    if(ye2 > yMax){ xe2 = (yMax - t)/m; ye2 = yMax; }
+
+    var sx1 = x0 + xe1*sx, sy1 = y0 - ye1*sy;
+    var sx2 = x0 + xe2*sx, sy2 = y0 - ye2*sy;
+
+    var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+    // Achsen
+    svg += '<line x1="'+x0+'" y1="'+y0+'" x2="'+(x0+xMax*sx)+'" y2="'+y0+'" stroke="var(--ink)" stroke-width="2"/>';
+    svg += '<line x1="'+x0+'" y1="'+(y0+yMax*sy)+'" x2="'+x0+'" y2="'+(y0+yMin*sy)+'" stroke="var(--ink)" stroke-width="2"/>';
+    // Pfeile
+    svg += '<path d="M '+(x0+xMax*sx)+' '+y0+' l -6 -4 l 0 8 z" fill="var(--ink)"/>';
+    svg += '<path d="M '+x0+' '+(y0+yMin*sy)+' l -4 -6 l 8 0 z" fill="var(--ink)"/>';
+    // Achsenbeschriftung
+    svg += '<text x="'+(x0+xMax*sx+10)+'" y="'+(y0+15)+'" font-size="13" fill="var(--ink)">x</text>';
+    svg += '<text x="'+(x0-15)+'" y="'+(y0+yMin*sy-10)+'" font-size="13" fill="var(--ink)">y</text>';
+    // Raster
+    for(var i = -5; i <= 5; i++){
+      var gx = x0 + i*sx;
+      if(gx >= 30 && gx <= 270){
+        svg += '<line x1="'+gx+'" y1="'+(y0+yMin*sy)+'" x2="'+gx+'" y2="'+(y0+yMax*sy)+'" stroke="var(--paper)" stroke-width="1"/>';
+      }
+      var gy = y0 - i*sy;
+      if(gy >= y0+yMin*sy && gy <= y0+yMax*sy){
+        svg += '<line x1="'+(x0+xMin*sx)+'" y1="'+gy+'" x2="'+(x0+xMax*sx)+'" y2="'+gy+'" stroke="var(--paper)" stroke-width="1"/>';
+      }
+    }
+    // Ticks + Beschriftung
+    for(var i = -4; i <= 4; i += 2){
+      if(i !== 0){
+        var gx = x0 + i*sx;
+        svg += '<text x="'+gx+'" y="'+(y0+22)+'" font-size="11" text-anchor="middle" fill="var(--ink)">'+i+'</text>';
+        var gy = y0 - i*sy;
+        svg += '<text x="'+(x0-18)+'" y="'+(gy+4)+'" font-size="11" text-anchor="end" fill="var(--ink)">'+i+'</text>';
+      }
+    }
+    // Ursprung
+    svg += '<circle cx="'+x0+'" cy="'+y0+'" r="3" fill="var(--ink)"/>';
+    // Gerade
+    svg += '<line x1="'+sx1+'" y1="'+sy1+'" x2="'+sx2+'" y2="'+sy2+'" stroke="'+farbe+'" stroke-width="3" stroke-linecap="round"/>';
+    svg += '</svg>';
+
+    // Aufgabe
+    if(aufgabeTyp === "steigung"){
+      frage = "Steigung m der Geraden y = m·x + "+t+" ?";
+      antwort = m;
+      hint = "Steigung m = Anstieg : Lauf. Gehe 1 Einheit nach rechts – wie viele Einheiten geht die Gerade hoch (oder runter)?";
+      erklaerung = "Die Steigung ist m = "+m+". Bei 1 Einheit Lauf steigt die Gerade um "+m+" Einheit(en).";
+      badge = "Lineare Funktion · Steigung";
+    } else {
+      frage = "y-Achsenabschnitt t der Geraden y = "+m+"·x + t ?";
+      antwort = t;
+      hint = "Der y-Achsenabschnitt ist der Wert, bei dem die Gerade die y-Achse schneidet (x = 0). Lies ihn am Graphen ab.";
+      erklaerung = "Der Achsenabschnitt ist t = "+t+". Die Gerade schneidet die y-Achse bei y = "+t+".";
+      badge = "Lineare Funktion · Achsenabschnitt";
+    }
+
+    ex.question = frage;
+    ex.hint = hint;
+    ex.svg = svg;
+    ex.badge = badge;
+    ex.badgeColor = farbe;
+    ex.answer = antwort;
+    ex.explanation = erklaerung;
+    ex.unit = "";
+    return ex;
+  }
+
   // Direkte Proportionalität: Schattenlänge (H2.I2)
   function genProportionalitaet(diff){
     diff = diff || 2;
@@ -2871,7 +2976,8 @@
     einheiten:          withCurriculum("einheiten",            genEinheiten),
     potenzenWurzeln:    withCurriculum("potenzenWurzeln",      genPotenzenWurzeln),
     teilbarkeit:        withCurriculum("teilbarkeit",          genTeilbarkeit),
-    termeDistributiv:   withCurriculum("termeDistributiv",     genTermeDistributiv)
+    termeDistributiv:   withCurriculum("termeDistributiv",     genTermeDistributiv),
+    lineareFunktionen:  withCurriculum("lineareFunktionen",    genLineareFunktionen)
   };
 
   var MODES = [
@@ -2894,7 +3000,8 @@
     {id:"einheiten", label:"📐 Maße & Einheiten", group:"Zahlen & Operationen · H1", pool:["einheiten"]},
     {id:"potenzen-wurzeln", label:"⚡ Potenzen & Wurzeln", group:"Zahlen & Operationen · H1", pool:["potenzenWurzeln"]},
     {id:"teilbarkeit", label:"➗ Teilbarkeit, Primzahlen, kgV/ggT", group:"Zahlen & Operationen · H1", pool:["teilbarkeit"]},
-    {id:"terme", label:"🔤 Terme vereinfachen", group:"Größen & Variablen · H2", pool:["termeDistributiv"]}
+    {id:"terme", label:"🔤 Terme vereinfachen", group:"Größen & Variablen · H2", pool:["termeDistributiv"]},
+    {id:"funktionen", label:"📈 Lineare Funktionen", group:"Größen & Variablen · H2", pool:["lineareFunktionen"]}
   ];
 
   /* Schulstufen-Zuordnung je Übungstyp (1.–4. Klasse Mittelschule) */
@@ -2916,7 +3023,7 @@
     tabelleLesen:[2,3],
     diagrammBalken:[2,3], gemischteZahlen:[1,2], bruchDezimal:[1,2],
     zinsrechnung:[3,4], proportionalitaet:[2,3], mehrstufig:[2,3],
-    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], einheiten:[2,3,4], potenzenWurzeln:[3,4], teilbarkeit:[3,4], termeDistributiv:[3,4]
+    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], einheiten:[2,3,4], potenzenWurzeln:[3,4], teilbarkeit:[3,4], termeDistributiv:[3,4], lineareFunktionen:[3,4]
   };
   var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
   var GRADES = [
@@ -3011,7 +3118,8 @@
     einheiten:          {codes:["H1.I3","I2.M1"], kompetenz:"Größen in unterschiedlichen Maßeinheiten umrechnen (Länge, Masse, Geld)"},
     potenzenWurzeln:   {codes:["H1.I1","H2.I2"], kompetenz:"Potenzen mit ganzzahligem Exponenten bilden und auswerten; Wurzeln ziehen (Quadrat-, Kubikwurzel)"},
 teilbarkeit:       {codes:["H1.I1"], kompetenz:"Teilbarkeitsregeln anwenden; Primzahlen erkennen; kgV und ggT kleinerer Zahlen bestimmen"},
-termeDistributiv:  {codes:["H2.I1"], kompetenz:"Terme vereinfachen und das Distributivgesetz anwenden: Klammern auflösen (a·(x±b)), gemeinsame Faktoren ausklammern (ax±ay) und gleiche Terme zusammenfassen (ax±bx)"}
+termeDistributiv:  {codes:["H2.I1"], kompetenz:"Terme vereinfachen und das Distributivgesetz anwenden: Klammern auflösen (a·(x±b)), gemeinsame Faktoren ausklammern (ax±ay) und gleiche Terme zusammenfassen (ax±bx)"},
+    lineareFunktionen: {codes:["H2.I2"], kompetenz:"Lineare Funktionen y = m·x + t: Steigung m und y-Achsenabschnitt t aus Graph ablesen; Funktionsgleichung aufstellen"}
   };
 
   /* ============ P4.3: Spaced Repetition ============
@@ -3180,7 +3288,7 @@ termeDistributiv:  {codes:["H2.I1"], kompetenz:"Terme vereinfachen und das Distr
     { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck"] },
     { id:"messen",   icon:"📏", name:"Flächen-Baum",  thema:"Maße",       untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","pythagoras","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","weitereKoerper","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },
     { id:"alltag",   icon:"🧺", name:"Alltags-Baum",  thema:"Sachaufgaben", untertitel:"Sachaufgaben aus dem Alltag (I1.M1)", generatoren:["textaufgabeGarten","textaufgabePizza","textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSkikurs","textaufgabeWandertag","textaufgabeSchulheft","textaufgabeEiscafe","mehrstufig"] },
-    { id:"struktur", icon:"🔗", name:"Daten-Baum",    thema:"Gleichungen", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","tabelleLesen","diagrammBalken","wahrscheinlichkeit","mittelwerte","termeDistributiv"] }
+    { id:"struktur", icon:"🔗", name:"Daten-Baum",    thema:"Gleichungen", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","tabelleLesen","diagrammBalken","wahrscheinlichkeit","mittelwerte","termeDistributiv","lineareFunktionen"] }
   ];
   function bereichFuerKey(key){
     var i;

@@ -477,7 +477,7 @@
     mittelwerte:"Mittelwert = Summe aller Werte : Anzahl. Modus = der Wert, der am häufigsten vorkommt. Median = der mittlere Wert, nachdem du alles der Größe nach sortiert hast.",
     einheiten:"Größere in kleinere Einheit: mal dem Faktor (Komma nach rechts). Kleinere in größere: durch den Faktor (Komma nach links). Länge und Masse in 10er-Schritten, Geld 1 € = 100 ct.",
     potenzen:"aⁿ = a · a · … · a (n Faktoren). Wurzel √a fragt: welche Zahl malgenommen mit sich selbst ergibt a? Bei ³√a nimmst du die Zahl dreimal.",
-    teilbarkeit:"Teilbarkeitsregeln: durch 2 (gerade), 5 (endet auf 0/5), 10 (endet auf 0), 3/9 (Quersumme). Primzahl = nur durch 1 und sich selbst teilbar. kgV = kleinstes gemeinsames Vielfaches, ggT = größter gemeinsamer Teiler.",
+    teilbarkeit:"Teilung mit Rest: „Was bleibt übrig, wenn du in Gruppen aufteilst?“. Primzahl: nur durch 1 und sich selbst teilbar (gerade Zahlen außer 2 nie, endet auf 5/0 nie außer 5). kgV: kleinste Zahl, die in beide Zahlenstrahlen passt. ggT: größte Zahl, die beide ohne Rest teilt.",
     terme:"Klammern auflösen: den Faktor vor der Klammer mit jedem Term in der Klammer multiplizieren. Gleiche Terme (mit x) zusammenfassen.",
     _default:"Lies die Aufgabe noch einmal langsam – welche Zahlen und welche Frage gibt es?"
   };
@@ -2324,7 +2324,7 @@
         '<text x="150" y="200" font-size="14" fill="'+farbe+'" text-anchor="middle">Welche ist die nächste Primzahl?</text>' +
         '</svg>';
       ex.question = "Nächste Primzahl nach "+a+" ?";
-      ex.hint = "Eine Primzahl ist nur durch 1 und sich selbst teilbar. Probier "+(a+1)+", "+(a+2)+", … aus.";
+      ex.hint = "Eine Primzahl ist nur durch 1 und sich selbst teilbar. Tipps: gerade Zahlen (außer 2) sind nie prim. Zahlen, die auf 0 oder 5 enden (außer 5 selbst), nie prim. Probier die nächste ungerade Zahl aus.";
       ex.explanation = "Die nächste Primzahl nach "+a+" ist "+ergebnis+", denn "+ergebnis+" ist nur durch 1 und "+ergebnis+" teilbar.";
     } else if(typ === 2){
       var z1 = rand(2, Math.min(12, maxZahl/2));
@@ -2356,7 +2356,7 @@
         '<text x="150" y="200" font-size="14" fill="'+farbe+'" text-anchor="middle">Welche ist die größte gleiche Teilgröße?</text>' +
         '</svg>';
       ex.question = "ggT("+z1+", "+z2+") = ?";
-      ex.hint = "Zerlege beide Zahlen in Primfaktoren. Welche Faktoren haben beide gemeinsam?";
+      ex.hint = "Schreibe die Teiler von "+z1+" und die Teiler von "+z2+" auf. Welche ist die größte Zahl, die in beiden Listen vorkommt?";
       ex.explanation = "ggT("+z1+", "+z2+") = "+ergebnis+", denn "+ergebnis+" ist die größte Zahl, durch die sowohl "+z1+" als auch "+z2+" ohne Rest teilbar sind.";
     }
     ex.answer = ergebnis;

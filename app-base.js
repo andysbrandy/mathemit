@@ -478,6 +478,7 @@
     einheiten:"Größere in kleinere Einheit: mal dem Faktor (Komma nach rechts). Kleinere in größere: durch den Faktor (Komma nach links). Länge und Masse in 10er-Schritten, Geld 1 € = 100 ct.",
     potenzen:"aⁿ = a · a · … · a (n Faktoren). Wurzel √a fragt: welche Zahl malgenommen mit sich selbst ergibt a? Bei ³√a nimmst du die Zahl dreimal.",
     teilbarkeit:"Teilbarkeitsregeln: durch 2 (gerade), 5 (endet auf 0/5), 10 (endet auf 0), 3/9 (Quersumme). Primzahl = nur durch 1 und sich selbst teilbar. kgV = kleinstes gemeinsames Vielfaches, ggT = größter gemeinsamer Teiler.",
+    terme:"Klammern auflösen: den Faktor vor der Klammer mit jedem Term in der Klammer multiplizieren. Gleiche Terme (mit x) zusammenfassen.",
     _default:"Lies die Aufgabe noch einmal langsam – welche Zahlen und welche Frage gibt es?"
   };
   function deriveTips(ex){
@@ -2366,6 +2367,122 @@
     return ex;
   }
 
+  /* P1.17: Terme vereinfachen / Distributivgesetz — H2 */
+  function genTermeDistributiv(diff){
+    diff = diff || 2;
+    var farbe = COLORS.gleichung.main, weich = COLORS.gleichung.soft;
+    var ex = baseEx("terme","terme");
+    ex.inputType = "mc";
+    var typ = rand(0,2);
+    var a,b,c,x,y,ergebnis,svgHtml,badge;
+    var options = [];
+    if(typ === 0){
+      var plus = Math.random()<0.5;
+      var mitCx = Math.random()<0.3 && diff>=2;
+      a = diff===1 ? rand(2,3) : (diff===3 ? rand(3,8) : rand(2,5));
+      b = diff===1 ? rand(1,4) : (diff===3 ? rand(3,12) : rand(2,8));
+      if(mitCx){
+        c = rand(2,4);
+        ergebnis = (a*c) + "x " + (plus?"+":"−") + " " + (a*b);
+        badge = "Distributivgesetz · a·(cx ± b)";
+        svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+          '<text x="150" y="55" font-size="18" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+a+'·('+c+'x '+(plus?"+":"−")+' '+b+')</text>' +
+          '<text x="150" y="95" font-size="15" fill="'+farbe+'" text-anchor="middle">= ?</text>' +
+          '<text x="150" y="140" font-size="13" fill="'+farbe+'" text-anchor="middle">Klammern auflösen: '+a+'·'+c+'x und '+a+'·'+b+'</text>' +
+          '<text x="150" y="180" font-size="13" fill="'+farbe+'" text-anchor="middle">Welcher Term passt?</text>' +
+          '</svg>';
+        ex.question = a+"·("+c+"x "+(plus?"+":"−")+" "+b+") = ?";
+        ex.hint = "Multipliziere "+a+" mit jedem Term in der Klammer: "+a+"·"+c+"x und "+a+"·"+b+".";
+        ex.explanation = a+"·("+c+"x "+(plus?"+":"−")+" "+b+") = "+(a*c)+"x "+(plus?"+":"−")+" "+(a*b)+" = "+ergebnis+".";
+        options = [
+          ergebnis,
+          (a*c) + "x " + (plus?"+":"−") + " " + b,
+          a + "x " + (plus?"+":"−") + " " + (a*b),
+          "x " + (plus?"+":"−") + " " + (a*b)
+        ];
+      } else {
+        ergebnis = a + "x " + (plus?"+":"−") + " " + (a*b);
+        badge = "Distributivgesetz · a·(x ± b)";
+        svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+          '<text x="150" y="55" font-size="18" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+a+'·(x '+(plus?"+":"−")+' '+b+')</text>' +
+          '<text x="150" y="95" font-size="15" fill="'+farbe+'" text-anchor="middle">= ?</text>' +
+          '<text x="150" y="140" font-size="13" fill="'+farbe+'" text-anchor="middle">Klammern auflösen: '+a+'·x und '+a+'·'+b+'</text>' +
+          '<text x="150" y="180" font-size="13" fill="'+farbe+'" text-anchor="middle">Welcher Term passt?</text>' +
+          '</svg>';
+        ex.question = a+"·(x "+(plus?"+":"−")+" "+b+") = ?";
+        ex.hint = "Multipliziere "+a+" mit jedem Term in der Klammer: "+a+"·x und "+a+"·"+b+".";
+        ex.explanation = a+"·(x "+(plus?"+":"−")+" "+b+") = "+a+"x "+(plus?"+":"−")+" "+(a*b)+" = "+ergebnis+".";
+        options = [
+          ergebnis,
+          a + "x " + (plus?"+":"−") + " " + b,
+          "x " + (plus?"+":"−") + " " + (a*b),
+          a + "x " + (plus?"+":"−") + " " + (plus?b+a:b-a)
+        ];
+      }
+    } else if(typ === 1){
+      var plus = Math.random()<0.5;
+      a = diff===1 ? rand(2,3) : (diff===3 ? rand(4,8) : rand(2,5));
+      b = rand(2,6);
+      while(b===a){ b = rand(2,6); }
+      ergebnis = a + "·(x " + (plus?"+":"−") + " " + b + ")";
+      badge = "Terme · Ausklammern";
+      svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+        '<text x="150" y="55" font-size="18" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+a+'x '+(plus?"+":"−")+' '+a*b+'</text>' +
+        '<text x="150" y="95" font-size="15" fill="'+farbe+'" text-anchor="middle">= ?</text>' +
+        '<text x="150" y="140" font-size="13" fill="'+farbe+'" text-anchor="middle">Gemeinsamen Faktor '+a+' ausklammern</text>' +
+        '<text x="150" y="180" font-size="13" fill="'+farbe+'" text-anchor="middle">Welcher Term passt?</text>' +
+        '</svg>';
+      ex.question = a+"x "+(plus?"+":"−")+" "+(a*b)+" = ?";
+      ex.hint = "Welcher Faktor kommt in "+a+"x und in "+(a*b)+" vor? Klammere "+a+" aus.";
+      ex.explanation = a+"x "+(plus?"+":"−")+" "+(a*b)+" = "+a+"·(x "+(plus?"+":"−")+" "+b+") = "+ergebnis+".";
+      options = [
+        ergebnis,
+        a + "·(x " + (plus?"+":"−") + " " + b + ")",
+        "(" + a + "+"+a+")·(x " + (plus?"+":"−") + " " + b + ")",
+        a + "·x " + (plus?"+":"−") + " " + b,
+        "x " + (plus?"+":"−") + " " + b
+      ];
+      options = options.filter(function(v,i,arr){return arr.indexOf(v)===i;});
+    } else {
+      var plus = Math.random()<0.5;
+      a = diff===1 ? rand(2,4) : (diff===3 ? rand(5,12) : rand(3,8));
+      b = diff===1 ? rand(1,3) : (diff===3 ? rand(3,10) : rand(2,6));
+      while(b===a){ b = diff===1 ? rand(1,3) : (diff===3 ? rand(3,10) : rand(2,6)); }
+      var koeff = plus ? (a+b) : (a-b);
+      ergebnis = koeff + "x";
+      badge = "Terme · Gleichartige zusammenfassen";
+      svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+        '<text x="150" y="55" font-size="18" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+a+'x '+(plus?"+":"−")+' '+b+'x</text>' +
+        '<text x="150" y="95" font-size="15" fill="'+farbe+'" text-anchor="middle">= ?</text>' +
+        '<text x="150" y="140" font-size="13" fill="'+farbe+'" text-anchor="middle">Gleiche Terme (mit x) zusammenfassen</text>' +
+        '<text x="150" y="180" font-size="13" fill="'+farbe+'" text-anchor="middle">Welcher Term passt?</text>' +
+        '</svg>';
+      ex.question = a+"x "+(plus?"+":"−")+" "+b+"x = ?";
+      ex.hint = "Beide Terme haben das x. Addiere bzw. subtrahiere die Zahlen davor: "+a+" "+(plus?"+":"−")+" "+b+" = "+koeff+".";
+      ex.explanation = a+"x "+(plus?"+":"−")+" "+b+"x = "+(plus?(a+b):(a-b))+"x = "+ergebnis+".";
+      options = [
+        ergebnis,
+        koeff + "",
+        (plus?a-b:a+b) + "x",
+        (a*b) + "x"
+      ];
+    }
+    options = options.filter(function(v,i,arr){return arr.indexOf(v)===i;});
+    while(options.length < 2){
+      options.push(ergebnis + (options.indexOf(ergebnis+"x")===-1 ? "x" : ""));
+      options = options.filter(function(v,i,arr){return arr.indexOf(v)===i;});
+    }
+    options = shuffle(options);
+    ex.choices = options;
+    ex.correctIndex = options.indexOf(ergebnis);
+    ex.answer = ergebnis;
+    ex.svg = svgHtml;
+    ex.unit = "";
+    ex.badge = badge;
+    ex.badgeColor = farbe;
+    return ex;
+  }
+
   function bruchWort(z,n){
     var zN=["","ein","zwei","drei","vier","fünf","sechs","sieben","acht","neun","zehn"];
     var nN={2:"Hälfte",3:"Drittel",4:"Viertel",5:"Fünftel",6:"Sechstel",7:"Siebtel",8:"Achtel",9:"Neuntel",10:"Zehntel"};
@@ -2742,7 +2859,8 @@
     mittelwerte:        withCurriculum("mittelwerte",          genMittelwerte),
     einheiten:          withCurriculum("einheiten",            genEinheiten),
     potenzenWurzeln:    withCurriculum("potenzenWurzeln",      genPotenzenWurzeln),
-    teilbarkeit:        withCurriculum("teilbarkeit",          genTeilbarkeit)
+    teilbarkeit:        withCurriculum("teilbarkeit",          genTeilbarkeit),
+    termeDistributiv:   withCurriculum("termeDistributiv",     genTermeDistributiv)
   };
 
   var MODES = [
@@ -2764,7 +2882,8 @@
     {id:"ganze-zahlen", label:"🔢 Ganze Zahlen", group:"Zahlen & Operationen · H1", pool:["ganzeZahlen"]},
     {id:"einheiten", label:"📐 Maße & Einheiten", group:"Zahlen & Operationen · H1", pool:["einheiten"]},
     {id:"potenzen-wurzeln", label:"⚡ Potenzen & Wurzeln", group:"Zahlen & Operationen · H1", pool:["potenzenWurzeln"]},
-    {id:"teilbarkeit", label:"➗ Teilbarkeit, Primzahlen, kgV/ggT", group:"Zahlen & Operationen · H1", pool:["teilbarkeit"]}
+    {id:"teilbarkeit", label:"➗ Teilbarkeit, Primzahlen, kgV/ggT", group:"Zahlen & Operationen · H1", pool:["teilbarkeit"]},
+    {id:"terme", label:"🔤 Terme vereinfachen", group:"Größen & Variablen · H2", pool:["termeDistributiv"]}
   ];
 
   /* Schulstufen-Zuordnung je Übungstyp (1.–4. Klasse Mittelschule) */
@@ -2786,7 +2905,7 @@
     tabelleLesen:[2,3],
     diagrammBalken:[2,3], gemischteZahlen:[1,2], bruchDezimal:[1,2],
     zinsrechnung:[3,4], proportionalitaet:[2,3], mehrstufig:[2,3],
-    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], einheiten:[2,3,4], potenzenWurzeln:[3,4], teilbarkeit:[3,4]
+    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], einheiten:[2,3,4], potenzenWurzeln:[3,4], teilbarkeit:[3,4], termeDistributiv:[3,4]
   };
   var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
   var GRADES = [
@@ -2880,7 +2999,8 @@
     mittelwerte:        {codes:["I3.M1"], kompetenz:"Mittelwert, Modus und Median einer Datenreihe bestimmen und interpretieren"},
     einheiten:          {codes:["H1.I3","I2.M1"], kompetenz:"Größen in unterschiedlichen Maßeinheiten umrechnen (Länge, Masse, Geld)"},
     potenzenWurzeln:   {codes:["H1.I1","H2.I2"], kompetenz:"Potenzen mit ganzzahligem Exponenten bilden und auswerten; Wurzeln ziehen (Quadrat-, Kubikwurzel)"},
-    teilbarkeit:       {codes:["H1.I1"], kompetenz:"Teilbarkeitsregeln anwenden; Primzahlen erkennen; kgV und ggT kleinerer Zahlen bestimmen"}
+teilbarkeit:       {codes:["H1.I1"], kompetenz:"Teilbarkeitsregeln anwenden; Primzahlen erkennen; kgV und ggT kleinerer Zahlen bestimmen"},
+termeDistributiv:  {codes:["H2.I1"], kompetenz:"Terme vereinfachen und das Distributivgesetz anwenden (Klammern auflösen, ausklammern, gleiche Terme zusammenfassen)"}
   };
 
   /* ============ P4.3: Spaced Repetition ============
@@ -3049,7 +3169,7 @@
     { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck"] },
     { id:"messen",   icon:"📏", name:"Flächen-Baum",  thema:"Maße",       untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","pythagoras","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","weitereKoerper","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },
     { id:"alltag",   icon:"🧺", name:"Alltags-Baum",  thema:"Sachaufgaben", untertitel:"Sachaufgaben aus dem Alltag (I1.M1)", generatoren:["textaufgabeGarten","textaufgabePizza","textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSkikurs","textaufgabeWandertag","textaufgabeSchulheft","textaufgabeEiscafe","mehrstufig"] },
-    { id:"struktur", icon:"🔗", name:"Daten-Baum",    thema:"Gleichungen", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","tabelleLesen","diagrammBalken","wahrscheinlichkeit","mittelwerte"] }
+    { id:"struktur", icon:"🔗", name:"Daten-Baum",    thema:"Gleichungen", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","tabelleLesen","diagrammBalken","wahrscheinlichkeit","mittelwerte","termeDistributiv"] }
   ];
   function bereichFuerKey(key){
     var i;

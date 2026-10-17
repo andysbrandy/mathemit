@@ -143,6 +143,13 @@
     box-shadow:0 3px 14px rgba(0,0,0,.16);
   }
   .offline-chip[hidden]{ display:none; }
+  .offline-chip button{
+    background:#1FA294; color:#fff; border:none; border-radius:6px;
+    padding:4px 12px; cursor:pointer; font-size:.75rem; font-weight:700;
+    margin-left:10px; vertical-align:middle;
+  }
+  .offline-chip button:hover{ background:#157a87; }
+  .offline-chip button:disabled{ opacity:.65; cursor:not-allowed; }
   .update-toast{
     position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
     z-index:901; display:flex; align-items:center; gap:12px;

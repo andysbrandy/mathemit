@@ -2147,9 +2147,13 @@ function chipSetzen(id, sichtbar, text) {
 
 function offlineZeigen() {
   chipSetzen("offlineChip", true, "Offline — wird lokal gespeichert");
+  var btn = document.getElementById("offlineChipSaveBtn");
+  if (btn) btn.style.display = "none";
 }
 function onlineZeigen() {
   chipSetzen("offlineChip", false);
+  var btn = document.getElementById("offlineChipSaveBtn");
+  if (btn) btn.style.display = "none";
 }
 
 /* --- Update-Toast ---------------------------------------------------
@@ -2230,10 +2234,16 @@ function offlineUeberwachen() {
 }
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", function () { swRegistrieren(); offlineUeberwachen(); });
+  document.addEventListener("DOMContentLoaded", function () {
+    swRegistrieren(); offlineUeberwachen();
+    var btn = document.getElementById("offlineChipSaveBtn");
+    if (btn) btn.onclick = offlineChipSpeichern;
+  });
 } else {
   swRegistrieren();
   offlineUeberwachen();
+  var btn = document.getElementById("offlineChipSaveBtn");
+  if (btn) btn.onclick = offlineChipSpeichern;
 }
 
 /* ---------- Auth UI ---------- */
@@ -2460,6 +2470,7 @@ function pendingMarkieren() {
 function pendingAnzeigen() {
   var chip = document.getElementById("offlineChip");
   var text = document.getElementById("offlineChipText");
+  var btn = document.getElementById("offlineChipSaveBtn");
   if (!chip || !text) return;
   /* Eine sichtbare Verwerfungs-Meldung darf nicht von einem der folgenden
    * Aufrufe wieder ueberschrieben werden. */
@@ -2476,12 +2487,51 @@ function pendingAnzeigen() {
      * vom PWA-Test, der den Chip nach dem Offline-Neuladen gesucht hat.
      */
     if (navigator.onLine) chip.hidden = true;
+    if (btn) btn.style.display = "none";
     return;
   }
   var n = p.anzahl;
+  var online = navigator.onLine;
   text.textContent = (n === 1 ? "1 Änderung wartet" : n + " Änderungen warten")
-    + " — wird gesendet, sobald das Netz da ist";
+    + (online ? " — jetzt online speichern?" : " — wird gesendet, sobald das Netz da ist");
   chip.hidden = false;
+  if (btn) {
+    if (online) btn.style.display = "inline-block";
+    else btn.style.display = "none";
+  }
+}
+
+/* Der Nutzer klickt auf "Jetzt speichern" im offline-Chip.
+ * queueFlushen() uebernimmt den eigentlichen Send-Versuch. Bei Erfolg
+ * zeigt der Chip kurz eine Erfolgsmeldung und blendet sich dann aus.
+ */
+function offlineChipSpeichern() {
+  var btn = document.getElementById("offlineChipSaveBtn");
+  var chip = document.getElementById("offlineChip");
+  var text = document.getElementById("offlineChipText");
+  if (!btn || !chip || !text) return;
+
+  btn.disabled = true;
+  btn.textContent = "Speichere…";
+
+  queueFlushen(function (ok) {
+    btn.disabled = false;
+    btn.style.display = "none";
+    if (ok) {
+      text.textContent = "&#x2705; Erfolgreich gespeichert!";
+      chip.hidden = false;
+      setTimeout(function () {
+        chip.hidden = true;
+        pendingAnzeigen();
+      }, 3000);
+    } else {
+      text.textContent = "&#x274c; Speichern fehlgeschlagen — später erneut versuchen.";
+      chip.hidden = false;
+      setTimeout(function () {
+        pendingAnzeigen();
+      }, 4000);
+    }
+  });
 }
 
 /* Nach jedem Fehlschlag laenger warten, statt im Sekundentakt zu
@@ -2504,9 +2554,11 @@ function queueSpueren() {
 function pendingAnzeigenFremd() {
   var chip = document.getElementById("offlineChip");
   var text = document.getElementById("offlineChipText");
+  var btn = document.getElementById("offlineChipSaveBtn");
   if (!chip || !text) return;
   text.textContent = "Es warten noch Änderungen von einem anderen Konto — melde dich dort an, um sie zu speichern.";
   chip.hidden = false;
+  if (btn) btn.style.display = "none";
 }
 
 /*
@@ -2545,10 +2597,12 @@ function pendingVerwerfen() {
   _pendingHinweisSichtbar = true;
   var chip = document.getElementById("offlineChip");
   var text = document.getElementById("offlineChipText");
+  var btn = document.getElementById("offlineChipSaveBtn");
   if (!chip || !text) return;
   text.textContent = "Änderungen von vor über 30 Tagen konnten nicht gespeichert werden. "
     + "Bitte einmal anmelden — hier klicken zum Schließen.";
   chip.hidden = false;
+  if (btn) btn.style.display = "none";
   chip.style.cursor = "pointer";
   chip.title = "Zum Schließen klicken";
   chip.onclick = function () {

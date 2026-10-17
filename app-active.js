@@ -2518,14 +2518,14 @@ function offlineChipSpeichern() {
     btn.disabled = false;
     btn.style.display = "none";
     if (ok) {
-      text.textContent = "&#x2705; Erfolgreich gespeichert!";
+      text.textContent = "\u2705 Erfolgreich gespeichert!";
       chip.hidden = false;
       setTimeout(function () {
         chip.hidden = true;
         pendingAnzeigen();
       }, 3000);
     } else {
-      text.textContent = "&#x274c; Speichern fehlgeschlagen — später erneut versuchen.";
+      text.textContent = "\u274c Speichern fehlgeschlagen — später erneut versuchen.";
       chip.hidden = false;
       setTimeout(function () {
         pendingAnzeigen();

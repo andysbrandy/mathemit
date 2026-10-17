@@ -83,7 +83,7 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 | Lineare Gleichung (ax+b=c) | `gleichungEinfach` | ⚖️ Gleichungen & Verhältnisse | ✅ |
 | Direkte Proportionalität | `proportionalitaet` | ⚖️ Gleichungen & Verhältnisse | ✅ |
 | Einheiten-Umrechnung (Länge/Masse/Geld) | `einheiten` | 📐 Maße & Einheiten | ✅ P1.13 (H1.I3) |
-| Terme vereinfachen / Distributivgesetz | — | — | ⬜ P1.17 |
+| Terme vereinfachen / Distributivgesetz | `termeDistributiv` | 🔤 Terme vereinfachen | ✅ P1.17 (H2.I1) |
 | Lineare Funktionen (Steigung, Graph) | — | — | ⬜ (neu, noch nicht geplant) |
 
 ### 🟧 H3 — Geometrische Figuren & Körper ✅ (sehr gut abgedeckt)

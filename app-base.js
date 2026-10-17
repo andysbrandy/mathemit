@@ -2394,6 +2394,7 @@
         ex.question = a+"·("+c+"x "+(plus?"+":"−")+" "+b+") = ?";
         ex.hint = "Multipliziere "+a+" mit jedem Term in der Klammer: "+a+"·"+c+"x und "+a+"·"+b+".";
         ex.explanation = a+"·("+c+"x "+(plus?"+":"−")+" "+b+") = "+(a*c)+"x "+(plus?"+":"−")+" "+(a*b)+" = "+ergebnis+".";
+        ex.tips = ["Klammern auflösen: den Faktor vor der Klammer mit jedem Term in der Klammer multiplizieren."];
         options = [
           ergebnis,
           (a*c) + "x " + (plus?"+":"−") + " " + b,
@@ -2412,6 +2413,7 @@
         ex.question = a+"·(x "+(plus?"+":"−")+" "+b+") = ?";
         ex.hint = "Multipliziere "+a+" mit jedem Term in der Klammer: "+a+"·x und "+a+"·"+b+".";
         ex.explanation = a+"·(x "+(plus?"+":"−")+" "+b+") = "+a+"x "+(plus?"+":"−")+" "+(a*b)+" = "+ergebnis+".";
+        ex.tips = ["Klammern auflösen: den Faktor vor der Klammer mit jedem Term in der Klammer multiplizieren."];
         options = [
           ergebnis,
           a + "x " + (plus?"+":"−") + " " + b,
@@ -2426,15 +2428,23 @@
       while(b===a){ b = rand(2,6); }
       ergebnis = a + "·(x " + (plus?"+":"−") + " " + b + ")";
       badge = "Terme · Ausklammern";
+      var xUnit = 60, bUnit = 9, bWidth = Math.min(b * bUnit, 120), totalW = xUnit + bWidth;
+      if (totalW > 180) { var sc = 180 / totalW; xUnit *= sc; bWidth *= sc; totalW = 180; }
+      var x0 = 150 - totalW / 2;
       svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
-        '<text x="150" y="55" font-size="18" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+a+'x '+(plus?"+":"−")+' '+a*b+'</text>' +
-        '<text x="150" y="95" font-size="15" fill="'+farbe+'" text-anchor="middle">= ?</text>' +
-        '<text x="150" y="140" font-size="13" fill="'+farbe+'" text-anchor="middle">Gemeinsamen Faktor '+a+' ausklammern</text>' +
-        '<text x="150" y="180" font-size="13" fill="'+farbe+'" text-anchor="middle">Welcher Term passt?</text>' +
+        '<text x="150" y="35" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+a+'·x '+(plus?"+":"−")+' '+a*b+' = ?</text>' +
+        '<text x="150" y="60" font-size="14" fill="'+farbe+'" text-anchor="middle">Flächenmodell: '+a+' × (x + '+b+')</text>' +
+        '<rect x="'+x0+'" y="85" width="'+totalW+'" height="60" fill="none" stroke="'+farbe+'" stroke-width="2"/>' +
+        '<rect x="'+x0+'" y="85" width="'+xUnit+'" height="60" fill="'+weich+'" stroke="'+farbe+'" stroke-width="1"/>' +
+        '<rect x="'+(x0+xUnit)+'" y="85" width="'+bWidth+'" height="60" fill="none" stroke="'+farbe+'" stroke-width="1"/>' +
+        '<text x="'+(x0+xUnit/2)+'" y="120" font-size="14" fill="'+farbe+'" text-anchor="middle">'+a+'·x</text>' +
+        '<text x="'+(x0+xUnit+bWidth/2)+'" y="120" font-size="14" fill="'+farbe+'" text-anchor="middle">'+a+'·'+b+'</text>' +
+        '<text x="150" y="175" font-size="13" fill="'+farbe+'" text-anchor="middle">Welcher Term passt?</text>' +
         '</svg>';
-      ex.question = a+"x "+(plus?"+":"−")+" "+(a*b)+" = ?";
+      ex.question = "Klammere den gemeinsamen Faktor aus: "+a+"x "+(plus?"+":"−")+" "+(a*b);
       ex.hint = "Welcher Faktor kommt in "+a+"x und in "+(a*b)+" vor? Klammere "+a+" aus.";
-      ex.explanation = a+"x "+(plus?"+":"−")+" "+(a*b)+" = "+a+"·(x "+(plus?"+":"−")+" "+b+") = "+ergebnis+".";
+      ex.explanation = a+"x "+(plus?"+":"−")+" "+(a*b)+" = "+a+"·(x "+(plus?"+":"−")+" "+b+").";
+      ex.tips = ["Welche Zahl kommt in beiden Termen vor? Diese Zahl schreibt man vor die Klammer."];
       options = [
         ergebnis,
         a + "·(x " + (plus?"+":"−") + " " + b + ")",
@@ -2459,7 +2469,8 @@
         '</svg>';
       ex.question = a+"x "+(plus?"+":"−")+" "+b+"x = ?";
       ex.hint = "Beide Terme haben das x. Addiere bzw. subtrahiere die Zahlen davor: "+a+" "+(plus?"+":"−")+" "+b+" = "+koeff+".";
-      ex.explanation = a+"x "+(plus?"+":"−")+" "+b+"x = "+(plus?(a+b):(a-b))+"x = "+ergebnis+".";
+      ex.explanation = a+"x "+(plus?"+":"−")+" "+b+"x = "+(plus?(a+b):(a-b))+"x = "+ergebnis+"."
+      ex.tips = ["Beide Terme haben das x. Addiere bzw. subtrahiere die Zahlen davor."];
       options = [
         ergebnis,
         koeff + "",
@@ -3000,7 +3011,7 @@
     einheiten:          {codes:["H1.I3","I2.M1"], kompetenz:"Größen in unterschiedlichen Maßeinheiten umrechnen (Länge, Masse, Geld)"},
     potenzenWurzeln:   {codes:["H1.I1","H2.I2"], kompetenz:"Potenzen mit ganzzahligem Exponenten bilden und auswerten; Wurzeln ziehen (Quadrat-, Kubikwurzel)"},
 teilbarkeit:       {codes:["H1.I1"], kompetenz:"Teilbarkeitsregeln anwenden; Primzahlen erkennen; kgV und ggT kleinerer Zahlen bestimmen"},
-termeDistributiv:  {codes:["H2.I1"], kompetenz:"Terme vereinfachen und das Distributivgesetz anwenden (Klammern auflösen, ausklammern, gleiche Terme zusammenfassen)"}
+termeDistributiv:  {codes:["H2.I1"], kompetenz:"Terme vereinfachen und das Distributivgesetz anwenden: Klammern auflösen (a·(x±b)), gemeinsame Faktoren ausklammern (ax±ay) und gleiche Terme zusammenfassen (ax±bx)"}
   };
 
   /* ============ P4.3: Spaced Repetition ============

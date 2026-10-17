@@ -480,6 +480,9 @@
     teilbarkeit:"Teilung mit Rest: „Was bleibt übrig, wenn du in Gruppen aufteilst?“. Primzahl: nur durch 1 und sich selbst teilbar (gerade Zahlen außer 2 nie, endet auf 5/0 nie außer 5). kgV: kleinste Zahl, die in beide Zahlenstrahlen passt. ggT: größte Zahl, die beide ohne Rest teilt.",
     terme:"Klammern auflösen: den Faktor vor der Klammer mit jedem Term in der Klammer multiplizieren. Gleiche Terme (mit x) zusammenfassen.",
     lineareFunktionen:"Steigung m = Anstieg : Lauf (wie steil geht die Gerade hoch/runter?). y-Achsenabschnitt t: Wo schneidet die Gerade die y-Achse (x = 0)? y = m·x + t",
+    kongruenz:"Kongruent = gleiche Seiten & gleiche Winkel (deckungsgleich). Ähnlich = gleiche Winkel, Seiten proportional. Merke: SSW (2 Seiten + ein Winkel) bestimmt ein Dreieck nicht eindeutig.",
+    aehnlichkeit:"Ähnliche Dreiecke haben die gleichen Winkel; die Seiten stehen im gleichen Verhältnis (Streckfaktor). Nicht verwechseln mit kongruent (dort sind auch die Seiten gleich lang).",
+    kongruenzsatz:"SSS = alle 3 Seiten gleich · SWS = 2 Seiten + eingeschlossener Winkel · WSW = 2 Winkel + eingeschlossene Seite · SSW ist nicht eindeutig.",
     _default:"Lies die Aufgabe noch einmal langsam – welche Zahlen und welche Frage gibt es?"
   };
   function deriveTips(ex){
@@ -961,11 +964,195 @@
     return ex;
   }
 
-  /* ============ Phase 3: Kreis ============ */
+  /* ============ H3: Kongruenz / Ähnlichkeit / Konstruktionen ============ */
 
-  function genKreisUmfang(diff){
+  function genKongruenzKonstruktionen(diff){
     diff = diff || 2;
-    var r = diff===1?rand(2,5):(diff===3?rand(6,20):rand(2,10));
+    var typ = rand(0, 2);
+
+    /* ---- Hilfsfunktionen ---- */
+    function winkelGegenueber(a, b, c){
+      var cosW = (b*b + c*c - a*a) / (2*b*c);
+      if(cosW > 1) cosW = 1; if(cosW < -1) cosW = -1;
+      return Math.round(Math.acos(cosW) * 180 / Math.PI);
+    }
+    function duoSVG(svgA, svgB){
+      var innerA = String(svgA).replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'');
+      var innerB = String(svgB).replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'');
+      return '<svg viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg">' +
+        '<g transform="translate(30,10)">'+innerA+'</g>' +
+        '<g transform="translate(350,10)">'+innerB+'</g>' +
+        '</svg>';
+    }
+
+    /* ---- Typ 0: Kongruenz Ja/Nein (SSS) ----
+       Zwei Dreiecke mit Tick-Markierungen; kongruent = gleiche Seiten (ggf. permutiert),
+       nicht kongruent = eine Seite unterschiedlich lang (anderer Tick). ---- */
+    if(typ === 0){
+      var kongruent = Math.random() < 0.5;
+      var a, b, c;
+      do{
+        a = diff===1?rand(4,8):(diff===3?rand(6,16):rand(5,12));
+        b = diff===1?rand(4,8):(diff===3?rand(6,16):rand(5,12));
+        c = diff===1?rand(4,8):(diff===3?rand(6,16):rand(5,12));
+      } while(!isValidTriangle(a,b,c));
+
+      var pts1 = normalizeAndScale(triangleFromSides(a,b,c), 300, 220, 34);
+      var ticks1 = [1, 2, 3];
+
+      var pts2, ticks2, isCongruent;
+      if(kongruent){
+        var perm = rand(0, 5);
+        var seiten = [a, b, c];
+        var s2 = [seiten[perm%3], seiten[(perm+1)%3], seiten[(perm+2)%3]];
+        pts2 = normalizeAndScale(triangleFromSides(s2[0], s2[1], s2[2]), 300, 220, 34);
+        var tickMap = {};
+        tickMap[a] = 1; tickMap[b] = 2; tickMap[c] = 3;
+        if(a===b) tickMap[b] = tickMap[a];
+        if(b===c) tickMap[c] = tickMap[b];
+        if(a===c) tickMap[c] = tickMap[a];
+        ticks2 = [tickMap[s2[0]], tickMap[s2[1]], tickMap[s2[2]]];
+        isCongruent = true;
+      } else {
+        var c2 = c + (diff===1?2:(diff===3?4:3));
+        if(!isValidTriangle(a,b,c2)){ c2 = Math.max(a,b) - 1; if(c2 < 1) c2 = 1; }
+        pts2 = normalizeAndScale(triangleFromSides(a,b,c2), 300, 220, 34);
+        ticks2 = [1, 2, 4];
+        isCongruent = false;
+      }
+
+      var svg = duoSVG(
+        polygonSVG(pts1, {color:COLORS.dreieck.main, soft:COLORS.dreieck.soft, ticks:ticks1}),
+        polygonSVG(pts2, {color:COLORS.dreieck.main, soft:COLORS.dreieck.soft, ticks:ticks2})
+      );
+
+      var ex = baseEx("kongruenz","kongruenz");
+      ex.question = "Sind diese beiden Dreiecke kongruent (deckungsgleich)?";
+      ex.hint = kongruent
+        ? "Kongruent bedeutet: alle entsprechenden Seiten sind gleich lang (gleiche Anzahl Tick-Striche). Die Dreiecksform ist identisch, auch wenn sie gedreht oder gespiegelt liegt."
+        : "SSS-Kriterium: Alle drei Seiten müssen paarweise gleich lang sein. Bereits eine anders lange Seite bedeutet „nicht kongruent“. Achte auf die Tick-Striche.";
+      ex.svg = svg; ex.badge = "Kongruenz · Kongruenz prüfen"; ex.badgeColor = COLORS.dreieck.main;
+      ex.inputType = "mc"; ex.choices = ["Ja, kongruent", "Nein, nicht kongruent"];
+      ex.correctIndex = kongruent ? 0 : 1;
+      ex.answer = ex.choices[ex.correctIndex];
+      ex.explanation = kongruent
+        ? "Ja, kongruent: die Dreiecke sind kongruent; entsprechende Seiten haben die gleichen Tick-Markierungen und damit die gleiche Länge (SSS)."
+        : "Nein, nicht kongruent: die Dreiecke sind nicht kongruent; mindestens eine Seite hat eine andere Länge (unterschiedliche Tick-Anzahl), das SSS-Kriterium ist nicht erfuellt.";
+      return ex;
+    }
+
+    /* ---- Typ 1: Ähnlichkeit Ja/Nein ----
+       Zwei Dreiecke; ähnlich = gleiche Winkel, Seiten um Faktor gestreckt. ---- */
+    if(typ === 1){
+      var a, b, c;
+      do{
+        a = diff===1?rand(4,8):(diff===3?rand(6,16):rand(5,12));
+        b = diff===1?rand(4,8):(diff===3?rand(6,16):rand(5,12));
+        c = diff===1?rand(4,8):(diff===3?rand(6,16):rand(5,12));
+      } while(!isValidTriangle(a,b,c));
+
+      var similar = Math.random() < 0.5;
+      var pts1 = normalizeAndScale(triangleFromSides(a,b,c), 300, 220, 34);
+
+      var pts2, faktor, isSimilar;
+      if(similar){
+        faktor = diff===1 ? 2 : (diff===3 ? rand(2,4) : rand(2,3));
+        var a2 = a*faktor, b2 = b*faktor, c2 = c*faktor;
+        pts2 = normalizeAndScale(triangleFromSides(a2,b2,c2), 300, 220, 34);
+        isSimilar = true;
+      } else {
+        var c2 = c * (diff===1 ? 1.6 : (diff===3 ? 2.2 : 1.8));
+        if(!isValidTriangle(a,b,c2)){ c2 = (a+b) * 0.55; }
+        pts2 = normalizeAndScale(triangleFromSides(a,b,c2), 300, 220, 34);
+        isSimilar = false;
+        faktor = 0;
+      }
+
+      var svg = duoSVG(
+        polygonSVG(pts1, {color:COLORS.dreieck.main, soft:COLORS.dreieck.soft, ticks:[1,2,3]}),
+        polygonSVG(pts2, {color:COLORS.dreieck.main, soft:COLORS.dreieck.soft, ticks:[1,2,3]})
+      );
+
+      var ex = baseEx("kongruenz","aehnlichkeit");
+      ex.question = "Sind diese beiden Dreiecke ähnlich? (Gleiche Winkel, proportionale Seiten)";
+      ex.hint = similar
+        ? "Ähnliche Dreiecke haben die gleichen Winkel, aber die Seiten sind um einen Streckfaktor gestreckt. Alle drei Winkel müssen paarweise gleich sein."
+        : "Achte auf die Form: Sind alle drei Winkel paarweise gleich groß? Wenn auch nur ein Winkel anders ist, sind sie nicht ähnlich.";
+      ex.svg = svg; ex.badge = "Kongruenz · Ähnlichkeit"; ex.badgeColor = COLORS.dreieck.main;
+      ex.inputType = "mc"; ex.choices = ["Ja, ähnlich", "Nein, nicht ähnlich"];
+      ex.correctIndex = isSimilar ? 0 : 1;
+      ex.answer = ex.choices[ex.correctIndex];
+      if(isSimilar){
+        ex.explanation = "Ja, ähnlich: die Dreiecke sind ähnlich; die Winkel sind paarweise gleich und die Seiten stehen im Verhältnis 1 : "+faktor+" (Streckfaktor).";
+      } else {
+        ex.explanation = "Nein, nicht ähnlich: die Dreiecke sind nicht ähnlich; mindestens ein Winkel ist unterschiedlich groß, die Formen stimmen nicht uberein.";
+      }
+      return ex;
+    }
+
+    /* ---- Typ 2: Kongruenzsatz bestimmen ----
+       Zeigt zwei kongruente Dreiecke mit markierten gleichen Seiten (Ticks) und Winkeln.
+       Schüler bestimmt den Kongruenzsatz (SSS, SWS, WSW) oder "keiner / nicht eindeutig" (SSW). ---- */
+    {
+      var satzTyp = rand(0, 3); // 0=SSS, 1=SWS, 2=WSW, 3=SSW-nicht-eindeutig
+      var a, b, c;
+      do{
+        a = diff===1?rand(5,9):(diff===3?rand(7,14):rand(6,11));
+        b = diff===1?rand(5,9):(diff===3?rand(7,14):rand(6,11));
+        c = diff===1?rand(5,9):(diff===3?rand(7,14):rand(6,11));
+      } while(!isValidTriangle(a,b,c));
+
+      var pts = normalizeAndScale(triangleFromSides(a,b,c), 300, 220, 34);
+      var w = [winkelGegenueber(a,b,c), winkelGegenueber(b,c,a), winkelGegenueber(c,a,b)];
+      // Seite 0=AB=c, Seite 1=BC=a, Seite 2=CA=b
+      // Winkel Index 0=A (zwischen Seite 2 und 0), 1=B (zwischen 0 und 1), 2=C (zwischen 1 und 2)
+
+      var korrekt, ticks, angleLabels;
+      if(satzTyp === 0){
+        korrekt = "SSS";
+        ticks = [1, 1, 1];
+        angleLabels = [null, null, null];
+      } else if(satzTyp === 1){
+        korrekt = "SWS";
+        ticks = [1, 0, 1];
+        angleLabels = [w[0]+"°", null, null];
+      } else if(satzTyp === 2){
+        korrekt = "WSW";
+        ticks = [0, 0, 1];
+        angleLabels = [w[0]+"°", null, w[2]+"°"];
+      } else {
+        korrekt = "keiner / nicht eindeutig";
+        ticks = [1, 1, 0];
+        angleLabels = [null, null, w[2]+"°"];
+      }
+
+      var svg = duoSVG(
+        polygonSVG(pts, {color:COLORS.dreieck.main, soft:COLORS.dreieck.soft, ticks:ticks, angleLabels:angleLabels}),
+        polygonSVG(pts, {color:COLORS.dreieck.main, soft:COLORS.dreieck.soft, ticks:ticks, angleLabels:angleLabels})
+      );
+
+      var ex = baseEx("kongruenz","kongruenzsatz");
+      ex.question = "Welcher Kongruenzsatz rechtfertigt, dass diese beiden Dreiecke kongruent sind?";
+      ex.hint = "SSS = alle 3 Seiten gleich · SWS = 2 Seiten + eingeschlossener Winkel gleich · WSW = 2 Winkel + eingeschlossene Seite gleich · SSW bestimmt ein Dreieck NICHT eindeutig.";
+      ex.svg = svg; ex.badge = "Kongruenz · Kongruenzsatz"; ex.badgeColor = COLORS.dreieck.main;
+      ex.inputType = "mc";
+      var pool = ["SSS", "SWS", "WSW", "keiner / nicht eindeutig"];
+      var wrongs = shuffle(pool.filter(function(o){ return o !== korrekt; })).slice(0, 3);
+      ex.choices = shuffle([korrekt].concat(wrongs));
+      ex.correctIndex = ex.choices.indexOf(korrekt);
+      ex.answer = ex.choices[ex.correctIndex];
+      ex.explanation = "Richtig ist: "+korrekt+". Die markierten gleichen Seiten (Tick-Striche) und Winkel zeigen, dass dieses Kriterium erfüllt ist.";
+      return ex;
+    }
+
+    // Fallback (sollte nicht erreicht werden)
+    return genKongruenzKonstruktionen(2);
+  }
+
+  /* ============ Phase 3: Kreis ============ */
+  function genKreisUmfang(diff){
+      diff = diff || 2;
+      var r = diff===1?rand(2,5):(diff===3?rand(6,20):rand(2,10));
     var given = Math.random()<0.4 ? "d" : "r";
     var value = given==="d" ? r*2 : r;
     var svg = circleFigureSVG(value, given, COLORS.kreis.main, COLORS.kreis.soft);
@@ -2977,7 +3164,8 @@
     potenzenWurzeln:    withCurriculum("potenzenWurzeln",      genPotenzenWurzeln),
     teilbarkeit:        withCurriculum("teilbarkeit",          genTeilbarkeit),
     termeDistributiv:   withCurriculum("termeDistributiv",     genTermeDistributiv),
-    lineareFunktionen:  withCurriculum("lineareFunktionen",    genLineareFunktionen)
+    lineareFunktionen:  withCurriculum("lineareFunktionen",    genLineareFunktionen),
+    kongruenzKonstruktionen: withCurriculum("kongruenzKonstruktionen", genKongruenzKonstruktionen)
   };
 
   var MODES = [
@@ -3001,7 +3189,8 @@
     {id:"potenzen-wurzeln", label:"⚡ Potenzen & Wurzeln", group:"Zahlen & Operationen · H1", pool:["potenzenWurzeln"]},
     {id:"teilbarkeit", label:"➗ Teilbarkeit, Primzahlen, kgV/ggT", group:"Zahlen & Operationen · H1", pool:["teilbarkeit"]},
     {id:"terme", label:"🔤 Terme vereinfachen", group:"Größen & Variablen · H2", pool:["termeDistributiv"]},
-    {id:"funktionen", label:"📈 Lineare Funktionen", group:"Größen & Variablen · H2", pool:["lineareFunktionen"]}
+    {id:"funktionen", label:"📈 Lineare Funktionen", group:"Größen & Variablen · H2", pool:["lineareFunktionen"]},
+    {id:"kongruenz", label:"🔗 Kongruenz & Konstruktionen", group:"Geometrie · H3", pool:["kongruenzKonstruktionen"]}
   ];
 
   /* Schulstufen-Zuordnung je Übungstyp (1.–4. Klasse Mittelschule) */
@@ -3023,7 +3212,7 @@
     tabelleLesen:[2,3],
     diagrammBalken:[2,3], gemischteZahlen:[1,2], bruchDezimal:[1,2],
     zinsrechnung:[3,4], proportionalitaet:[2,3], mehrstufig:[2,3],
-    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], einheiten:[2,3,4], potenzenWurzeln:[3,4], teilbarkeit:[3,4], termeDistributiv:[3,4], lineareFunktionen:[3,4]
+    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], einheiten:[2,3,4], potenzenWurzeln:[3,4], teilbarkeit:[3,4], termeDistributiv:[3,4], lineareFunktionen:[3,4], kongruenzKonstruktionen:[3,4]
   };
   var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
   var GRADES = [
@@ -3119,7 +3308,8 @@
     potenzenWurzeln:   {codes:["H1.I1","H2.I2"], kompetenz:"Potenzen mit ganzzahligem Exponenten bilden und auswerten; Wurzeln ziehen (Quadrat-, Kubikwurzel)"},
 teilbarkeit:       {codes:["H1.I1"], kompetenz:"Teilbarkeitsregeln anwenden; Primzahlen erkennen; kgV und ggT kleinerer Zahlen bestimmen"},
 termeDistributiv:  {codes:["H2.I1"], kompetenz:"Terme vereinfachen und das Distributivgesetz anwenden: Klammern auflösen (a·(x±b)), gemeinsame Faktoren ausklammern (ax±ay) und gleiche Terme zusammenfassen (ax±bx)"},
-    lineareFunktionen: {codes:["H2.I2"], kompetenz:"Lineare Funktionen y = m·x + t: Steigung m und y-Achsenabschnitt t aus Graph ablesen; Funktionsgleichung aufstellen"}
+    lineareFunktionen: {codes:["H2.I2"], kompetenz:"Lineare Funktionen y = m·x + t: Steigung m und y-Achsenabschnitt t aus Graph ablesen; Funktionsgleichung aufstellen"},
+    kongruenzKonstruktionen: {codes:["H3.I2","H3.I5"], kompetenz:"Kongruenzsätze und Ähnlichkeit von Figuren anwenden"}
   };
 
   /* ============ P4.3: Spaced Repetition ============
@@ -3285,7 +3475,7 @@ termeDistributiv:  {codes:["H2.I1"], kompetenz:"Terme vereinfachen und das Distr
   var GARTEN_BEREICHE = [
     { id:"brueche",  icon:"🌰", name:"Zahlen-Baum",   thema:"Brüche",     untertitel:"Zahlen & Brüche (H1.I1, H1.I3)",  generatoren:["einheiten","ganzeZahlen","bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal","potenzenWurzeln","teilbarkeit"] },
     { id:"prozente", icon:"🪙", name:"Prozent-Baum",  thema:"Prozente",   untertitel:"Prozente & Verhältnisse (H1.I2, H2.I2)", generatoren:["prozentVonZahl","prozentAnteil","zinsrechnung","proportionalitaet"] },
-    { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck"] },
+    { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck","kongruenzKonstruktionen"] },
     { id:"messen",   icon:"📏", name:"Flächen-Baum",  thema:"Maße",       untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","pythagoras","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","weitereKoerper","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },
     { id:"alltag",   icon:"🧺", name:"Alltags-Baum",  thema:"Sachaufgaben", untertitel:"Sachaufgaben aus dem Alltag (I1.M1)", generatoren:["textaufgabeGarten","textaufgabePizza","textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSkikurs","textaufgabeWandertag","textaufgabeSchulheft","textaufgabeEiscafe","mehrstufig"] },
     { id:"struktur", icon:"🔗", name:"Daten-Baum",    thema:"Gleichungen", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","tabelleLesen","diagrammBalken","wahrscheinlichkeit","mittelwerte","termeDistributiv","lineareFunktionen"] }

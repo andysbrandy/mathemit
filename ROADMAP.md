@@ -102,7 +102,7 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 | Volumen Quader/Würfel/Zylinder | `quaderVolumen`, `wuerfelVolumen`, `zylinderVolumen` | 📦 Körper (Volumen) | ✅ |
 | Oberfläche Quader/Würfel/Zylinder | `quaderOberflaeche`, `wuerfelOberflaeche`, `zylinderOberflaeche` | 📊 Oberfläche von Körpern | ✅ |
 | Weitere 3D-Körper (Pyramide, Kegel, Kugel, Prisma) | `weitereKoerper` | 📦 Körper (Volumen) | ✅ P1.14 |
-| Kongruenz/Ähnlichkeit, Konstruktionen | — | — | ⬜ (neu, noch nicht geplant) |
+| Kongruenz/Ähnlichkeit, Konstruktionen | `kongruenzKonstruktionen` | 🔗 Kongruenz & Konstruktionen | ✅ |
 
 ### 🟪 H4 — Wahrscheinlichkeit & Statistik ✅ (komplett)
 
@@ -129,12 +129,12 @@ bricht jeden Commit ab, der eine dieser Flächen auslässt — Positiv- **und** 
 |---|---|---|
 | 🟦 H1 Zahlen & Rechnen | ✅ Kern + ℤ (Brüche/Prozent/Zinsen/ganze Zahlen/Potenzen-Wurzeln/Teilbarkeit) | — |
 | 🟨 H2 Gleichungen | ⚠️ Grundlagen | Terme ✅ P1.17 · Funktionen ✅ · Einheiten ✅ H1.I3 |
-| 🟧 H3 Geometrie | ✅ sehr gut | Kongruenz/Ähnlichkeit, Konstruktionen (nicht geplant) |
+| 🟧 H3 Geometrie | ✅ sehr gut | komplett |
 | 🟪 H4 Statistik/Wskt. | ✅ komplett | — |
 | 🟩 I1–I3 Prozesse | ✅ querschnittlich | — |
 
 **Empfohlene Reihenfolge** (nach Lehrplan-Gewicht): H4 komplett ✅ (Mittelwerte + Wahrscheinlichkeit), Einheiten ✅ (P1.13, H1.I3), weitere Körper ✅ (P1.14, H3).
-→ Nächstes: P1.17 Terme ✅ · Lineare Funktionen (H2) ✅ → Kongruenz & Konstruktionen (H3, ⬜ offen)
+→ Nächstes: P1.16 Teilbarkeit (H1, ⬜) · P1.17 Terme (H2, ⬜)
 
 ---
 

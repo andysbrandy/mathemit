@@ -10,6 +10,7 @@
 - [Mathe mit Andybrandy – Startseite](https://mathemit.andybrandy.at/): Interaktive Matheübungen nach österreichischem Lehrplan (Kompetenzbereiche H1–I3), AHS/MS 2023.
 - Mathematisches Üben für Schülerinnen und Schüler der Sekundarstufe I (Mittelstufe, ca. 10–14 Jahre) in Österreich.
 - Pädagogische Konzepte: gestuftes Tipp-System, Wiederholungstraining (Wissens-Ampel), Lernfortschritt, Wissensgarten und Eulenhain als langfristige Motivationssysteme.
+- Neu (H3): Kongruenz & Konstruktionen – Kongruenzsätze (SSS, SWS, WSW), Ähnlichkeitsprüfung, Konstruktionsfragen mit SVG-Zeichnungen.
 
 ## Für Lehrkräfte
 

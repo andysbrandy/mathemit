@@ -2609,7 +2609,7 @@
     } else if(typ === 1){
       a = rand(2, Math.min(40, maxZahl-2));
       ergebnis = naechstePrimzahl(a);
-      badge = "Primzahl";
+      badge = "Teilbarkeit · Primzahl";
       svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
         punktReihe(a, Math.floor(260/a), 20, 110, farbe, weich) +
         '<text x="150" y="40" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+a+' Punkte</text>' +
@@ -2622,7 +2622,7 @@
       var z1 = rand(2, Math.min(12, maxZahl/2));
       var z2 = rand(2, Math.min(12, maxZahl/2));
       ergebnis = kgV(z1, z2);
-      badge = "kgV";
+      badge = "Teilbarkeit · kgV";
       svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
         '<line x1="40" y1="90" x2="260" y2="90" stroke="'+weich+'" stroke-width="2"/>' +
         '<line x1="40" y1="140" x2="260" y2="140" stroke="'+weich+'" stroke-width="2"/>' +
@@ -2631,23 +2631,25 @@
         '<text x="150" y="40" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">kgV('+z1+", "+z2+") = ?</text>" +
         '<text x="150" y="200" font-size="14" fill="'+farbe+'" text-anchor="middle">Wann treffen sich beide Zahlenstrahlen erstmals?</text>' +
         '</svg>';
-      ex.question = "kgV("+z1+", "+z2+") = ?";
+      ex.question = "kgV("+z1+", "+z2+") = ? (kgV = kleinstes gemeinsames Vielfaches)";
       ex.hint = "Schreibe die Vielfachen von "+z1+" und "+z2+" auf. Welche Zahl kommt in beiden Listen vor?";
       ex.explanation = "kgV("+z1+", "+z2+") = "+ergebnis+", denn "+ergebnis+" ist die kleinste Zahl, die sowohl durch "+z1+" als auch durch "+z2+" teilbar ist.";
     } else {
       var z1 = rand(2, Math.min(20, maxZahl));
       var z2 = rand(2, Math.min(20, maxZahl));
       ergebnis = ggt(z1, z2);
-      badge = "ggT";
+      badge = "Teilbarkeit · ggT";
+      var mx = Math.max(z1, z2);
+      var bw1 = 60 + Math.round(z1 / mx * 160), bw2 = 60 + Math.round(z2 / mx * 160);
       svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
-        '<rect x="40" y="70" width="120" height="40" fill="'+farbe+'" stroke="'+weich+'" stroke-width="1"/>' +
-        '<rect x="40" y="130" width="180" height="40" fill="'+farbe+'" stroke="'+weich+'" stroke-width="1"/>' +
-        '<text x="40" y="65" font-size="13" fill="'+farbe+'" text-anchor="left">'+z1+"×"+'…</text>' +
-        '<text x="40" y="125" font-size="13" fill="'+farbe+'" text-anchor="left">'+z2+"×"+'…</text>' +
+        '<rect x="40" y="70" width="'+bw1+'" height="40" fill="'+farbe+'" stroke="'+weich+'" stroke-width="1"><title>Zahl 1</title></rect>' +
+        '<rect x="40" y="130" width="'+bw2+'" height="40" fill="'+farbe+'" stroke="'+weich+'" stroke-width="1"><title>Zahl 2</title></rect>' +
+        '<text x="40" y="65" font-size="13" fill="'+farbe+'" text-anchor="left">Zahl '+z1+'</text>' +
+        '<text x="40" y="125" font-size="13" fill="'+farbe+'" text-anchor="left">Zahl '+z2+'</text>' +
         '<text x="150" y="40" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">ggT('+z1+", "+z2+") = ?</text>" +
         '<text x="150" y="200" font-size="14" fill="'+farbe+'" text-anchor="middle">Welche ist die größte gleiche Teilgröße?</text>' +
         '</svg>';
-      ex.question = "ggT("+z1+", "+z2+") = ?";
+      ex.question = "ggT("+z1+", "+z2+") = ? (ggT = größter gemeinsamer Teiler)";
       ex.hint = "Schreibe die Teiler von "+z1+" und die Teiler von "+z2+" auf. Welche ist die größte Zahl, die in beiden Listen vorkommt?";
       ex.explanation = "ggT("+z1+", "+z2+") = "+ergebnis+", denn "+ergebnis+" ist die größte Zahl, durch die sowohl "+z1+" als auch "+z2+" ohne Rest teilbar sind.";
     }

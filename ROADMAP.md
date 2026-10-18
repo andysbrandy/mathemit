@@ -51,7 +51,7 @@ Erzwungen durch `scripts/check-generator-surfaces.js` (Commit-Abbruch bei fehlen
 | Prozentwert / Prozentanteil / Zinsen | `prozentVonZahl`, `prozentAnteil`, `zinsrechnung` | 💰 Prozente & Zinsen | ✅ |
 | Ganze / negative Zahlen (ℤ) | `ganzeZahlen` | 🔢 Ganze Zahlen | ✅ |
 | Potenzen & Wurzeln (Basis) | `potenzenWurzeln` | ⚡ Potenzen & Wurzeln | ✅ P1.15 |
-| Teilbarkeit, Primzahlen, kgV / ggT | `teilbarkeit` | ➗ Teilbarkeit | ✅ P1.16 (H1.I1) |
+| Teilbarkeit, Primzahlen, kgV / ggT | `teilbarkeit` | ➗ Teilbarkeit | ✅ |
 | Einheiten-Umrechnung (Länge / Masse / Geld) | `einheiten` | 📐 Maße & Einheiten | ✅ P1.13 (H1.I3) |
 
 ### H2 — Variablen, Funktionen, Gleichungen ⚠️
@@ -135,9 +135,8 @@ Indexierbarer Abdeckungs-Abschnitt in `index.html` (Sichtbarer Dokumentfluss, ke
 
 ## 🔜 Nächste Schritte
 
-1. **P1.16 Teilbarkeit** — Generator `teilbarkeit` abschließen (Lehrplan H1.I1)
-2. Weitere H2-Algebra-Generatoren (z. B. lineare Gleichungssysteme)
-3. H4-Bereich prüfen und ggf. aufbauen, sofern der Lehrplan es vorsieht
+1. Weitere H2-Algebra-Generatoren (z. B. lineare Gleichungssysteme)
+2. H4-Bereich prüfen und ggf. aufbauen, sofern der Lehrplan es vorsieht
 
 ---
 

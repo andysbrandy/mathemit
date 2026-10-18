@@ -21,10 +21,12 @@
 | **Qualitätssicherung** | ✅ | Pre-Commit-Check: 58 Generatoren, 21 Topic-Chips, 6 Wissensgarten-Bäume |
 
 ---
-## 🎯 Die 6 Flächen jedes Generators
+## 🎯 Die 6 Pflicht-Einbaupunkte jedes Generators
 
-Jeder Generator muss an **allen** 6 Flächen hängen, sonst ist er unsichtbar oder fällt aus der Gesamtlogik.
-Erzwungen durch `scripts/check-generator-surfaces.js` (Commit-Abbruch bei fehlender Fläche):
+Jeder Generator muss an **allen** 6 Einbaupunkten hängen, sonst ist er unsichtbar oder fällt aus der Gesamtlogik.
+Erzwungen durch `scripts/check-generator-surfaces.js` (Commit-Abbruch bei fehlendem Einbaupunkt):
+
+> **Hinweis zum Begriff:** Im Code heißen die Einbaupunkte *surfaces* (englisch). Auf Deutsch meint das nicht die geometrische „Fläche", sondern die sechs Stellen, an denen ein Generator registriert werden muss (Rechenlogik `GEN`, Lehrplan-Zuordnung `CURRICULUM_MAP`, Stufen-Tags `GRADE_TAGS`, Topic-Chip `MODES`, Wissensgarten-Baum `GARTEN_BEREICHE` und der SEO/GEO-Eintrag).
 
 1. **`GEN`** — Rechenlogik (valides Exercise-Objekt, mathematisch korrekt, 200-Läufe-Stabilitätstest)
 2. **`CURRICULUM_MAP`** — Lehrplan-Code + Kompetenz-Text

@@ -1,10 +1,10 @@
 # mathemit
-mathemit.andybrandy ist eine Lernapplication
+mathemit.andybrandy.at ist eine Lern-Anwendung für Mathematik (AHS / MS, Lehrplan 2023).
 
 ## 📣 Kanäle
 
 Clips und Updates laufen auf drei Kanälen. Die **öffentlichen** Kanäle sind für
-Besucher gedacht, die **Studio-/Übersichts-Links** für die eigene Verwaltung:
+Besucher gedacht, die **Studio-/Übersichts-Links** dienen der eigenen internen Verwaltung:
 
 | Kanal | Öffentliche URL | Übersicht / Studio (intern) |
 |---|---|---|
@@ -15,15 +15,11 @@ Besucher gedacht, die **Studio-/Übersichts-Links** für die eigene Verwaltung:
 > Hinweis: Der TikTok-Handle lautet `mathefit` (nicht `mathemit`), weil
 > `mathemit.andybrandy.at` dort nicht frei war.
 
-**Rechtlicher Stand (7.6):** Die Kommentarfunktion wurde **je Plattform einzeln
-bewertet**. Bei YouTube ist sie für die Videos deaktiviert, weil offene
-Kommentarspalten bei erkennbarer Kinder-Zielgruppe unerwünschte Erwachsene
-anziehen. Bezahlte Werbung, die sich gezielt an unter 13-Jährige richtet, ist in
-EU/AT unzulässig und daher nicht vorgesehen.
+**Rechtlicher Stand (P7.6):** Die Kommentarfunktion wurde je Plattform einzeln bewertet. Bei YouTube ist sie deaktiviert, weil offene Kommentarspalten bei einer erkennbaren Kinder-Zielgruppe unerwünschte Erwachsene anziehen. Bezahlte Werbung, die sich gezielt an unter 13-Jährige richtet, ist in der EU / in Österreich unzulässig und daher nicht vorgesehen.
 
 ## 🛠️ Entwicklung
 
-- **App:** `index.html`, `app-base.js` (Logik), `app-active.js` (Oberfläche),
+- **App:** `index.html`, `app-base.js` (Logik), `app-active.js` (Benutzeroberfläche),
   `style-base.css`, `style-active.css` — statisch, kein Build-Schritt.
 - **Videowerkstatt:** `content-pipeline/` erzeugt Clips lokal und deterministisch
   ohne Netzwerkzugriff. Details und Testblöcke in

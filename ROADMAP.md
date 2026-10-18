@@ -43,64 +43,9 @@ Erzwungen durch `scripts/check-generator-surfaces.js` (Commit-Abbruch bei fehlen
 
 ## 📚 Lehrplan-Abdeckung
 
-### H1 — Zahlen und Rechnen ✅
-
-| Stoff | Generator-Key | Chip | Status |
-|-------|---------------|------|--------|
-| Brüche (8 Operationen, gemischte Zahlen, ↔ Dezimal) | `bruchKuerzen`, `bruchAddition`, … | ➗ Brüche | ✅ |
-| Prozentwert / Prozentanteil / Zinsen | `prozentVonZahl`, `prozentAnteil`, `zinsrechnung` | 💰 Prozente & Zinsen | ✅ |
-| Ganze / negative Zahlen (ℤ) | `ganzeZahlen` | 🔢 Ganze Zahlen | ✅ |
-| Potenzen & Wurzeln (Basis) | `potenzenWurzeln` | ⚡ Potenzen & Wurzeln | ✅ P1.15 |
-| Zehnerpotenzen / Gleitkomma / negative Exponenten | `potenzenErweitert` (geplant) | ⚡ (geplant) | ⬜ P1.18 (H1/H2) |
-| Teilbarkeit, Primzahlen, kgV / ggT | `teilbarkeit` | ➗ Teilbarkeit | ✅ |
-| Einheiten-Umrechnung (Länge / Masse / Geld) | `einheiten` | 📐 Maße & Einheiten | ✅ P1.13 (H1.I3) |
-| Zehnerpotenzen / Gleitkommadarstellung | — | ➗ (geplant) | ⬜ P1.18 (H1) |
-| Indirekte Proportionalität | — | ⚖️ (geplant) | ⬜ P1.19 (H2) |
-| Grundkonstruktionen (Strecken-/Winkelsymmetrale) | — | 📐 (geplant) | ⬜ P1.23 (H3) |
-| Lagebeziehungen (Punkt/Gerade, Gerade/Gerade) | — | 📐 (geplant) | ⬜ P1.24 (H3) |
-| Potenzen mit negativen Exponenten | — | ⚡ (geplant) | ⬜ P1.20 (H1/H2) |
-
-> **Bündelung:** P1.18 (Zehnerpotenzen/Gleitkomma) + P1.20 (negative Exponenten) zu **einem** Generator `potenzenErweitert` zusammenfassen.
-
-### H2 — Variablen, Funktionen, Gleichungen ⚠️
-
-| Stoff | Generator-Key | Chip | Status |
-|-------|---------------|------|--------|
-| Lineare Gleichung (ax + b = c) | `gleichungEinfach` | ⚖️ Gleichungen & Verhältnisse | ✅ |
-| Indirekte Proportionalität | — | ⚖️ (geplant) | ⬜ P1.19 (H2) |
-| Direkte Proportionalität | `proportionalitaet` | ⚖️ Gleichungen & Verhältnisse | ✅ |
-| Terme vereinfachen / Distributivgesetz | `termeDistributiv` | 🔤 Terme vereinfachen | ✅ |
-| Binomische Formeln (a±b)², (a+b)(a−b) | — | 🔤 (geplant) | ⬜ P1.21 (H2) |
-| Lineare Gleichungssysteme (2×2) | — | ⚖️ (geplant) | ⬜ P1.22 (H2) |
-
-### H3 — Figuren und Körper ✅
-
-| Stoff | Generator-Key | Chip | Status |
-|-------|---------------|------|--------|
-| Winkel, Dreiecke, Vierecke (Eigenschaften, Winkelsumme) | … | 📐 Winkel-Baum | ✅ |
-| Umfang, Fläche, Körper (Volumen / Oberfläche) | … | 📏 Flächen-Baum | ✅ |
-| Kreis | … | ⭕ Kreis-Baum | ✅ |
-| **Kongruenz & Konstruktionen** | `kongruenzKonstruktionen` | 🔗 Kongruenz & Konstruktionen | ✅ **neu** |
-| Grundkonstruktionen (Strecken-/Winkelsymmetrale) | — | 📐 (geplant) | ⬜ P1.23 (H3) |
-| Lagebeziehungen (Punkt/Gerade, Gerade/Gerade) | — | 📐 (geplant) | ⬜ P1.24 (H3) |
-| Lehrplan-Codes | H3.I1, H3.I2, H3.I5 | | ✅ |
-
-### H4 — Statistik & Wahrscheinlichkeit ⚠️
-
-| Stoff | Generator-Key | Chip | Status |
-|-------|---------------|------|--------|
-| Wahrscheinlichkeit (Laplace) | `wahrscheinlichkeit` | 📊 Daten & Diagramme | ✅ |
-| Mittelwert / Modus / Median | `mittelwerte` | 📊 Daten & Diagramme | ✅ |
-| Absolute & relative Häufigkeiten | — | 📊 (geplant) | ⬜ P1.26 (H4) |
-| Kreisdiagramm lesen & zeichnen | — | 📊 (geplant) | ⬜ P1.27 (H4) |
-
-### I1–I3 — Handlungsbereiche ✅
-
-| Bereich | Stoff | Status |
-|-------|-------|--------|
-| I1 Modellieren | Sachaufgaben, mehrstufig, Österreich-Bezug | ✅ |
-| I2 Operieren | Rechenlogik, Verfahren anwenden | ✅ |
-| I3 Interpretieren | Tabellen, Diagramme, Mittelwert / Modus / Median, Wahrscheinlichkeit | ✅ |
+> Maßgeblich ist die Soll-Ist-Matrix in [`LEHRPLAN_ABDECKUNG.md`](LEHRPLAN_ABDECKUNG.md)
+> (H1 ✅, H2 ⚠️ 3 offen, H3 ⚠️ 2 offen, H4 ⚠️ 2 offen + P1.18, I1–I3 ✅).
+> Stand nach Lehrplan-Abgleich: 8 offene Punkte P1.18, P1.19, P1.21–P1.24, P1.26, P1.27.
 
 ---
 ## 🗓️ Roadmap-Phasen

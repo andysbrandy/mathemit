@@ -100,6 +100,87 @@ Indexierbarer Abdeckungs-Abschnitt in `index.html` (Sichtbarer Dokumentfluss, ke
 
 ---
 
+## 🎨 UX-Optimierung
+
+> Motivation: Bei 51+ Generatoren und 21 Topic-Chips muss die App auch mobil
+> (kleines Display, Touch) sofort benutzbar bleiben: Aufgabe + Lösungsfeld immer
+> sichtbar, Auflösung klar lesbar, neue Nutzer in < 30 s beim Lernen.
+
+### UX1: Chip-Auswahl mobil optimieren ⬜
+
+**Problem:** 21 Topic-Chips in einer horizontal scrollbaren Leiste (`#chips`,
+`overflow-x:auto`) + Stufen-Chips (`#gradeChips`) + Schwierigkeits-Chips
+(`#diffChips`) = drei Leisten über der Aufgabe. Mobil schiebt das Board
+(Figure + Frage + Antwortfeld) aus dem sichtbaren Bereich; Nutzer müssen
+scrollen, um das Lösungsfeld zu erreichen. Zusätzlich: `scrollActiveChip()`
+scrollt nur horizontal, die Seite springt trotzdem.
+
+**Ziel:** Aufgabe + Lösungsfeld sind nach Chip-Tap **ohne Scrollen** sichtbar
+(First Viewport), mind. auf 360×640.
+
+**Maßnahmen:**
+1. Chip-Leiste kompakt: einzeilig, kleinere Pads mobil, Gruppen-Trenner behalten.
+2. Stufen- (`#gradeChips`) und Schwierigkeits-Chips (`#diffChips`) in EINE
+   Sekundärzeile zusammenfassen oder in ein aufklappbares „Stufe & Niveau“-Feld
+   verlagern (Default: letzte Wahl aus `localStorage`).
+3. Nach `nextExercise()`: `board.scrollIntoView({block:"nearest"})` nur wenn das
+   Antwortfeld außerhalb des Viewports liegt (kein erzwungenes Springen).
+4. `position:sticky` für das Board-Panel prüfen (Frage + Antwortfeld bleiben
+   beim Scrollen oben fixiert).
+5. Akzeptanz: Lighthouse Mobile, 360×640 — Frage + Eingabefeld + Prüfen-Button
+   im ersten Viewport nach Chip-Wechsel.
+
+### UX2: Auflösung (richtig/falsch) besser darstellen ⬜
+
+**Problem:** `finishRound()` schreibt Lob/Tadel + rohe `explanation` + Zusatzinfos
+in EIN `#feedback`-Div als Fließtext (`msg + explain + extra`). Bei falscher
+Antwort stehen Korrektur-Tipp, Wiederholungs-Hinweis und Stufen-Vorschlag
+unstrukturiert untereinander; richtige Antworten zeigen nur den Lob-Text.
+Mobil schwer scannbar, kein visueller Unterschied zwischen „Was war richtig?“
+und „Was lerne ich daraus?“.
+
+**Ziel:** Strukturierte Auflösungs-Karte mit klarer Hierarchie.
+
+**Maßnahmen:**
+1. Auflösung als Karte: Kopfzeile (✅ Richtig / ❌ Nicht ganz — Punkte/Serie),
+   darunter Rechenweg (`explanation`) als eigener Block, darunter Lern-Hinweis
+   (TIPP1 / Korrektur) optisch abgesetzt.
+2. Bei falsch: richtige Antwort zusätzlich als eigenständige Zeile
+   („Richtig wäre: …“), nicht nur in der MC-Markierung versteckt.
+3. Bei richtig (Wiederholung/Leiter): Erfolgsmeldung als Badge, nicht als
+   Fließtext-Satz.
+4. Stufen-Vorschlag (`step-sug`) als eigene Aktionszeile unter der Karte
+   (nicht in der Karte).
+5. Farben beibehalten (`ok`/`bad`), Kontraste nach WCAG AA prüfen.
+
+### UX3: Welcome-Screen für neue Nutzer ⬜
+
+**Problem:** Kein Erstbesuchs-Flow (`localStorage`-Check, Intro, Overlay —
+Code-Suche negativ). Neue Nutzer landen direkt im Übungs-Board ohne zu wissen,
+was Chips, Ampel, Garten und Eulenhain bedeuten. Keine Schüler/Lehrer-Trennung
+am Einstieg (nur Klassen-Code im Registrierungs-Formular).
+
+**Ziel:** Erstbesuch → 3 Wege in < 30 s; Wiederbesuch → direkt lernen.
+
+**Maßnahmen:**
+1. Erstbesuchs-Erkennung via `localStorage` (`mathemit_seen_v1`); Overlay nur
+   beim allerersten Besuch, danach nie wieder (schließbar, „Nicht mehr zeigen“).
+2. Drei Optionen im Overlay:
+   - **„Sofort loslernen“** → Overlay zu, erste Aufgabe (Default-Chip).
+   - **„Einführung (1 Min.)“** → 3–4 Slide-Kurztour: Chips wählen Thema,
+     Tipps helfen stufenweise, Ampel/Garten zeigen Fortschritt, Eule belohnt.
+   - **„Ich bin Schüler / Ich bin Lehrer“** → Rollenwahl: Schüler → direkt
+     lernen; Lehrer → Hinweis auf Klassen-Code + Link auf die Lehrer-Landingpage.
+3. Lehrer-Landingpage (`/lehrer.html`, SEO/GEO-optimiert wie `index.html` +
+   `llms.txt`-Eintrag): Klassen-Code anlegen, Fortschritt einsehen, Lehrplan-
+   Abdeckung H1–H4/I1–I3, Datenschutz (DSGVO, kein Tracking), FAQ für Unterricht.
+4. Schüler-Landingpage (`/schueler.html` bzw. Anker auf `index.html`):
+   Was ist Mathemit, wie lerne ich (Chips, Tipps, Wiederholung), Punkte/Ränge/Eule.
+5. Akzeptanz: Erstbesuch → Klick „Sofort loslernen“ < 30 s messbar;
+   Lehrer-Seite indexierbar (Titel, Meta-Description, JSON-LD wie `index.html`).
+
+---
+
 ## 🔜 Nächste Schritte
 
 1. **P1.18** `potenzenErweitert` — Zehnerpotenzen/Gleitkomma/negative Exponenten (H1/H2)

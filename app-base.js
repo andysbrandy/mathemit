@@ -2685,7 +2685,7 @@
           '</svg>';
         ex.question = a+"·("+c+"x "+(plus?"+":"−")+" "+b+") = ?";
         ex.hint = "Multipliziere "+a+" mit jedem Term in der Klammer: "+a+"·"+c+"x und "+a+"·"+b+".";
-        ex.explanation = a+"·("+c+"x "+(plus?"+":"−")+" "+b+") = "+(a*c)+"x "+(plus?"+":"−")+" "+(a*b)+" = "+ergebnis+".";
+        ex.explanation = a+"·("+c+"x "+(plus?"+":"−")+" "+b+") = "+(a*c)+"x "+(plus?"+":"−")+" "+(a*b)+".";
         ex.tips = ["Klammern auflösen: den Faktor vor der Klammer mit jedem Term in der Klammer multiplizieren."];
         options = [
           ergebnis,
@@ -2704,7 +2704,7 @@
           '</svg>';
         ex.question = a+"·(x "+(plus?"+":"−")+" "+b+") = ?";
         ex.hint = "Multipliziere "+a+" mit jedem Term in der Klammer: "+a+"·x und "+a+"·"+b+".";
-        ex.explanation = a+"·(x "+(plus?"+":"−")+" "+b+") = "+a+"x "+(plus?"+":"−")+" "+(a*b)+" = "+ergebnis+".";
+        ex.explanation = a+"·(x "+(plus?"+":"−")+" "+b+") = "+a+"x "+(plus?"+":"−")+" "+(a*b)+".";
         ex.tips = ["Klammern auflösen: den Faktor vor der Klammer mit jedem Term in der Klammer multiplizieren."];
         options = [
           ergebnis,
@@ -2748,8 +2748,11 @@
     } else {
       var plus = Math.random()<0.5;
       a = diff===1 ? rand(2,4) : (diff===3 ? rand(5,12) : rand(3,8));
-      b = diff===1 ? rand(1,3) : (diff===3 ? rand(3,10) : rand(2,6));
-      while(b===a){ b = diff===1 ? rand(1,3) : (diff===3 ? rand(3,10) : rand(2,6)); }
+      var bMin = diff===1 ? 1 : (diff===3 ? 3 : 2);
+      var bMax = diff===1 ? 3 : (diff===3 ? 10 : 6);
+      b = rand(bMin, bMax);
+      while(b===a){ b = rand(bMin, bMax); }
+      if(!plus && b > a){ var t = a; a = b; b = t; } // bei − zuerst das Größere → positives Ergebnis (kindgerecht)
       var koeff = plus ? (a+b) : (a-b);
       ergebnis = koeff + "x";
       badge = "Terme · Gleichartige zusammenfassen";
@@ -2761,7 +2764,7 @@
         '</svg>';
       ex.question = a+"x "+(plus?"+":"−")+" "+b+"x = ?";
       ex.hint = "Beide Terme haben das x. Addiere bzw. subtrahiere die Zahlen davor: "+a+" "+(plus?"+":"−")+" "+b+" = "+koeff+".";
-      ex.explanation = a+"x "+(plus?"+":"−")+" "+b+"x = "+(plus?(a+b):(a-b))+"x = "+ergebnis+"."
+      ex.explanation = a+"x "+(plus?"+":"−")+" "+b+"x = "+(plus?(a+b):(a-b))+"x = "+koeff+"x."
       ex.tips = ["Beide Terme haben das x. Addiere bzw. subtrahiere die Zahlen davor."];
       options = [
         ergebnis,

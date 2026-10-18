@@ -60,7 +60,7 @@ Erzwungen durch `scripts/check-generator-surfaces.js` (Commit-Abbruch bei fehlen
 |-------|---------------|------|--------|
 | Lineare Gleichung (ax + b = c) | `gleichungEinfach` | ⚖️ Gleichungen & Verhältnisse | ✅ |
 | Direkte Proportionalität | `proportionalitaet` | ⚖️ Gleichungen & Verhältnisse | ✅ |
-| Terme vereinfachen / Distributivgesetz | `termeDistributiv` | 🔤 Terme vereinfachen | ⬜ P1.17 |
+| Terme vereinfachen / Distributivgesetz | `termeDistributiv` | 🔤 Terme vereinfachen | ✅ |
 
 ### H3 — Figuren und Körper ✅
 
@@ -136,9 +136,8 @@ Indexierbarer Abdeckungs-Abschnitt in `index.html` (Sichtbarer Dokumentfluss, ke
 ## 🔜 Nächste Schritte
 
 1. **P1.16 Teilbarkeit** — Generator `teilbarkeit` abschließen (Lehrplan H1.I1)
-2. **P1.17 Terme** — Generator `termeDistributiv` abschließen (Lehrplan H2)
-3. Weitere H2-Algebra-Generatoren (z. B. lineare Gleichungssysteme)
-4. H4-Bereich prüfen und ggf. aufbauen, sofern der Lehrplan es vorsieht
+2. Weitere H2-Algebra-Generatoren (z. B. lineare Gleichungssysteme)
+3. H4-Bereich prüfen und ggf. aufbauen, sofern der Lehrplan es vorsieht
 
 ---
 

@@ -51,16 +51,27 @@ Erzwungen durch `scripts/check-generator-surfaces.js` (Commit-Abbruch bei fehlen
 | Prozentwert / Prozentanteil / Zinsen | `prozentVonZahl`, `prozentAnteil`, `zinsrechnung` | 💰 Prozente & Zinsen | ✅ |
 | Ganze / negative Zahlen (ℤ) | `ganzeZahlen` | 🔢 Ganze Zahlen | ✅ |
 | Potenzen & Wurzeln (Basis) | `potenzenWurzeln` | ⚡ Potenzen & Wurzeln | ✅ P1.15 |
+| Zehnerpotenzen / Gleitkomma / negative Exponenten | `potenzenErweitert` (geplant) | ⚡ (geplant) | ⬜ P1.18 (H1/H2) |
 | Teilbarkeit, Primzahlen, kgV / ggT | `teilbarkeit` | ➗ Teilbarkeit | ✅ |
 | Einheiten-Umrechnung (Länge / Masse / Geld) | `einheiten` | 📐 Maße & Einheiten | ✅ P1.13 (H1.I3) |
+| Zehnerpotenzen / Gleitkommadarstellung | — | ➗ (geplant) | ⬜ P1.18 (H1) |
+| Indirekte Proportionalität | — | ⚖️ (geplant) | ⬜ P1.19 (H2) |
+| Grundkonstruktionen (Strecken-/Winkelsymmetrale) | — | 📐 (geplant) | ⬜ P1.23 (H3) |
+| Lagebeziehungen (Punkt/Gerade, Gerade/Gerade) | — | 📐 (geplant) | ⬜ P1.24 (H3) |
+| Potenzen mit negativen Exponenten | — | ⚡ (geplant) | ⬜ P1.20 (H1/H2) |
+
+> **Bündelung:** P1.18 (Zehnerpotenzen/Gleitkomma) + P1.20 (negative Exponenten) zu **einem** Generator `potenzenErweitert` zusammenfassen.
 
 ### H2 — Variablen, Funktionen, Gleichungen ⚠️
 
 | Stoff | Generator-Key | Chip | Status |
 |-------|---------------|------|--------|
 | Lineare Gleichung (ax + b = c) | `gleichungEinfach` | ⚖️ Gleichungen & Verhältnisse | ✅ |
+| Indirekte Proportionalität | — | ⚖️ (geplant) | ⬜ P1.19 (H2) |
 | Direkte Proportionalität | `proportionalitaet` | ⚖️ Gleichungen & Verhältnisse | ✅ |
 | Terme vereinfachen / Distributivgesetz | `termeDistributiv` | 🔤 Terme vereinfachen | ✅ |
+| Binomische Formeln (a±b)², (a+b)(a−b) | — | 🔤 (geplant) | ⬜ P1.21 (H2) |
+| Lineare Gleichungssysteme (2×2) | — | ⚖️ (geplant) | ⬜ P1.22 (H2) |
 
 ### H3 — Figuren und Körper ✅
 
@@ -70,7 +81,18 @@ Erzwungen durch `scripts/check-generator-surfaces.js` (Commit-Abbruch bei fehlen
 | Umfang, Fläche, Körper (Volumen / Oberfläche) | … | 📏 Flächen-Baum | ✅ |
 | Kreis | … | ⭕ Kreis-Baum | ✅ |
 | **Kongruenz & Konstruktionen** | `kongruenzKonstruktionen` | 🔗 Kongruenz & Konstruktionen | ✅ **neu** |
+| Grundkonstruktionen (Strecken-/Winkelsymmetrale) | — | 📐 (geplant) | ⬜ P1.23 (H3) |
+| Lagebeziehungen (Punkt/Gerade, Gerade/Gerade) | — | 📐 (geplant) | ⬜ P1.24 (H3) |
 | Lehrplan-Codes | H3.I1, H3.I2, H3.I5 | | ✅ |
+
+### H4 — Statistik & Wahrscheinlichkeit ⚠️
+
+| Stoff | Generator-Key | Chip | Status |
+|-------|---------------|------|--------|
+| Wahrscheinlichkeit (Laplace) | `wahrscheinlichkeit` | 📊 Daten & Diagramme | ✅ |
+| Mittelwert / Modus / Median | `mittelwerte` | 📊 Daten & Diagramme | ✅ |
+| Absolute & relative Häufigkeiten | — | 📊 (geplant) | ⬜ P1.26 (H4) |
+| Kreisdiagramm lesen & zeichnen | — | 📊 (geplant) | ⬜ P1.27 (H4) |
 
 ### I1–I3 — Handlungsbereiche ✅
 
@@ -135,8 +157,14 @@ Indexierbarer Abdeckungs-Abschnitt in `index.html` (Sichtbarer Dokumentfluss, ke
 
 ## 🔜 Nächste Schritte
 
-1. Weitere H2-Algebra-Generatoren (z. B. lineare Gleichungssysteme)
-2. H4-Bereich prüfen und ggf. aufbauen, sofern der Lehrplan es vorsieht
+1. **P1.18** `potenzenErweitert` — Zehnerpotenzen/Gleitkomma/negative Exponenten (H1/H2)
+2. **P1.19** Indirekte Proportionalität (H2)
+3. **P1.21** Binomische Formeln (H2)
+4. **P1.22** Lineare Gleichungssysteme 2×2 (H2)
+5. **P1.23** Grundkonstruktionen (H3)
+6. **P1.24** Lagebeziehungen (H3)
+7. **P1.26** Absolute & relative Häufigkeiten (H4)
+8. **P1.27** Kreisdiagramm (H4)
 
 ---
 

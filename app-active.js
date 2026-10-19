@@ -852,7 +852,11 @@ function handleCheck(){
   if(raw===""){ input.focus(); return; }
   var val = parseFloat(raw);
   if(isNaN(val)) { input.focus(); return; }
-  var isCorrect = Math.abs(val - ex.answer) < (ex.tolerance || 0.05);
+  // tolerance = 0 bedeutet exakte Übereinstimmung (Ganzzahlen bei Potenzen/Wurzeln).
+  // Der || 0.05-Fallback sorgt für einen kleinen Spielraum bei Dezimalaufgaben,
+  // ohne dass exakt richtige Ganzzahlen verworfen werden.
+  var tol = ex.tolerance !== undefined ? ex.tolerance : 0.05;
+  var isCorrect = Math.abs(val - ex.answer) <= tol;
   input.disabled = true;
   finishRound(isCorrect, ex.explanation);
 }

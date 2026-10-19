@@ -478,7 +478,7 @@
     wahrscheinlichkeit:"Günstige Fälle durch mögliche Fälle: zähle zuerst, wie viele Fälle gewinnen, dann teile durch alle Fälle.",
     mittelwerte:"Mittelwert = Summe aller Werte : Anzahl. Modus = der Wert, der am häufigsten vorkommt. Median = der mittlere Wert, nachdem du alles der Größe nach sortiert hast.",
     einheiten:"Größere in kleinere Einheit: mal dem Faktor (Komma nach rechts). Kleinere in größere: durch den Faktor (Komma nach links). Länge und Masse in 10er-Schritten, Geld 1 € = 100 ct.",
-    potenzen:"a hoch n = a · a · … · a (n Faktoren). Wurzel fragt: welche Zahl malgenommen mit sich selbst ergibt a? Zehnerpotenz: Exponent = Anzahl Nullen. Minus im Exponent heißt Kehrwert (1 : …).",
+    potenzen:"Eine Potenz bedeutet: eine Zahl mehrmals mit sich selbst malnehmen. 12 hoch 3 = 12 · 12 · 12. Die kleine hochgestellte Zahl (der Exponent) sagt dir, wie oft du multiplizieren musst.",
     potenzenErweitert:"Zehnerpotenz: Exponent = Anzahl der Nullen nach der 1. Gleitkomma: Komma um n Stellen nach rechts schieben. Minus im Exponent ⇒ Kehrwert 1 : (a hoch n).",
     teilbarkeit:"Teilung mit Rest: „Was bleibt übrig, wenn du in Gruppen aufteilst?“. Primzahl: nur durch 1 und sich selbst teilbar (gerade Zahlen außer 2 nie, endet auf 5/0 nie außer 5). kgV: kleinste Zahl, die in beide Zahlenstrahlen passt. ggT: größte Zahl, die beide ohne Rest teilt.",
     terme:"Klammern auflösen: den Faktor vor der Klammer mit jedem Term in der Klammer multiplizieren. Gleiche Terme (mit x) zusammenfassen.",

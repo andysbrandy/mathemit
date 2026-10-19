@@ -2560,29 +2560,50 @@
     }
 
     if(istWurzel){
-      // Wurzel ziehen: √ergebnis (exp. Wurzel) = basis
-      // Die Visualisierung zeigt ein Quadrat aus Einheitsquadraten (Fläche = ergebnis).
-      // Die Seitenlänge (= Antwort) wird NICHT angezeigt – Schüler:innen sollen selbst darauf kommen.
-      var gradText = exp === 2 ? "" : "<sup>"+exp+"</sup>";
-      var cs = Math.floor(150 / dispB);
-      if(cs < 5) cs = 5;
-      var gs = dispB * cs;
-      var x0 = (300 - gs) / 2;
-      var y0 = 42;
-      var parts = quadGrid(dispB, cs, x0, y0, farbe, weich);
-      var wurzelGrad = exp === 2 ? "" : "<tspan font-size=\"14\" dy=\"-8\">"+exp+"</tspan>";
-      // Bei Wurzeln ist dispB === basis (niemals gekürzt im Zahlenbereich), daher niemals Seitenlänge nennen.
-      var wurzelLabel = gekuerzt
-        ? labelKurz + '(beispielhaft) ' + dispB + ' × ' + dispB + ' Felder'
-        : ergebnis + ' Einheitsquadrate';
+      // Wurzel ziehen: ⁿ√ergebnis = basis  (Wurzelindex VOR dem Wurzelzeichen)
+      // Visualisierung:
+      //   exp=2:  basis×basis-Quadrat (Fläche = ergebnis, Seite = Antwort)
+      //   exp>2:  maxLay Lagen à basis×basis (schematisch, wie bei Potenzen, ohne Antwort preiszugeben)
+      var wurzelIndexSvg = exp === 2 ? "" : "<tspan font-size=\"13\" dy=\"-6\">"+exp+"</tspan>";
+      var wurzelIndexTxt = exp === 2 ? "" : " "+exp+".";
+
+      var cs, gs, x0, y0, parts, wurzelLabel;
+
+      if(exp === 2){
+        cs = Math.floor(150 / dispB);
+        if(cs < 5) cs = 5;
+        gs = dispB * cs;
+        x0 = (300 - gs) / 2;
+        y0 = 42;
+        parts = quadGrid(dispB, cs, x0, y0, farbe, weich);
+        wurzelLabel = ergebnis + ' Einheitsquadrate';
+      } else {
+        // exp 3 oder 4: Lagen-Darstellung (schematisch, nicht alle Felder einzeln)
+        var maxLay = Math.min(exp, 4);
+        cs = Math.floor(110 / dispB);
+        if(cs < 4) cs = 4;
+        gs = dispB * cs;
+        var layOff = 10;
+        x0 = (300 - gs - layOff*(maxLay-1)) / 2;
+        y0 = 34;
+        parts = "";
+        for(var l = 0; l < maxLay; l++){
+          var ox = x0 + l * layOff;
+          var oy = y0 - l * 5;
+          var op = 1 - l * 0.18;
+          parts += quadGrid(dispB, cs, ox, oy, farbe, weich, op);
+        }
+        wurzelLabel = maxLay + ' Lagen à ' + dispB + '×' + dispB + ' Felder';
+      }
+
       svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
         parts +
-        '<text x="150" y="22" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">√'+ergebnis+wurzelGrad+' = ?</text>' +
+        '<text x="150" y="22" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+wurzelIndexSvg+'√'+ergebnis+' = ?</text>' +
         '<text x="150" y="208" font-size="13" fill="'+farbe+'" text-anchor="middle">'+wurzelLabel+'</text>' +
         '</svg>';
-      ex.question = "Wurzel ziehen: √"+ergebnis+gradText+" = ?";
+      ex.question = "Wurzel ziehen: "+wurzelIndexTxt+"√"+ergebnis+" = ?";
       ex.hint = "Welche Zahl, "+exp+"-mal mit sich selbst malgenommen, ergibt "+ergebnis+"?";
-      ex.explanation = "√"+ergebnis+" = "+basis+", denn "+basis+"<sup>"+exp+"</sup> = "+fmtAT(ergebnis)+".";
+      ex.explanation = exp+".-fache Wurzel aus "+ergebnis+" = "+basis+", denn "+basis+"<sup>"+exp+"</sup> = "+fmtAT(ergebnis)+".";
     } else {
       // Potenz bilden: basis^exp = ergebnis
       // Die Visualisierung zeigt das Raster, aber weder das Gesamtergebnis noch eine "="-Rechnung.

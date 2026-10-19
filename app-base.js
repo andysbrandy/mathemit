@@ -478,7 +478,8 @@
     wahrscheinlichkeit:"Günstige Fälle durch mögliche Fälle: zähle zuerst, wie viele Fälle gewinnen, dann teile durch alle Fälle.",
     mittelwerte:"Mittelwert = Summe aller Werte : Anzahl. Modus = der Wert, der am häufigsten vorkommt. Median = der mittlere Wert, nachdem du alles der Größe nach sortiert hast.",
     einheiten:"Größere in kleinere Einheit: mal dem Faktor (Komma nach rechts). Kleinere in größere: durch den Faktor (Komma nach links). Länge und Masse in 10er-Schritten, Geld 1 € = 100 ct.",
-    potenzen:"aⁿ = a · a · … · a (n Faktoren). Wurzel √a fragt: welche Zahl malgenommen mit sich selbst ergibt a? Bei ³√a nimmst du die Zahl dreimal.",
+    potenzen:"a hoch n = a · a · … · a (n Faktoren). Wurzel fragt: welche Zahl malgenommen mit sich selbst ergibt a? Zehnerpotenz: Exponent = Anzahl Nullen. Minus im Exponent heißt Kehrwert (1 : …).",
+    potenzenErweitert:"Zehnerpotenz: Exponent = Anzahl der Nullen nach der 1. Gleitkomma: Komma um n Stellen nach rechts schieben. Minus im Exponent ⇒ Kehrwert 1 : (a hoch n).",
     teilbarkeit:"Teilung mit Rest: „Was bleibt übrig, wenn du in Gruppen aufteilst?“. Primzahl: nur durch 1 und sich selbst teilbar (gerade Zahlen außer 2 nie, endet auf 5/0 nie außer 5). kgV: kleinste Zahl, die in beide Zahlenstrahlen passt. ggT: größte Zahl, die beide ohne Rest teilt.",
     terme:"Klammern auflösen: den Faktor vor der Klammer mit jedem Term in der Klammer multiplizieren. Gleiche Terme (mit x) zusammenfassen.",
     binom:"Plus-Formel: (a + b)² = a² + 2ab + b². Minus-Formel: (a − b)² = a² − 2ab + b². Plus-Minus: (a + b)(a − b) = a² − b².",
@@ -2635,6 +2636,103 @@
     return ex;
   }
 
+  /* P1.18: Zehnerpotenzen / Gleitkomma / negative Exponenten — H1/H2 */
+  function genPotenzenErweitert(diff){
+    diff = diff || 2;
+    var farbe = COLORS.zahl.main, weich = COLORS.zahl.soft;
+    var ex = baseEx("potenzen","potenzenErweitert");
+    ex.inputType = "number"; ex.tolerance = 0;
+    var typ = rand(0,2);
+    var ergebnis, svgHtml, badge, frage, hint, erklaerung;
+    function nullenBalken(n, maxN, y, label){
+      var o = "";
+      var cs = Math.min(18, 220 / maxN);
+      var startX = 150 - n * cs / 2;
+      for(var i = 0; i < n; i++){
+        o += '<rect x="'+(startX + i*cs)+'" y="'+y+'" width="'+(cs-2)+'" height="16" fill="'+weich+'" stroke="'+farbe+'" stroke-width="1"/>';
+        o += '<text x="'+(startX + i*cs + cs/2)+'" y="'+(y+13)+'" font-size="11" fill="'+farbe+'" text-anchor="middle">0</text>';
+      }
+      o += '<text x="150" y="'+(y+34)+'" font-size="12" fill="'+farbe+'" text-anchor="middle">'+label+'</text>';
+      return o;
+    }
+    if(typ === 0){
+      var n = diff===1 ? rand(2,4) : (diff===3 ? rand(4,7) : rand(3,6));
+      ergebnis = Math.pow(10, n);
+      badge = "Zehnerpotenz · 10 hoch "+n;
+      svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+        '<text x="150" y="28" font-size="17" fill="'+farbe+'" text-anchor="middle" font-weight="bold">10 hoch '+n+' = ?</text>' +
+        '<text x="150" y="52" font-size="13" fill="'+farbe+'" text-anchor="middle">10 hoch '+n+' = 1 mit '+n+' Nullen</text>' +
+        nullenBalken(n, 7, 80, "zähle die Nullen: "+n+" Stück") +
+        '<text x="150" y="150" font-size="13" fill="'+farbe+'" text-anchor="middle">1 gefolgt von '+n+' Nullen</text>' +
+        '<text x="150" y="185" font-size="15" fill="'+farbe+'" text-anchor="middle" font-weight="bold">10 hoch '+n+' = ?</text>' +
+        '<text x="150" y="205" font-size="12" fill="'+farbe+'" text-anchor="middle">Der Exponent sagt, wie viele Nullen folgen</text>' +
+        '</svg>';
+      frage = "Zehnerpotenz: 10 hoch "+n+" = ? (Der Exponent "+n+" sagt, wie viele Nullen der 1 folgen.)";
+      hint = "10 hoch "+n+" = 1 mit "+n+" Nullen. Schreibe 1 und hänge "+n+" Nullen an.";
+      erklaerung = "10 hoch "+n+" = 1 mit "+n+" Nullen = "+fmtAT(ergebnis)+".";
+    } else if(typ === 1){
+      var mant = diff===1 ? rand(2,9) : (rand(11,99)/10);
+      var nexp = diff===1 ? rand(2,4) : (diff===3 ? rand(3,6) : rand(2,5));
+      ergebnis = Math.round(mant * Math.pow(10, nexp) * 100) / 100;
+      badge = "Gleitkomma · a · 10 hoch n";
+      var mantAT = String(mant).replace(".", ",");
+      svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+        '<text x="150" y="28" font-size="16" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+mantAT+' · 10 hoch '+nexp+' = ?</text>' +
+        '<text x="150" y="52" font-size="13" fill="'+farbe+'" text-anchor="middle">Komma '+nexp+' Stellen nach rechts schieben</text>' +
+        '<text x="150" y="90" font-size="15" fill="'+farbe+'" text-anchor="middle">'+mantAT+'</text>' +
+        '<text x="150" y="112" font-size="13" fill="'+farbe+'" text-anchor="middle">10 hoch '+nexp+' = '+fmtAT(Math.pow(10,nexp))+'</text>' +
+        nullenBalken(nexp, 6, 125, "so viele Nullen kommen dazu") +
+        '<text x="150" y="195" font-size="13" fill="'+farbe+'" text-anchor="middle">Gleitkomma: Komma um '+nexp+' Stellen nach rechts</text>' +
+        '</svg>';
+      frage = "Gleitkomma: "+mantAT+" · 10 hoch "+nexp+" = ? (Komma "+nexp+" Stellen nach rechts schieben.)";
+      hint = "Schiebe das Komma von "+mantAT+" um "+nexp+" Stellen nach rechts (Nullen anhängen).";
+      erklaerung = mantAT+" · 10 hoch "+nexp+" = "+fmtAT(ergebnis)+".";
+    } else {
+      var bb = diff===1 ? 2 : (diff===3 ? rand(2,5) : rand(2,4));
+      var nn = diff===1 ? 1 : (diff===3 ? rand(2,3) : rand(1,2));
+      var nenner = Math.pow(bb, nn);
+      badge = "Negativer Exponent · a hoch −n";
+      var bruchWahl = Math.random() < 0.5;
+      if(bruchWahl){
+        ergebnis = Math.round((1/nenner) * 1000) / 1000;
+        svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+          '<text x="150" y="28" font-size="16" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+bb+' hoch −'+nn+' = ?</text>' +
+          '<text x="150" y="52" font-size="13" fill="'+farbe+'" text-anchor="middle">Minus im Exponent ⇒ Kehrwert: 1 : ('+bb+' hoch '+nn+')</text>' +
+          '<text x="150" y="90" font-size="15" fill="'+farbe+'" text-anchor="middle">'+bb+' hoch −'+nn+' = 1 : '+nenner+'</text>' +
+          '<text x="150" y="115" font-size="13" fill="'+farbe+'" text-anchor="middle">denn '+bb+' hoch '+nn+' = '+nenner+'</text>' +
+          '<text x="150" y="150" font-size="15" fill="'+farbe+'" text-anchor="middle" font-weight="bold">1 : '+nenner+' = ?</text>' +
+          '<text x="150" y="185" font-size="13" fill="'+farbe+'" text-anchor="middle">Als Dezimalzahl (Komma) schreiben</text>' +
+          '</svg>';
+        frage = "Negativer Exponent: "+bb+" hoch −"+nn+" = ? (Minus heißt Kehrwert: 1 : ("+bb+" hoch "+nn+").)";
+        hint = bb+" hoch −"+nn+" = 1 : ("+bb+" hoch "+nn+") = 1 : "+nenner+". Rechne als Dezimalzahl.";
+        erklaerung = bb+" hoch −"+nn+" = 1 : "+nenner+" = "+fmt(ergebnis)+".";
+      } else {
+        ergebnis = nenner;
+        svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+          '<text x="150" y="28" font-size="16" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+bb+' hoch −'+nn+' = 1 : ?</text>' +
+          '<text x="150" y="52" font-size="13" fill="'+farbe+'" text-anchor="middle">Minus im Exponent ⇒ Kehrwert: 1 : ('+bb+' hoch '+nn+')</text>' +
+          '<text x="150" y="90" font-size="15" fill="'+farbe+'" text-anchor="middle">'+bb+' hoch '+nn+' = ?</text>' +
+          '<text x="150" y="115" font-size="13" fill="'+farbe+'" text-anchor="middle">rechne zuerst '+bb+' hoch '+nn+' aus</text>' +
+          '<text x="150" y="150" font-size="15" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+bb+' hoch −'+nn+' = 1 : ?</text>' +
+          '<text x="150" y="185" font-size="13" fill="'+farbe+'" text-anchor="middle">Gefragt ist der Nenner (die Zahl nach 1 :)</text>' +
+          '</svg>';
+        frage = bb+" hoch −"+nn+" = 1 : ? (Minus heißt Kehrwert — welche Zahl steht nach 1 : ?)";
+        hint = "Minus heißt Kehrwert: "+bb+" hoch −"+nn+" = 1 : ("+bb+" hoch "+nn+"). Rechne "+bb+" hoch "+nn+" aus.";
+        erklaerung = bb+" hoch −"+nn+" = 1 : "+nenner+", denn "+bb+" hoch "+nn+" = "+nenner+".";
+      }
+    }
+    ex.question = frage;
+    ex.hint = hint;
+    ex.explanation = erklaerung;
+    ex.answer = ergebnis;
+    ex.svg = svgHtml;
+    ex.unit = "";
+    ex.badge = badge;
+    ex.badgeColor = farbe;
+    return ex;
+  }
+
+
   /* P1.16: Teilbarkeit, Primzahlen, kgV/ggT — H1 */
   function genTeilbarkeit(diff){
     diff = diff || 2;
@@ -3430,6 +3528,7 @@
     mittelwerte:        withCurriculum("mittelwerte",          genMittelwerte),
     einheiten:          withCurriculum("einheiten",            genEinheiten),
     potenzenWurzeln:    withCurriculum("potenzenWurzeln",      genPotenzenWurzeln),
+    potenzenErweitert:   withCurriculum("potenzenErweitert",     genPotenzenErweitert),
     teilbarkeit:        withCurriculum("teilbarkeit",          genTeilbarkeit),
     termeDistributiv:   withCurriculum("termeDistributiv",     genTermeDistributiv),
     lineareGleichungssysteme: withCurriculum("lineareGleichungssysteme", genLineareGleichungssysteme),
@@ -3456,7 +3555,7 @@
     {id:"daten-diagramme", label:"📊 Daten & Diagramme", group:"Daten & Statistik · H4", pool:["tabelleLesen","diagrammBalken","wahrscheinlichkeit","mittelwerte"]},
     {id:"ganze-zahlen", label:"🔢 Ganze Zahlen", group:"Zahlen & Operationen · H1", pool:["ganzeZahlen"]},
     {id:"einheiten", label:"📐 Maße & Einheiten", group:"Zahlen & Operationen · H1", pool:["einheiten"]},
-    {id:"potenzen-wurzeln", label:"⚡ Potenzen & Wurzeln", group:"Zahlen & Operationen · H1", pool:["potenzenWurzeln"]},
+    {id:"potenzen-wurzeln", label:"⚡ Potenzen & Wurzeln", group:"Zahlen & Operationen · H1", pool:["potenzenWurzeln","potenzenErweitert"]},
     {id:"teilbarkeit", label:"➗ Teilbarkeit, Primzahlen, kgV/ggT", group:"Zahlen & Operationen · H1", pool:["teilbarkeit"]},
     {id:"terme", label:"🔤 Terme vereinfachen", group:"Größen & Variablen · H2", pool:["termeDistributiv","binomischeFormeln"]},
     {id:"funktionen", label:"📈 Lineare Funktionen", group:"Größen & Variablen · H2", pool:["lineareFunktionen"]},
@@ -3482,7 +3581,7 @@
     tabelleLesen:[2,3],
     diagrammBalken:[2,3], gemischteZahlen:[1,2], bruchDezimal:[1,2],
     zinsrechnung:[3,4], proportionalitaet:[2,3], indirekteProportionalitaet:[3,4], mehrstufig:[2,3],
-    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], einheiten:[2,3,4], potenzenWurzeln:[3,4], teilbarkeit:[3,4], termeDistributiv:[3,4], binomischeFormeln:[3,4], lineareFunktionen:[3,4], kongruenzKonstruktionen:[3,4]
+    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], einheiten:[2,3,4], potenzenWurzeln:[3,4], potenzenErweitert:[3,4], teilbarkeit:[3,4], termeDistributiv:[3,4], binomischeFormeln:[3,4], lineareFunktionen:[3,4], kongruenzKonstruktionen:[3,4]
   };
   var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
   var GRADES = [
@@ -3580,6 +3679,7 @@
 teilbarkeit:       {codes:["H1.I1"], kompetenz:"Teilbarkeitsregeln anwenden; Primzahlen erkennen; kgV und ggT kleinerer Zahlen bestimmen"},
 termeDistributiv:  {codes:["H2.I1"], kompetenz:"Terme vereinfachen und das Distributivgesetz anwenden: Klammern auflösen (a·(x±b)), gemeinsame Faktoren ausklammern (ax±ay) und gleiche Terme zusammenfassen (ax±bx)"},
     binomischeFormeln: {codes:["H2.I1"], kompetenz:"Binomische Formeln anwenden: Plus-Formel (a+b), Minus-Formel (a-b) und Plus-Minus-Formel (a+b)(a-b)"},
+    potenzenErweitert: {codes:["H1.I1","H2.I2"], kompetenz:"Zehnerpotenzen und Gleitkommadarstellung anwenden; Potenzen mit negativen Exponenten als Kehrwert deuten"},
     lineareGleichungssysteme: {codes:["H2.I1"], kompetenz:"Lineare Gleichungssysteme 2x2 lösen (Einsetz- und Additionsverfahren) und die Lösung in beiden Gleichungen prüfen"},
     lineareFunktionen: {codes:["H2.I2"], kompetenz:"Lineare Funktionen y = m·x + t: Steigung m und y-Achsenabschnitt t aus Graph ablesen; Funktionsgleichung aufstellen"},
     kongruenzKonstruktionen: {codes:["H3.I2","H3.I5"], kompetenz:"Kongruenzsätze und Ähnlichkeit von Figuren anwenden"}
@@ -3746,7 +3846,7 @@ termeDistributiv:  {codes:["H2.I1"], kompetenz:"Terme vereinfachen und das Distr
    * Spaced-Repetition-Leiter (state.spaced): Level 0 = unberührt, 1-2 = im Bau,
    * 3-4 = sicher, 5 = gemeistert (golden), fällig = rot. Keine neuen Persistenzfelder. */
   var GARTEN_BEREICHE = [
-    { id:"brueche",  icon:"🌰", name:"Zahlen-Baum",   thema:"Brüche",     untertitel:"Zahlen & Brüche (H1.I1, H1.I3)",  generatoren:["einheiten","ganzeZahlen","bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal","potenzenWurzeln","teilbarkeit"] },
+    { id:"brueche",  icon:"🌰", name:"Zahlen-Baum",   thema:"Brüche",     untertitel:"Zahlen & Brüche (H1.I1, H1.I3)",  generatoren:["einheiten","ganzeZahlen","bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal","potenzenWurzeln","potenzenErweitert","teilbarkeit"] },
     { id:"prozente", icon:"🪙", name:"Prozent-Baum",  thema:"Prozente",   untertitel:"Prozente & Verhältnisse (H1.I2, H2.I2)", generatoren:["prozentVonZahl","prozentAnteil","zinsrechnung","proportionalitaet","indirekteProportionalitaet"] },
     { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck","kongruenzKonstruktionen"] },
     { id:"messen",   icon:"📏", name:"Flächen-Baum",  thema:"Maße",       untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","pythagoras","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","weitereKoerper","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },

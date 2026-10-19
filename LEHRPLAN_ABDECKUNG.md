@@ -17,7 +17,7 @@
 | Potenzen & Wurzeln (Basis) | `potenzenWurzeln` | ✅ |
 | Teilbarkeit, Primzahlen, kgV/ggT | `teilbarkeit` | ✅ |
 | Maßeinheiten (Länge/Masse/Geld) | `einheiten` | ✅ |
-| Zehnerpotenzen, Gleitkomma, negative Exponenten | — | ⬜ P1.18 |
+| Zehnerpotenzen, Gleitkomma, negative Exponenten | `potenzenErweitert` | ✅ P1.18 |
 
 ## H2 — Variable, funktionale Zusammenhänge ✅
 
@@ -61,8 +61,7 @@
 | I2 Rechnen/Operieren | Rechenlogik, Verfahren in allen Generatoren | ✅ |
 | I3 Interpretieren | Tabellen, Diagramme, Kenngrößen, Wahrscheinlichkeit | ✅ |
 
-## Offene Punkte (5)
+## Offene Punkte (4)
 
-P1.18 `potenzenErweitert` ·
 P1.23 Grundkonstruktionen · P1.24 Lagebeziehungen ·
 P1.26 Häufigkeiten · P1.27 Kreisdiagramm

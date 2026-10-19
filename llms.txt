@@ -12,6 +12,7 @@
 - Pädagogische Konzepte: gestuftes Tipp-System, Wiederholungstraining (Wissens-Ampel), Lernfortschritt, Wissensgarten und Eulenhain als langfristige Motivationssysteme.
 - Neu (H2): Indirekte Proportionalität – mehr Leute, weniger Zeit (Gesamtarbeit bestimmen und aufteilen).
 - Neu (H2): Binomische Formeln – Plus-/Minus-/Plus-Minus-Formel mit Quadrat-Modell.
+- Neu (H1/H2): Zehnerpotenzen, Gleitkommadarstellung und negative Exponenten (Kehrwert) – mit Nullen-Balken und Komma-Schiebe-Bild.
 - Neu (H2): Lineare Gleichungssysteme 2x2 – Einsetz- und Additionsverfahren mit Schritt-Anleitung und Probe.
 - Neu (H3): Kongruenz & Konstruktionen – Kongruenzsätze (SSS, SWS, WSW), Ähnlichkeitsprüfung, Konstruktionsfragen mit SVG-Zeichnungen.
 

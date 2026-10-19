@@ -19,7 +19,7 @@
 | Maßeinheiten (Länge/Masse/Geld) | `einheiten` | ✅ |
 | Zehnerpotenzen, Gleitkomma, negative Exponenten | — | ⬜ P1.18 |
 
-## H2 — Variable, funktionale Zusammenhänge ⚠️
+## H2 — Variable, funktionale Zusammenhänge ✅
 
 | Lehrplan-Soll | Generator-Ist | Status |
 |---|---|---|
@@ -27,9 +27,9 @@
 | Direkte Proportionalität | `proportionalitaet` | ✅ |
 | Terme vereinfachen / Distributivgesetz | `termeDistributiv` | ✅ |
 | Lineare Funktionen (Steigung, Achsenabschnitt) | `lineareFunktionen` | ✅ |
-| Indirekte Proportionalität | — | ⬜ P1.19 |
-| Binomische Formeln | — | ⬜ P1.21 |
-| Lineare Gleichungssysteme 2×2 | — | ⬜ P1.22 |
+| Indirekte Proportionalität | `indirekteProportionalitaet` | ✅ P1.19 |
+| Binomische Formeln | `binomischeFormeln` | ✅ P1.21 |
+| Lineare Gleichungssysteme 2×2 | `lineareGleichungssysteme` | ✅ P1.22 |
 
 ## H3 — Geometrische Figuren und Körper ⚠️
 
@@ -61,8 +61,8 @@
 | I2 Rechnen/Operieren | Rechenlogik, Verfahren in allen Generatoren | ✅ |
 | I3 Interpretieren | Tabellen, Diagramme, Kenngrößen, Wahrscheinlichkeit | ✅ |
 
-## Offene Punkte (8)
+## Offene Punkte (5)
 
-P1.18 `potenzenErweitert` · P1.19 indirekte Proportionalität · P1.21 Binomik ·
-P1.22 Gleichungssysteme · P1.23 Grundkonstruktionen · P1.24 Lagebeziehungen ·
+P1.18 `potenzenErweitert` ·
+P1.23 Grundkonstruktionen · P1.24 Lagebeziehungen ·
 P1.26 Häufigkeiten · P1.27 Kreisdiagramm

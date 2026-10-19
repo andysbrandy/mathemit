@@ -45,7 +45,7 @@ Erzwungen durch `scripts/check-generator-surfaces.js` (Commit-Abbruch bei fehlen
 
 > Maßgeblich ist die Soll-Ist-Matrix in [`LEHRPLAN_ABDECKUNG.md`](LEHRPLAN_ABDECKUNG.md)
 > (H1 ✅, H2 ⚠️ 3 offen, H3 ⚠️ 2 offen, H4 ⚠️ 2 offen + P1.18, I1–I3 ✅).
-> Stand nach Lehrplan-Abgleich: 8 offene Punkte P1.18, P1.19, P1.21–P1.24, P1.26, P1.27.
+> Stand nach Lehrplan-Abgleich: H2 vollständig ✅. Offen: P1.18 (H1/H2), P1.23, P1.24 (H3), P1.26, P1.27 (H4).
 
 ---
 ## 🗓️ Roadmap-Phasen
@@ -184,13 +184,10 @@ am Einstieg (nur Klassen-Code im Registrierungs-Formular).
 ## 🔜 Nächste Schritte
 
 1. **P1.18** `potenzenErweitert` — Zehnerpotenzen/Gleitkomma/negative Exponenten (H1/H2)
-2. **P1.19** Indirekte Proportionalität (H2)
-3. **P1.21** Binomische Formeln (H2)
-4. **P1.22** Lineare Gleichungssysteme 2×2 (H2)
-5. **P1.23** Grundkonstruktionen (H3)
-6. **P1.24** Lagebeziehungen (H3)
-7. **P1.26** Absolute & relative Häufigkeiten (H4)
-8. **P1.27** Kreisdiagramm (H4)
+2. **P1.23** Grundkonstruktionen (H3)
+3. **P1.24** Lagebeziehungen (H3)
+4. **P1.26** Absolute & relative Häufigkeiten (H4)
+5. **P1.27** Kreisdiagramm (H4)
 
 ---
 

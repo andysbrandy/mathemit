@@ -464,6 +464,7 @@
     prozent:"Prozent heißt „von Hundert“: Grundwert × (p : 100).",
     textaufgabe:"Unterstreiche Zahlen und Frage. Welcher Rechenweg führt zur Antwort?",
     gleichung:"Bringe x allein auf eine Seite – umgekehrte Operationen auf beiden Seiten.",
+    gleichungssystem:"Zwei Gleichungen, ein Paar (x, y): Einsetzverfahren (y = … einsetzen) oder Additionsverfahren (eine Variable weg-addieren). Probe in beiden!",
     pythagoras:"Rechter Winkel? Dann a² + b² = c². Die Hypotenuse c liegt gegenüber dem rechten Winkel und ist die längste Seite.",
     tabelle:"Suche die richtige Zeile und Spalte – lies genau ab.",
     diagramm:"Finde den Balken und lese an der Achse bzw. über dem Balken ab.",
@@ -471,6 +472,7 @@
     bruchDezimal:"Zähler : Nenner = Dezimalzahl (mit Komma weiterrechnen).",
     zinsrechnung:"Z = K · p · t – setze Kapital, Zinssatz und Zeit ein.",
     proportionalitaet:"Gleiche Sonne ⇒ gleiches Verhältnis. Stelle den Dreisatz auf.",
+    indirekteProportionalitaet:"Indirekt heißt: mehr Leute, weniger Zeit (umgekehrt!). Rechne zuerst die Gesamtarbeit aus (Leute · Zeit), dann teile auf.",
     mehrstufig:"Teile auf in Schritte: 1) pro Kind 2) alle zusammen 3) Extras.",
     ganzeZahlen:"Auf dem Zahlenstrahl liegt die kleinere Zahl weiter links. Bei + und −: gleiche Vorzeichen addieren die Beträge, verschiedene ziehen ab (Vorzeichen des größeren Betrags gewinnt).",
     wahrscheinlichkeit:"Günstige Fälle durch mögliche Fälle: zähle zuerst, wie viele Fälle gewinnen, dann teile durch alle Fälle.",
@@ -479,6 +481,7 @@
     potenzen:"aⁿ = a · a · … · a (n Faktoren). Wurzel √a fragt: welche Zahl malgenommen mit sich selbst ergibt a? Bei ³√a nimmst du die Zahl dreimal.",
     teilbarkeit:"Teilung mit Rest: „Was bleibt übrig, wenn du in Gruppen aufteilst?“. Primzahl: nur durch 1 und sich selbst teilbar (gerade Zahlen außer 2 nie, endet auf 5/0 nie außer 5). kgV: kleinste Zahl, die in beide Zahlenstrahlen passt. ggT: größte Zahl, die beide ohne Rest teilt.",
     terme:"Klammern auflösen: den Faktor vor der Klammer mit jedem Term in der Klammer multiplizieren. Gleiche Terme (mit x) zusammenfassen.",
+    binom:"Plus-Formel: (a + b)² = a² + 2ab + b². Minus-Formel: (a − b)² = a² − 2ab + b². Plus-Minus: (a + b)(a − b) = a² − b².",
     lineareFunktionen:"Steigung m = Anstieg : Lauf (wie steil geht die Gerade hoch/runter?). y-Achsenabschnitt t: Wo schneidet die Gerade die y-Achse (x = 0)? y = m·x + t",
     kongruenz:"Kongruent = gleiche Seiten & gleiche Winkel (deckungsgleich). Ähnlich = gleiche Winkel, Seiten proportional. Merke: SSW (2 Seiten + ein Winkel) bestimmt ein Dreieck nicht eindeutig.",
     aehnlichkeit:"Ähnliche Dreiecke haben die gleichen Winkel; die Seiten stehen im gleichen Verhältnis (Streckfaktor). Nicht verwechseln mit kongruent (dort sind auch die Seiten gleich lang).",
@@ -2248,6 +2251,59 @@
     ex.explanation = "Baumhöhe = "+treeS+" · 1,50 :  ‎2,50 = "+(treeS/100)+" · 0,6 = "+fmt(treeH/100)+" m.";
     return ex;
   }
+
+  // Indirekte Proportionalität: mehr Leute ⇒ weniger Zeit (H2.I2, P1.19)
+  function genIndirekteProportionalitaet(diff){
+    diff = diff || 2;
+    var farbe = COLORS.gleichung.main, weich = COLORS.gleichung.soft;
+    var kontext = choice([
+      {leute:"Bauarbeiter", arbeit:"ein Haus", zeit:"Tage"},
+      {leute:"Maler", arbeit:"die Turnhalle", zeit:"Stunden"},
+      {leute:"Kinder", arbeit:"den Schulgarten", zeit:"Stunden"}
+    ]);
+    var f = diff===1 ? 2 : choice([2,3]);
+    var wKlein = diff===1 ? rand(2,4) : (diff===3 ? rand(3,9) : rand(2,6));
+    var dKlein = diff===1 ? rand(2,6) : (diff===3 ? rand(4,12) : rand(3,8));
+    var wGross = wKlein * f, dGross = dKlein * f;
+    var mehrLeute = Math.random() < 0.5;
+    var wGegeben, dGegeben, wGesucht, antwort;
+    if(mehrLeute){ wGegeben = wKlein; dGegeben = dGross; wGesucht = wGross; antwort = dKlein; }
+    else { wGegeben = wGross; dGegeben = dKlein; wGesucht = wKlein; antwort = dGross; }
+    var gesamt = wGegeben * dGegeben;
+    function personenReihe(n, y){
+      var o = "";
+      var cs = Math.min(16, 230 / n);
+      var startX = 150 - (n - 1) * cs / 2;
+      for(var i = 0; i < n; i++){
+        o += '<circle cx="'+(startX + i*cs)+'" cy="'+y+'" r="'+(cs/2-1)+'" fill="'+farbe+'" stroke="'+weich+'" stroke-width="1"/>';
+      }
+      return o;
+    }
+    var maxTage = Math.max(dGegeben, antwort);
+    var balkenGegeben = 40 + Math.round(dGegeben / maxTage * 180);
+    var balkenGesucht = 40 + Math.round(antwort / maxTage * 180);
+    var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+      '<text x="150" y="22" font-size="13" fill="'+farbe+'" text-anchor="middle" font-weight="bold">Mehr Leute '+(mehrLeute?"\u21D2":"\u21D0")+' '+(mehrLeute?"weniger":"mehr")+' Zeit (indirekt!)</text>' +
+      personenReihe(wGegeben, 48) +
+      '<text x="150" y="72" font-size="12" fill="'+farbe+'" text-anchor="middle">'+wGegeben+' '+kontext.leute+' \u2192 '+dGegeben+' '+kontext.zeit+'</text>' +
+      '<rect x="'+(150-balkenGegeben/2)+'" y="80" width="'+balkenGegeben+'" height="12" fill="'+weich+'" stroke="'+farbe+'" stroke-width="1"/>' +
+      personenReihe(wGesucht, 116) +
+      '<text x="150" y="140" font-size="12" fill="'+farbe+'" text-anchor="middle">'+wGesucht+' '+kontext.leute+' \u2192 ? '+kontext.zeit+'</text>' +
+      '<rect x="'+(150-balkenGesucht/2)+'" y="148" width="'+balkenGesucht+'" height="12" fill="none" stroke="'+farbe+'" stroke-width="1" stroke-dasharray="4 3"/>' +
+      '<text x="150" y="185" font-size="13" fill="'+farbe+'" text-anchor="middle">Gesamtarbeit: '+wGegeben+' \u00B7 '+dGegeben+' = '+gesamt+'</text>' +
+      '<text x="150" y="205" font-size="13" fill="'+farbe+'" text-anchor="middle">Wie viele '+kontext.zeit+' brauchen '+wGesucht+' '+kontext.leute+'?</text>' +
+      '</svg>';
+    var ex = baseEx("gleichung","indirekteProportionalitaet");
+    ex.question = wGegeben+' '+kontext.leute+' brauchen '+dGegeben+' '+kontext.zeit+' für '+kontext.arbeit+'. Wie viele '+kontext.zeit+' brauchen '+wGesucht+' '+kontext.leute+'? (Alle arbeiten gleich schnell.)';
+    ex.hint = 'Mehr Leute \u21D2 weniger Zeit (indirekt!). Gesamtarbeit: '+wGegeben+' \u00B7 '+dGegeben+' = '+gesamt+'. Teile durch '+wGesucht+'.';
+    ex.svg = svg; ex.badge = "Proportionalit\u00E4t \u00B7 Indirekt"; ex.badgeColor = farbe;
+    ex.inputType = "number"; ex.unit = kontext.zeit; ex.tolerance = 0;
+    ex.answer = antwort;
+    ex.explanation = 'Gesamtarbeit: '+wGegeben+' \u00B7 '+dGegeben+' = '+gesamt+'. '+wGesucht+' '+kontext.leute+' \u21D2 '+gesamt+' : '+wGesucht+' = '+antwort+' '+kontext.zeit+'.';
+    ex.tips = ['Indirekt hei\u00DFt: mehr Leute, weniger Zeit. Rechne zuerst die Gesamtarbeit (Leute \u00B7 Zeit).'];
+    return ex;
+  }
+
 // Mehrstufige Sachaufgabe (I1.M1): Klassen-Ausflug ins Freibad
   function genMehrstufig(diff){
     diff = diff || 2;
@@ -2791,12 +2847,218 @@
     return ex;
   }
 
+  /* P1.21: Binomische Formeln — H2 (Plus-, Minus- und Plus-Minus-Formel) */
+  function genBinomischeFormeln(diff){
+    diff = diff || 2;
+    var farbe = COLORS.gleichung.main, weich = COLORS.gleichung.soft;
+    var ex = baseEx("terme","binom");
+    ex.inputType = "mc";
+    var typ = rand(0,2);
+    var a,b,ergebnis,svgHtml,badge,options;
+    function quadFeld(x, y, s, fill, label){
+      return '<rect x="'+x+'" y="'+y+'" width="'+s+'" height="'+s+'" fill="'+fill+'" stroke="'+farbe+'" stroke-width="1"/>' +
+        (label ? '<text x="'+(x+s/2)+'" y="'+(y+s/2+5)+'" font-size="13" fill="'+farbe+'" text-anchor="middle">'+label+'</text>' : '');
+    }
+    if(typ === 0){
+      b = diff===1 ? rand(1,3) : (diff===3 ? rand(2,6) : rand(1,5));
+      var b2 = b*b;
+      ergebnis = "x² + "+(2*b)+"x + "+b2;
+      badge = "Binom · Plus-Formel (a + b)²";
+      var s = 34, ax = 60, ay = 70, bs = 22;
+      svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+        '<text x="150" y="28" font-size="15" fill="'+farbe+'" text-anchor="middle" font-weight="bold">(x + '+b+')² = x² + 2·'+b+'·x + '+b2+'</text>' +
+        quadFeld(ax, ay, s, weich, "x²") +
+        '<rect x="'+(ax+s)+'" y="'+ay+'" width="'+bs+'" height="'+s+'" fill="none" stroke="'+farbe+'" stroke-width="1"/>' +
+        '<text x="'+(ax+s+bs/2)+'" y="'+(ay+s/2+5)+'" font-size="12" fill="'+farbe+'" text-anchor="middle">'+b+'x</text>' +
+        '<rect x="'+ax+'" y="'+(ay+s)+'" width="'+s+'" height="'+bs+'" fill="none" stroke="'+farbe+'" stroke-width="1"/>' +
+        '<text x="'+(ax+s/2)+'" y="'+(ay+s+bs/2+5)+'" font-size="12" fill="'+farbe+'" text-anchor="middle">'+b+'x</text>' +
+        quadFeld(ax+s, ay+s, bs, weich, b2) +
+        '<text x="150" y="185" font-size="13" fill="'+farbe+'" text-anchor="middle">Quadrat-Modell: (x + '+b+')² — welche Summe passt?</text>' +
+        '<text x="150" y="205" font-size="13" fill="'+farbe+'" text-anchor="middle">(a + b)² = a² + 2ab + b²</text>' +
+        '</svg>';
+      ex.question = "(x + "+b+")² = ? (Plus-Formel: (a + b)² = a² + 2ab + b²)";
+      ex.hint = "Plus-Formel: (a + b)² = a² + 2ab + b². Hier: x² + 2·"+b+"·x + "+b+"².";
+      ex.explanation = "(x + "+b+")² = x² + 2·"+b+"·x + "+b+"² = x² + "+(2*b)+"x + "+b2+".";
+      ex.tips = ["Plus-Formel merken: (a + b)² = a² + 2ab + b² — das Mittelstück 2ab nicht vergessen!"];
+      options = [ergebnis, "x² + "+(2*b)+"x + "+b+"", "x² + "+b+"x + "+b2, "x² + "+b2+"x + "+(2*b)];
+    } else if(typ === 1){
+      b = diff===1 ? 1 : (diff===3 ? rand(1,4) : rand(1,3));
+      var b2m = b*b;
+      ergebnis = "x² − "+(2*b)+"x + "+b2m;
+      badge = "Binom · Minus-Formel (a − b)²";
+      var sm = 34, axm = 60, aym = 70, bsm = 22;
+      svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+        '<text x="150" y="28" font-size="15" fill="'+farbe+'" text-anchor="middle" font-weight="bold">(x − '+b+')² = x² − 2·'+b+'·x + '+b2m+'</text>' +
+        quadFeld(axm, aym, sm, weich, "x²") +
+        '<rect x="'+(axm+sm)+'" y="'+aym+'" width="'+bsm+'" height="'+sm+'" fill="none" stroke="'+farbe+'" stroke-width="1" stroke-dasharray="4 3"/>' +
+        '<text x="'+(axm+sm+bsm/2)+'" y="'+(aym+sm/2+5)+'" font-size="12" fill="'+farbe+'" text-anchor="middle">−'+b+'x</text>' +
+        '<rect x="'+axm+'" y="'+(aym+sm)+'" width="'+sm+'" height="'+bsm+'" fill="none" stroke="'+farbe+'" stroke-width="1" stroke-dasharray="4 3"/>' +
+        '<text x="'+(axm+sm/2)+'" y="'+(aym+sm+bsm/2+5)+'" font-size="12" fill="'+farbe+'" text-anchor="middle">−'+b+'x</text>' +
+        quadFeld(axm+sm, aym+sm, bsm, weich, "+"+b2m) +
+        '<text x="150" y="185" font-size="13" fill="'+farbe+'" text-anchor="middle">Minus-Formel: Streifen abziehen, +'+b2m+' bleibt</text>' +
+        '<text x="150" y="205" font-size="13" fill="'+farbe+'" text-anchor="middle">(a − b)² = a² − 2ab + b²</text>' +
+        '</svg>';
+      ex.question = "(x − "+b+")² = ? (Minus-Formel: (a − b)² = a² − 2ab + b²)";
+      ex.hint = "Minus-Formel: (a − b)² = a² − 2ab + b². Hier: x² − 2·"+b+"·x + "+b+"².";
+      ex.explanation = "(x − "+b+")² = x² − 2·"+b+"·x + "+b+"² = x² − "+(2*b)+"x + "+b2m+".";
+      ex.tips = ["Minus-Formel merken: (a − b)² = a² − 2ab + b² — nur das Mittelstück ist minus!"];
+      options = [ergebnis, "x² − "+(2*b)+"x − "+b2m, "x² − "+b+"x + "+b2m, "x² + "+(2*b)+"x + "+b2m];
+    } else {
+      b = diff===1 ? 1 : (diff===3 ? rand(1,4) : rand(1,3));
+      var b2p = b*b;
+      ergebnis = "x² − "+b2p;
+      badge = "Binom · Plus-Minus-Formel (a + b)(a − b)";
+      var sp = 36, axp = 70, ayp = 80;
+      svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+        '<text x="150" y="28" font-size="15" fill="'+farbe+'" text-anchor="middle" font-weight="bold">(x + '+b+')(x − '+b+') = x² − '+b2p+'</text>' +
+        quadFeld(axp, ayp, sp, weich, "x²") +
+        '<rect x="'+(axp+sp)+'" y="'+ayp+'" width="22" height="'+sp+'" fill="none" stroke="'+farbe+'" stroke-width="1"/>' +
+        '<text x="'+(axp+sp+11)+'" y="'+(ayp+sp/2+5)+'" font-size="12" fill="'+farbe+'" text-anchor="middle">+'+b+'x</text>' +
+        '<rect x="'+axp+'" y="'+(ayp+sp)+'" width="'+sp+'" height="22" fill="none" stroke="'+farbe+'" stroke-width="1" stroke-dasharray="4 3"/>' +
+        '<text x="'+(axp+sp/2)+'" y="'+(ayp+sp+15)+'" font-size="12" fill="'+farbe+'" text-anchor="middle">−'+b+'x</text>' +
+        quadFeld(axp+sp, ayp+sp, 22, weich, " \u2212"+b2p) +
+        '<text x="150" y="185" font-size="13" fill="'+farbe+'" text-anchor="middle">+'+b+'x und −'+b+'x heben sich auf — übrig: x² − '+b2p+'</text>' +
+        '<text x="150" y="205" font-size="13" fill="'+farbe+'" text-anchor="middle">(a + b)(a − b) = a² − b²</text>' +
+        '</svg>';
+      ex.question = "(x + "+b+")(x − "+b+") = ? (Plus-Minus-Formel: (a + b)(a − b) = a² − b²)";
+      ex.hint = "Plus-Minus-Formel: die Mittelstücke +"+b+"x und −"+b+"x heben sich auf.";
+      ex.explanation = "(x + "+b+")(x − "+b+") = x² + "+b+"x − "+b+"x − "+b+"² = x² − "+b2p+".";
+      ex.tips = ["Plus-Minus-Formel merken: (a + b)(a − b) = a² − b² — kein Mittelstück!"];
+      options = [ergebnis, "x² + "+b2p, "x² − "+(2*b)+"x − "+b2p, "x² + "+(2*b)+"x + "+b2p];
+    }
+    options = options.filter(function(v,i,arr){return arr.indexOf(v)===i;});
+    while(options.length < 2){
+      options.push(ergebnis + " ");
+      options = options.filter(function(v,i,arr){return arr.indexOf(v)===i;});
+    }
+    options = shuffle(options);
+    ex.choices = options;
+    ex.correctIndex = options.indexOf(ergebnis);
+    ex.answer = ergebnis;
+    ex.svg = svgHtml;
+    ex.unit = "";
+    ex.badge = badge;
+    ex.badgeColor = farbe;
+    return ex;
+  }
+
+
   function bruchWort(z,n){
     var zN=["","ein","zwei","drei","vier","fünf","sechs","sieben","acht","neun","zehn"];
     var nN={2:"Hälfte",3:"Drittel",4:"Viertel",5:"Fünftel",6:"Sechstel",7:"Siebtel",8:"Achtel",9:"Neuntel",10:"Zehntel"};
     if(z===1&&n===2) return "die Hälfte";
     var w=nN[n]; if(!w) return z+"/"+n;
     return zN[z]+" "+w;
+  }
+
+
+  /* P1.22: Lineare Gleichungssysteme 2x2 — H2 (Einsetz-/Additionsverfahren, kindgerecht) */
+  function genLineareGleichungssysteme(diff){
+    diff = diff || 2;
+    var farbe = COLORS.gleichung.main, weich = COLORS.gleichung.soft;
+    var ex = baseEx("gleichung","gleichungssystem");
+    ex.inputType = "mc";
+    // Additionszweig zuerst wuerfeln, damit x/y passend gewaehlt werden koennen
+    var willAddieren = (diff !== 1 && Math.random() >= 0.5);
+    if(willAddieren){
+      // Additionsverfahren: kx + b1*y = c1 und kx - b1*y = c2, beide c positiv.
+      // Waehle k, x, y so, dass kx > b1*y (sonst waere c2 negativ).
+      var k2 = diff===3 ? rand(2,4) : rand(1,3);
+      var b1b = rand(1,2);
+      x = diff===3 ? rand(3,9) : rand(2,6);
+      y = diff===3 ? rand(1,4) : rand(1,3);
+      while(k2*x - b1b*y < 1){ x++; if(x > 9){ x = 3; y = Math.max(1, y-1); } if(y < 1){ y = 1; b1b = 1; } }
+      var a1b = k2, a2b = k2, c1b = a1b*x + b1b*y, c2b = a2b*x - b1b*y;
+      var glAb = a1b+"x + "+b1b+"y = "+c1b, glBb = a2b+"x − "+b1b+"y = "+c2b;
+      var ergB = "x = "+x+", y = "+y;
+      var badgeB = "Gleichungssystem · Addieren";
+      var svgB = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+        '<text x="150" y="30" font-size="15" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+glAb+'</text>' +
+        '<text x="150" y="52" font-size="15" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+glBb+'</text>' +
+        '<text x="150" y="82" font-size="13" fill="'+farbe+'" text-anchor="middle">Schritt 1: Beide Gleichungen addieren</text>' +
+        '<text x="150" y="102" font-size="13" fill="'+farbe+'" text-anchor="middle">+'+b1b+'y und −'+b1b+'y heben sich auf!</text>' +
+        '<text x="150" y="122" font-size="13" fill="'+farbe+'" text-anchor="middle">Schritt 2: x lösen, dann oben einsetzen</text>' +
+        '<text x="150" y="152" font-size="15" fill="'+farbe+'" text-anchor="middle" font-weight="bold">x = ? und y = ?</text>' +
+        '<text x="150" y="185" font-size="13" fill="'+farbe+'" text-anchor="middle">Probe: beide Gleichungen müssen</text>' +
+        '<text x="150" y="203" font-size="13" fill="'+farbe+'" text-anchor="middle">mit deiner Lösung stimmen!</text>' +
+        '</svg>';
+      ex.question = "Löse das Gleichungssystem: "+glAb+" und "+glBb+". (Additionsverfahren: addiere beide Gleichungen.)";
+      ex.hint = "Addiere beide Gleichungen: +"+b1b+"y und −"+b1b+"y heben sich auf. Übrig: "+(a1b+a2b)+"x = "+(c1b+c2b)+".";
+      ex.explanation = glAb+" + "+glBb+": "+(a1b+a2b)+"x = "+(c1b+c2b)+" ⇒ x = "+x+". In Gl1: "+b1b+"y = "+c1b+" − "+a1b+"·"+x+" = "+(c1b-a1b*x)+" ⇒ y = "+y+".";
+      ex.tips = ["Additionsverfahren: Addiere beide Gleichungen, sodass eine Variable (hier y) wegfällt. Dann bleibt nur noch x übrig."];
+      var optsB = [ergB, "x = "+x+", y = "+(y+1), "x = "+(x+1)+", y = "+y, "x = "+y+", y = "+x];
+      optsB = optsB.filter(function(v,i,arr){return arr.indexOf(v)===i;});
+      while(optsB.length < 2){ optsB.push(ergB + " "); optsB = optsB.filter(function(v,i,arr){return arr.indexOf(v)===i;}); }
+      optsB = shuffle(optsB);
+      ex.choices = optsB;
+      ex.correctIndex = optsB.indexOf(ergB);
+      ex.answer = ergB;
+      ex.svg = svgB;
+      ex.unit = "";
+      ex.badge = badgeB;
+      ex.badgeColor = farbe;
+      return ex;
+    }
+    var x = diff===1 ? rand(1,4) : (diff===3 ? rand(2,9) : rand(1,6));
+    var y = diff===1 ? rand(1,4) : (diff===3 ? rand(2,9) : rand(1,6));
+    var a1, b1, c1, a2, b2, c2, verfahren;
+    // Einsetzverfahren (immer kindgerecht: alle Zahlen positiv, y aus Gl1)
+    {
+      // Einsetzverfahren: eine Gleichung ist nach y aufgeloest
+      verfahren = "einsetzen";
+      a1 = rand(1,3); c1 = rand(1,5);
+      b1 = 1;
+      var t1 = a1*x + c1;
+      a2 = rand(1,3); c2 = rand(1,5);
+      b2 = 1;
+      var t2 = a2*x + c2;
+      y = t1; // y-Wert aus Gleichung 1 (x so gewaehlt, dass y positiv klein)
+      // x so umrechnen, dass beide Gleichungen dieselbe Loesung (x,y) haben:
+      // Gl1: y = a1*x + c1  =>  y fest; Gl2: y = a2*x + c2 muss dasselbe y geben.
+      // Daher: c2 = y - a2*x (statt Zufall), falls positiv, sonst neu wuerfeln.
+      c2 = y - a2*x;
+      if(c2 < 1){ a2 = 1; c2 = y - x; }
+      if(c2 < 1){ c2 = 1; y = a2*x + c2; }
+      t2 = y;
+      c1 = y - a1*x;
+      if(c1 < 0){ c1 = 0; y = a1*x; c2 = y - a2*x; if(c2 < 0){ c2 = 0; } t2 = y; t1 = y; }
+      c1 = t1 - a1*x; c2 = t2 - a2*x;
+      b1 = 1; b2 = 1;
+      var gl1 = "y = "+a1+"x + "+c1, gl2 = "y = "+a2+"x + "+c2;
+      var ergebnis = "x = "+x+", y = "+y;
+      var badge = "Gleichungssystem · Einsetzen";
+      var svgHtml = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">' +
+        '<text x="150" y="30" font-size="15" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+gl1+'</text>' +
+        '<text x="150" y="52" font-size="15" fill="'+farbe+'" text-anchor="middle" font-weight="bold">'+gl2+'</text>' +
+        '<text x="150" y="82" font-size="13" fill="'+farbe+'" text-anchor="middle">Schritt 1: Eine Gleichung steht schon da (y = …)</text>' +
+        '<text x="150" y="102" font-size="13" fill="'+farbe+'" text-anchor="middle">Schritt 2: In die andere einsetzen, x l\u00F6sen</text>' +
+        '<text x="150" y="122" font-size="13" fill="'+farbe+'" text-anchor="middle">Schritt 3: x einsetzen \u2192 y berechnen</text>' +
+        '<text x="150" y="152" font-size="15" fill="'+farbe+'" text-anchor="middle" font-weight="bold">x = ? und y = ?</text>' +
+        '<text x="150" y="185" font-size="13" fill="'+farbe+'" text-anchor="middle">Beide Gleichungen m\u00FCssen mit</text>' +
+        '<text x="150" y="203" font-size="13" fill="'+farbe+'" text-anchor="middle">deiner L\u00F6sung stimmen (Probe!)</text>' +
+        '</svg>';
+      ex.question = "Löse das Gleichungssystem: "+gl1+" und "+gl2+". (Einsetzverfahren: eine Gleichung ist schon nach y aufgelöst.)";
+      ex.hint = "Setze "+gl1+" in die zweite Gleichung ein: "+a2+"x + "+c2+" = "+a1+"x + "+c1+". Löse nach x, dann y berechnen.";
+      ex.explanation = gl1+" in Gl2: "+a1+"x + "+c1+" = "+a2+"x + "+c2+" ⇒ "+Math.abs(a1-a2)+"x = "+Math.abs(c2-c1)+" ⇒ x = "+x+". y = "+a1+"·"+x+" + "+c1+" = "+y+". Probe: "+a2+"·"+x+" + "+c2+" = "+(a2*x+c2)+". ✓";
+      ex.tips = ["Einsetzverfahren: Nimm die Gleichung mit y = … und setze sie in die andere ein. Dann bleibt nur noch x übrig."];
+      var options = [
+        ergebnis,
+        "x = "+x+", y = "+(y+1),
+        "x = "+(x+1)+", y = "+y,
+        "x = "+y+", y = "+x
+      ];
+      options = options.filter(function(v,i,arr){return arr.indexOf(v)===i;});
+      while(options.length < 2){ options.push(ergebnis + " "); options = options.filter(function(v,i,arr){return arr.indexOf(v)===i;}); }
+      options = shuffle(options);
+      ex.choices = options;
+      ex.correctIndex = options.indexOf(ergebnis);
+      ex.answer = ergebnis;
+      ex.svg = svgHtml;
+      ex.unit = "";
+      ex.badge = badge;
+      ex.badgeColor = farbe;
+      return ex;
+    }
   }
 
   function genTextaufgabeGarten(diff){
@@ -3161,6 +3423,7 @@
     bruchDezimal:        withCurriculum("bruchDezimal",          genBruchDezimal),
     zinsrechnung:        withCurriculum("zinsrechnung",          genZinsrechnung),
     proportionalitaet:   withCurriculum("proportionalitaet",     genProportionalitaet),
+    indirekteProportionalitaet: withCurriculum("indirekteProportionalitaet", genIndirekteProportionalitaet),
     mehrstufig:          withCurriculum("mehrstufig",            genMehrstufig),
     ganzeZahlen:         withCurriculum("ganzeZahlen",           genGanzeZahlen),
     wahrscheinlichkeit:  withCurriculum("wahrscheinlichkeit",   genWahrscheinlichkeit),
@@ -3169,6 +3432,8 @@
     potenzenWurzeln:    withCurriculum("potenzenWurzeln",      genPotenzenWurzeln),
     teilbarkeit:        withCurriculum("teilbarkeit",          genTeilbarkeit),
     termeDistributiv:   withCurriculum("termeDistributiv",     genTermeDistributiv),
+    lineareGleichungssysteme: withCurriculum("lineareGleichungssysteme", genLineareGleichungssysteme),
+    binomischeFormeln:  withCurriculum("binomischeFormeln",    genBinomischeFormeln),
     lineareFunktionen:  withCurriculum("lineareFunktionen",    genLineareFunktionen),
     kongruenzKonstruktionen: withCurriculum("kongruenzKonstruktionen", genKongruenzKonstruktionen)
   };
@@ -3187,13 +3452,13 @@
     {id:"prozent-zins", label:"💰 Prozente & Zinsen", group:"Zahlen & Operationen · H1", pool:["prozentVonZahl","prozentAnteil","zinsrechnung"]},
     {id:"textaufgaben", label:"📖 Textaufgaben", group:"Sachrechnen · I1", pool:["textaufgabeGarten","textaufgabePizza","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag","mehrstufig"]},
     {id:"alltag", label:"🇦🇹 Alltag in Österreich", group:"Sachrechnen · I1", pool:["textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag","mehrstufig"]},
-    {id:"gleichungen", label:"⚖️ Gleichungen & Verhältnisse", group:"Größen & Variablen · H2", pool:["gleichungEinfach","proportionalitaet"]},
+    {id:"gleichungen", label:"⚖️ Gleichungen & Verhältnisse", group:"Größen & Variablen · H2", pool:["gleichungEinfach","proportionalitaet","indirekteProportionalitaet","lineareGleichungssysteme"]},
     {id:"daten-diagramme", label:"📊 Daten & Diagramme", group:"Daten & Statistik · H4", pool:["tabelleLesen","diagrammBalken","wahrscheinlichkeit","mittelwerte"]},
     {id:"ganze-zahlen", label:"🔢 Ganze Zahlen", group:"Zahlen & Operationen · H1", pool:["ganzeZahlen"]},
     {id:"einheiten", label:"📐 Maße & Einheiten", group:"Zahlen & Operationen · H1", pool:["einheiten"]},
     {id:"potenzen-wurzeln", label:"⚡ Potenzen & Wurzeln", group:"Zahlen & Operationen · H1", pool:["potenzenWurzeln"]},
     {id:"teilbarkeit", label:"➗ Teilbarkeit, Primzahlen, kgV/ggT", group:"Zahlen & Operationen · H1", pool:["teilbarkeit"]},
-    {id:"terme", label:"🔤 Terme vereinfachen", group:"Größen & Variablen · H2", pool:["termeDistributiv"]},
+    {id:"terme", label:"🔤 Terme vereinfachen", group:"Größen & Variablen · H2", pool:["termeDistributiv","binomischeFormeln"]},
     {id:"funktionen", label:"📈 Lineare Funktionen", group:"Größen & Variablen · H2", pool:["lineareFunktionen"]},
     {id:"kongruenz", label:"🔗 Kongruenz & Konstruktionen", group:"Geometrie · H3", pool:["kongruenzKonstruktionen"]}
   ];
@@ -3213,11 +3478,11 @@
     textaufgabeWien:[2,3], textaufgabeWandern:[2,3], textaufgabeEinkauf:[2,3],
     textaufgabeWeihnacht:[2,3], textaufgabeSchule:[2,3],
     textaufgabeSkikurs:[3,4], textaufgabeWandertag:[2,3], textaufgabeSchulheft:[2,3], textaufgabeEiscafe:[2,3],
-    gleichungEinfach:[3,4],
+    gleichungEinfach:[3,4], lineareGleichungssysteme:[4],
     tabelleLesen:[2,3],
     diagrammBalken:[2,3], gemischteZahlen:[1,2], bruchDezimal:[1,2],
-    zinsrechnung:[3,4], proportionalitaet:[2,3], mehrstufig:[2,3],
-    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], einheiten:[2,3,4], potenzenWurzeln:[3,4], teilbarkeit:[3,4], termeDistributiv:[3,4], lineareFunktionen:[3,4], kongruenzKonstruktionen:[3,4]
+    zinsrechnung:[3,4], proportionalitaet:[2,3], indirekteProportionalitaet:[3,4], mehrstufig:[2,3],
+    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], einheiten:[2,3,4], potenzenWurzeln:[3,4], teilbarkeit:[3,4], termeDistributiv:[3,4], binomischeFormeln:[3,4], lineareFunktionen:[3,4], kongruenzKonstruktionen:[3,4]
   };
   var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
   var GRADES = [
@@ -3305,6 +3570,7 @@
     bruchDezimal:        {codes:["H1.I1"], kompetenz:"Brüche in Dezimalzahlen umwandeln und umgekehrt"},
     zinsrechnung:        {codes:["H1.I2"], kompetenz:"Zinsen mit der Zinsformel (Z = K · p · t) berechnen"},
     proportionalitaet:   {codes:["H2.I2"], kompetenz:"Direkt proportionale Zusammenhänge (z. B. Schattenlängen) anwenden"},
+    indirekteProportionalitaet: {codes:["H2.I2"], kompetenz:"Indirekt proportionale Zusammenhänge anwenden (mehr Leute ⇒ weniger Zeit): Gesamtarbeit bestimmen und aufteilen"},
     mehrstufig:          {codes:["I1.M1","I2.M1"], kompetenz:"Mehrstufige Sachaufgaben in Teilschritten lösen"},
     ganzeZahlen:         {codes:["H1.I3","I2.M1"], kompetenz:"Mit ganzen und negativen Zahlen rechnen (Zahlenstrahl, Betrag, Temperatur)"},
     wahrscheinlichkeit:  {codes:["I3.M1"], kompetenz:"Einfache Wahrscheinlichkeiten bestimmen (günstige durch mögliche Fälle)"},
@@ -3313,6 +3579,8 @@
     potenzenWurzeln:   {codes:["H1.I1","H2.I2"], kompetenz:"Potenzen mit ganzzahligem Exponenten bilden und auswerten; Wurzeln ziehen (Quadrat-, Kubikwurzel)"},
 teilbarkeit:       {codes:["H1.I1"], kompetenz:"Teilbarkeitsregeln anwenden; Primzahlen erkennen; kgV und ggT kleinerer Zahlen bestimmen"},
 termeDistributiv:  {codes:["H2.I1"], kompetenz:"Terme vereinfachen und das Distributivgesetz anwenden: Klammern auflösen (a·(x±b)), gemeinsame Faktoren ausklammern (ax±ay) und gleiche Terme zusammenfassen (ax±bx)"},
+    binomischeFormeln: {codes:["H2.I1"], kompetenz:"Binomische Formeln anwenden: Plus-Formel (a+b), Minus-Formel (a-b) und Plus-Minus-Formel (a+b)(a-b)"},
+    lineareGleichungssysteme: {codes:["H2.I1"], kompetenz:"Lineare Gleichungssysteme 2x2 lösen (Einsetz- und Additionsverfahren) und die Lösung in beiden Gleichungen prüfen"},
     lineareFunktionen: {codes:["H2.I2"], kompetenz:"Lineare Funktionen y = m·x + t: Steigung m und y-Achsenabschnitt t aus Graph ablesen; Funktionsgleichung aufstellen"},
     kongruenzKonstruktionen: {codes:["H3.I2","H3.I5"], kompetenz:"Kongruenzsätze und Ähnlichkeit von Figuren anwenden"}
   };
@@ -3479,11 +3747,11 @@ termeDistributiv:  {codes:["H2.I1"], kompetenz:"Terme vereinfachen und das Distr
    * 3-4 = sicher, 5 = gemeistert (golden), fällig = rot. Keine neuen Persistenzfelder. */
   var GARTEN_BEREICHE = [
     { id:"brueche",  icon:"🌰", name:"Zahlen-Baum",   thema:"Brüche",     untertitel:"Zahlen & Brüche (H1.I1, H1.I3)",  generatoren:["einheiten","ganzeZahlen","bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal","potenzenWurzeln","teilbarkeit"] },
-    { id:"prozente", icon:"🪙", name:"Prozent-Baum",  thema:"Prozente",   untertitel:"Prozente & Verhältnisse (H1.I2, H2.I2)", generatoren:["prozentVonZahl","prozentAnteil","zinsrechnung","proportionalitaet"] },
+    { id:"prozente", icon:"🪙", name:"Prozent-Baum",  thema:"Prozente",   untertitel:"Prozente & Verhältnisse (H1.I2, H2.I2)", generatoren:["prozentVonZahl","prozentAnteil","zinsrechnung","proportionalitaet","indirekteProportionalitaet"] },
     { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck","kongruenzKonstruktionen"] },
     { id:"messen",   icon:"📏", name:"Flächen-Baum",  thema:"Maße",       untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","pythagoras","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","weitereKoerper","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },
     { id:"alltag",   icon:"🧺", name:"Alltags-Baum",  thema:"Sachaufgaben", untertitel:"Sachaufgaben aus dem Alltag (I1.M1)", generatoren:["textaufgabeGarten","textaufgabePizza","textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSkikurs","textaufgabeWandertag","textaufgabeSchulheft","textaufgabeEiscafe","mehrstufig"] },
-    { id:"struktur", icon:"🔗", name:"Daten-Baum",    thema:"Gleichungen", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","tabelleLesen","diagrammBalken","wahrscheinlichkeit","mittelwerte","termeDistributiv","lineareFunktionen"] }
+    { id:"struktur", icon:"🔗", name:"Daten-Baum",    thema:"Gleichungen", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","lineareGleichungssysteme","tabelleLesen","diagrammBalken","wahrscheinlichkeit","mittelwerte","termeDistributiv","binomischeFormeln","lineareFunktionen"] }
   ];
   function bereichFuerKey(key){
     var i;

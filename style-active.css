@@ -76,19 +76,24 @@
 
   .figure-panel{
     background:var(--paper); border:1px dashed var(--line); border-radius:16px;
-    padding:10px; display:flex; align-items:center; justify-content:center; min-height:220px;
+    padding:10px; display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start; min-height:220px;
     position:relative;
   }
   .figure-panel svg{width:100%; height:auto; max-height:260px; display:block;}
+  .figure-badges{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    margin-bottom:6px; min-height:26px;
+  }
   .topic-badge{
-    position:absolute; top:10px; left:10px; font-family:'Fredoka',sans-serif; font-weight:600;
+    position:static; font-family:'Fredoka',sans-serif; font-weight:600;
     font-size:.68rem; text-transform:uppercase; letter-spacing:.5px;
     padding:4px 10px; border-radius:999px; color:#fff;
+    max-width:70%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
 
-  /* Curriculum Badge – kleines Notiz-Icon, hand-written-Style */
+  /* Curriculum Badge – kleines Notiz-Icon, hand-written-Style (in der Kopfzeile, nicht absolut) */
   .curriculum-badge{
-    position:absolute; top:10px; right:10px;
+    position:static;
     display:flex; align-items:center; gap:5px;
     background:#fff; border:1px solid var(--line);
     border-radius:8px; padding:4px 8px;

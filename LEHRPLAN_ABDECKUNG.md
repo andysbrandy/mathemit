@@ -4,7 +4,7 @@
 > Grundlage: BMBWF Lehrplan 2023, Mathematik AHS-Unterstufe / Mittelschule
 > (Kompetenzbereiche H1–H4, Handlungsbereiche I1–I3 — siehe `LEHRPLAN`-Objekt in `app-base.js`).
 > Die ROADMAP.md verweist hierher und enthält keine eigene Stoffliste mehr.
-> Stand: v210. Legende: ✅ umgesetzt · ⬜ offen (mit P-Nummer) · 🔶 teilweise.
+> Stand: v211. Legende: ✅ umgesetzt · ⬜ offen (mit P-Nummer) · 🔶 teilweise.
 
 ## H1 — Zahlen und Maße ✅ (Basis vollständig, Erweiterung offen)
 

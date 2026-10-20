@@ -487,6 +487,10 @@
     kongruenz:"Kongruent = gleiche Seiten & gleiche Winkel (deckungsgleich). Ähnlich = gleiche Winkel, Seiten proportional. Merke: SSW (2 Seiten + ein Winkel) bestimmt ein Dreieck nicht eindeutig.",
     aehnlichkeit:"Ähnliche Dreiecke haben die gleichen Winkel; die Seiten stehen im gleichen Verhältnis (Streckfaktor). Nicht verwechseln mit kongruent (dort sind auch die Seiten gleich lang).",
     kongruenzsatz:"SSS = alle 3 Seiten gleich · SWS = 2 Seiten + eingeschlossener Winkel · WSW = 2 Winkel + eingeschlossene Seite · SSW ist nicht eindeutig.",
+    konstruktion:"Spiegeln heißt: gleicher Abstand zur Spiegelachse, aber auf der anderen Seite. Mittelsenkrechte = senkrecht auf der Strecke + halbiert sie.",
+    streckensymmetrale:"Bei der Streckensymmetrale liegt der gespiegelte Punkt genauso weit von der Geraden entfernt wie der ursprüngliche – nur auf der anderen Seite. Die Strecke zwischen beiden steht senkrecht auf der Geraden.",
+    winkelsymmetrale:"Bei der Winkelsymmetrale liegt der gespiegelte Punkt genauso weit vom Schenkel entfernt wie der ursprüngliche – nur auf der anderen Seite. Die Winkelhalbierende teilt den Winkel in zwei gleich große Winkel.",
+    mittelsenkrechte:"Die Mittelsenkrechte steht senkrecht auf der Strecke und halbiert sie. Deshalb: Länge der Strecke : 2 = Länge der Hälfte.",
     _default:"Lies die Aufgabe noch einmal langsam – welche Zahlen und welche Frage gibt es?"
   };
   function deriveTips(ex){
@@ -3039,7 +3043,7 @@
         '<text x="150" y="185" font-size="13" fill="'+farbe+'" text-anchor="middle">+'+b+'x und −'+b+'x heben sich auf — übrig: x² − '+b2p+'</text>' +
         '<text x="150" y="205" font-size="13" fill="'+farbe+'" text-anchor="middle">(a + b)(a − b) = a² − b²</text>' +
         '</svg>';
-      ex.question = "(x + "+b+")(x − "+b+") = ? (Plus-Minus-Formel: (a + b)(a − b) = a² − b²)";
+      ex.question = "Plus-Minus-Formel: (x + "+b+")(x − "+b+") = ?";
       ex.hint = "Plus-Minus-Formel: die Mittelstücke +"+b+"x und −"+b+"x heben sich auf.";
       ex.explanation = "(x + "+b+")(x − "+b+") = x² + "+b+"x − "+b+"x − "+b+"² = x² − "+b2p+".";
       ex.tips = ["Plus-Minus-Formel merken: (a + b)(a − b) = a² − b² — kein Mittelstück!"];
@@ -3484,6 +3488,218 @@
     return ex;
   }
 
+  /* ============ P1.23: Grundkonstruktionen (H3) ============
+   * Streckensymmetrale, Winkelsymmetrale und Mittelsenkrechte.
+   * Alle Zeichnungen entstehen aus echten Koordinaten, damit die Skizze
+   * immer zur Aufgabenstellung passt (kein Schemabild). */
+
+  /* Hilfsfunktion: Punkt auf Gerade durch A mit Richtung, um t Einheiten versetzt */
+  function punktAufGerade(A, dir, t){
+    var len = Math.hypot(dir.x, dir.y) || 1;
+    return { x: A.x + (dir.x/len)*t, y: A.y + (dir.y/len)*t };
+  }
+
+  /* Mittelsenkrechte einer Strecke: Mittelpunkt der Strecke */
+  function mitteVon(a, b){ return { x:(a.x+b.x)/2, y:(a.y+b.y)/2 }; }
+
+  /* Zeichnet eine Gerade (unendlich) im 300x220-Feld */
+  function geradeSVG(A, dir, color, label){
+    var P1 = punktAufGerade(A, dir, -420);
+    var P2 = punktAufGerade(A, dir, 420);
+    var s = '<line x1="'+P1.x+'" y1="'+P1.y+'" x2="'+P2.x+'" y2="'+P2.y+'" stroke="'+color+'" stroke-width="2.5"/>';
+    if(label){
+      // Label an den sichtbaren Rand setzen (sonst liegt es ausserhalb der Zeichenflaeche)
+      var lx = Math.min(Math.max(P2.x, 16), 284);
+      var ly = Math.min(Math.max(P2.y, 14), 206);
+      s += '<text class="dim-label" x="'+lx+'" y="'+(ly+16)+'" text-anchor="end" fill="'+color+'">'+label+'</text>';
+    }
+    return s;
+  }
+
+  /* Zeichnet einen Strahl (S in Richtung dir) im 300x220-Feld */
+  function strahlSVG(S, dir, color, label){
+    var P2 = punktAufGerade(S, dir, 380);
+    var s = '<line x1="'+S.x+'" y1="'+S.y+'" x2="'+P2.x+'" y2="'+P2.y+'" stroke="'+color+'" stroke-width="2.5"/>';
+    if(label){
+      s += '<text class="dim-label" x="'+(P2.x-16)+'" y="'+(P2.y+16)+'" text-anchor="end" fill="'+color+'">'+label+'</text>';
+    }
+    return s;
+  }
+
+  /* Punkt mit Beschriftung */
+  function punktSVG(P, farbe, label, r){
+    var s = '<circle cx="'+P.x+'" cy="'+P.y+'" r="'+(r||4)+'" fill="'+farbe+'"/>';
+    if(label){
+      s += '<text class="dim-label" x="'+(P.x+9)+'" y="'+(P.y-8)+'" fill="'+farbe+'">'+label+'</text>';
+    }
+    return s;
+  }
+
+  /* Mittelpunkt-Markierung (kleiner Kreis) */
+  function mitteMarker(M, farbe){
+    return '<circle cx="'+M.x+'" cy="'+M.y+'" r="4.5" fill="none" stroke="'+farbe+'" stroke-width="2"/>';
+  }
+
+  /* Winkelbogen zwischen zwei Strahlen am Scheitel S (fuer Winkelhalbierende) */
+  function winkelBogenSVG(S, dirA, dirB, radius, farbe){
+    var aA = Math.atan2(dirA.y, dirA.x), aB = Math.atan2(dirB.y, dirB.x);
+    var d = aB - aA;
+    while(d <= -Math.PI) d += 2*Math.PI;
+    while(d >  Math.PI) d -= 2*Math.PI;
+    var p1 = { x: S.x + radius*Math.cos(aA), y: S.y + radius*Math.sin(aA) };
+    var p2 = { x: S.x + radius*Math.cos(aB), y: S.y + radius*Math.sin(aB) };
+    var sweep = (d > 0) ? 1 : 0;
+    return '<path d="M '+p1.x+' '+p1.y+' A '+radius+' '+radius+' 0 0 '+sweep+' '+p2.x+' '+p2.y+'" fill="none" stroke="'+farbe+'" stroke-width="2"/>';
+  }
+
+  /* Rechter-Winkel-Marker an einem Punkt mit zwei Richtungen */
+  function rechterWinkelPunkt(P, dirA, dirB, farbe, size){
+    size = size || 11;
+    function unit(d){ var l=Math.hypot(d.x,d.y)||1; return {x:d.x/l, y:d.y/l}; }
+    var u1 = unit(dirA), u2 = unit(dirB);
+    var p1 = {x:P.x+u1.x*size, y:P.y+u1.y*size};
+    var p2 = {x:P.x+u1.x*size+u2.x*size, y:P.y+u1.y*size+u2.y*size};
+    var p3 = {x:P.x+u2.x*size, y:P.y+u2.y*size};
+    return '<path d="M '+p1.x+' '+p1.y+' L '+p2.x+' '+p2.y+' L '+p3.x+' '+p3.y+'" fill="none" stroke="'+farbe+'" stroke-width="1.8"/>';
+  }
+
+  /* ============ P1.23: Grundkonstruktionen (Generator) ============ */
+  function genGrundkonstruktionen(diff){
+    diff = diff || 2;
+    var farbe = COLORS.dreieck.main;
+    var typ = rand(0, 2); // 0 = Streckensymmetrale, 1 = Winkelsymmetrale, 2 = Mittelsenkrechte
+
+    /* ---------- Typ 0: Streckensymmetrale (Spiegelung an einer Geraden) ---------- */
+    if(typ === 0){
+      var gY = 130;
+      var gDir = { x: 1, y: 0 };
+      var gA = { x: 40, y: gY };
+      var P = { x: rand(90, 210), y: gY - rand(40, 70) };
+      var F = { x: P.x, y: gY };   // Lotfusspunkt auf g
+
+      var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+      svg += geradeSVG(gA, gDir, farbe, "g");
+      // Lot von P auf die Gerade (Konstruktionsschritt 1) – gestrichelt
+      svg += '<line x1="'+P.x+'" y1="'+P.y+'" x2="'+F.x+'" y2="'+F.y+'" stroke="'+farbe+'" stroke-width="2" stroke-dasharray="5 4"/>';
+      svg += rechterWinkelPunkt(F, {x:0,y:1}, {x:1,y:0}, farbe, 10);
+      svg += punktSVG(P, farbe, "P");
+      svg += '<text class="dim-label" x="'+(F.x+8)+'" y="'+(F.y+16)+'" fill="'+farbe+'">F</text>';
+      svg += '<text class="dim-label" x="150" y="30" text-anchor="middle" fill="'+farbe+'">Schritt 1: Lot von P auf g</text>';
+      svg += '<text class="dim-label" x="150" y="205" text-anchor="middle" fill="'+farbe+'">Schritt 2: gleich lang auf die andere Seite</text>';
+      svg += '</svg>';
+
+      var ex = baseEx("konstruktion","streckensymmetrale");
+      ex.question = "Gegeben sind die Gerade g und der Punkt P. Du sollst Q konstruieren: den Punkt, der an g gespiegelt ist (Spiegelung an der Geraden = Streckensymmetrale). Wo liegt Q?";
+      ex.hint = "So geht's: 1) Miss den Abstand von P zur Geraden g. 2) Miss denselben Abstand auf der anderen Seite von g. 3) Dort ist Q. Die Strecke PQ steht senkrecht auf g – g ist die Mittelsenkrechte von PQ.";
+      ex.svg = svg; ex.badge = "Konstruktion · Streckensymmetrale"; ex.badgeColor = farbe;
+      ex.inputType = "mc";
+      var korrekt = "Q liegt so weit von g entfernt wie P – auf der anderen Seite";
+      var falsch = [
+        "Q liegt auf g – das wäre eine Spiegelung an einem Punkt",
+        "Q liegt doppelt so weit von g entfernt wie P",
+        "Q liegt am selben Ort wie P, nur mit anderem Namen"
+      ];
+      ex.choices = shuffle([korrekt].concat(shuffle(falsch).slice(0,2)));
+      ex.correctIndex = ex.choices.indexOf(korrekt);
+      ex.answer = ex.choices[ex.correctIndex];
+      ex.explanation = "Richtig ist: "+korrekt+". Bei der Streckensymmetrale (Spiegelung an einer Geraden) liegt Q genauso weit von der Spiegelachse g entfernt wie P – nur auf der anderen Seite. Die Strecke PQ steht senkrecht auf g, und g ist die Mittelsenkrechte von PQ. Der Mittelpunkt M von PQ liegt genau auf g.";
+      ex.tips = ["Spiegeln heißt: gleicher Abstand zur Spiegelachse, aber auf der anderen Seite. Der Mittelpunkt der Strecke P–Q liegt immer auf der Achse."];
+      return ex;
+    }
+    /* ---------- Typ 1: Winkelsymmetrale (Schenkel spiegeln sich an der Winkelhalbierenden) ---------- */
+    if(typ === 1){
+      var S = { x: 66, y: 180 };
+      var winkel = diff===1 ? rand(40, 60) : (diff===3 ? rand(70, 100) : rand(50, 80));
+      var a0 = -Math.PI/2;
+      var a1 = a0 + winkel*Math.PI/180;
+      var dirA = { x: Math.cos(a0), y: Math.sin(a0) };
+      var dirB = { x: Math.cos(a1), y: Math.sin(a1) };
+      var laenge = rand(95, 115);
+      // P auf dem ersten Schenkel, Q auf dem zweiten Schenkel: gleicher Abstand von S
+      var P = { x: S.x + dirA.x*laenge, y: S.y + dirA.y*laenge };
+      var aM = (a0 + a1)/2;
+      var dirM = { x: Math.cos(aM), y: Math.sin(aM) };
+      var bisEnd = { x: S.x + dirM.x*(laenge*0.9), y: S.y + dirM.y*(laenge*0.9) };
+
+      var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+      svg += strahlSVG(S, dirA, farbe, "");
+      svg += strahlSVG(S, dirB, farbe, "");
+      // Winkelbogen mit beiden Halbwinkeln
+      svg += winkelBogenSVG(S, dirA, dirB, 30, farbe);
+      // Winkelhalbierende (Symmetrieachse, gestrichelt)
+      svg += '<line x1="'+S.x+'" y1="'+S.y+'" x2="'+bisEnd.x+'" y2="'+bisEnd.y+'" stroke="'+farbe+'" stroke-width="2.5" stroke-dasharray="7 5"/>';
+      // Radius SP (gestrichelt) – zeigt, wie weit Q abgetragen wird
+      svg += '<line x1="'+S.x+'" y1="'+S.y+'" x2="'+P.x+'" y2="'+P.y+'" stroke="'+farbe+'" stroke-width="1.6" stroke-dasharray="4 4"/>';
+      svg += punktSVG(S, farbe, "S");
+      svg += punktSVG(P, farbe, "P");
+      svg += '<text class="angle-label" x="'+(S.x+30)+'" y="'+(S.y-36)+'" fill="'+farbe+'">'+(winkel/2)+"°</text>";
+      svg += '<text class="dim-label" x="'+(S.x+40)+'" y="'+(S.y-16)+'" fill="'+farbe+'">'+(winkel/2)+"°</text>";
+      svg += '<text class="dim-label" x="150" y="30" text-anchor="middle" fill="'+farbe+'">Schritt 1: Radius SP mit dem Zirkel absetzen</text>';
+      svg += '<text class="dim-label" x="150" y="212" text-anchor="middle" fill="'+farbe+'">Schritt 2: am zweiten Schenkel den Schnittpunkt suchen</text>';
+      svg += '</svg>';
+
+      var ex = baseEx("konstruktion","winkelsymmetrale");
+      ex.question = "Gegeben ist ein Winkel mit den beiden Schenkeln bei S und der Punkt P auf dem ersten Schenkel. Wo liegt der Punkt Q auf dem zweiten Schenkel, damit die Winkelhalbierende die beiden Schenkel spiegelt (Winkelsymmetrale)?";
+      ex.hint = "So geht's: 1) Miss den Abstand von S bis P. 2) Miss denselben Abstand von S auf dem zweiten Schenkel ab. 3) Dort ist Q. So sind beide Schenkel gleich lang und die Winkelhalbierende ist die Symmetrieachse.";
+      ex.svg = svg; ex.badge = "Konstruktion · Winkelsymmetrale"; ex.badgeColor = farbe;
+      ex.inputType = "mc";
+      var korrekt = "Q liegt so weit von S entfernt wie P – auf dem zweiten Schenkel";
+      var falsch = [
+        "Q liegt so weit vom Schenkel entfernt wie P – auf der anderen Seite des Schenkels",
+        "Q liegt doppelt so weit von S entfernt wie P",
+        "Q liegt genauso weit von S entfernt wie P, aber auf der Verlängerung des ersten Schenkels"
+      ];
+      ex.choices = shuffle([korrekt].concat(shuffle(falsch).slice(0,2)));
+      ex.correctIndex = ex.choices.indexOf(korrekt);
+      ex.answer = ex.choices[ex.correctIndex];
+      ex.explanation = "Richtig ist: "+korrekt+". Bei der Winkelsymmetrale sind beide Schenkel gleich lang (SP = SQ), und die Winkelhalbierende ist die Symmetrieachse: sie spiegelt den einen Schenkel auf den anderen. Deshalb sind die beiden Hälften des Winkels gleich groß – hier "+Math.round(winkel/2)+"° und "+Math.round(winkel/2)+"°.";
+      ex.tips = ["Spiegeln am Schenkel: gleicher Abstand zum Schenkel, andere Seite. Die Winkelhalbierende teilt den Winkel in zwei gleich große Winkel.",
+                 "Bauanleitung: Zirkel mit Mittelpunkt S und Radius SP – der Schnittpunkt mit dem zweiten Schenkel ist Q."];
+      return ex;
+    }
+    /* ---------- Typ 2: Mittelsenkrechte einer Strecke ---------- */
+    {
+      // Strecke AB massstaeblich: gewaehlte Laenge in cm, 8 px pro cm
+      var scaleCm = 8;
+      var laengeABcm = diff===1 ? 8 : (diff===3 ? rand(10, 14) : rand(8, 12));
+      laengeABcm = laengeABcm % 2 === 0 ? laengeABcm : laengeABcm + 1;
+      var Lpx = laengeABcm * scaleCm;
+      var winkelGrad = rand(15, 40);
+      var rad = winkelGrad * Math.PI / 180;
+      var mx = 150, my = 115;
+      var A = { x: mx - Math.cos(rad)*Lpx/2, y: my + Math.sin(rad)*Lpx/2 };
+      var B = { x: mx + Math.cos(rad)*Lpx/2, y: my - Math.sin(rad)*Lpx/2 };
+      var M = mitteVon(A, B);
+      var dirAB = { x: B.x-A.x, y: B.y-A.y };
+      var laengeAB = Math.hypot(dirAB.x, dirAB.y) || 1;
+      var dirSenk = { x: -dirAB.y/laengeAB, y: dirAB.x/laengeAB };
+      var senk1 = { x: M.x + dirSenk.x*72, y: M.y + dirSenk.y*72 };
+      var senk2 = { x: M.x - dirSenk.x*72, y: M.y - dirSenk.y*72 };
+
+      var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+      svg += '<line x1="'+senk2.x+'" y1="'+senk2.y+'" x2="'+senk1.x+'" y2="'+senk1.y+'" stroke="'+farbe+'" stroke-width="2.5" stroke-dasharray="7 5"/>';
+      svg += '<line x1="'+A.x+'" y1="'+A.y+'" x2="'+B.x+'" y2="'+B.y+'" stroke="'+farbe+'" stroke-width="3"/>';
+      svg += rechterWinkelPunkt(M, dirSenk, dirAB, farbe, 12);
+      svg += mitteMarker(M, farbe);
+      svg += punktSVG(A, farbe, "A");
+      svg += punktSVG(B, farbe, "B");
+      svg += '<text class="dim-label" x="'+(M.x+9)+'" y="'+(M.y-9)+'" fill="'+farbe+'">M</text>';
+      svg += '<text class="dim-label" x="'+mx+'" y="'+(my+58)+'" text-anchor="middle" fill="'+farbe+'">AB = '+laengeABcm+' cm</text>';
+      svg += '</svg>';
+
+      var ex = baseEx("konstruktion","mittelsenkrechte");
+      ex.question = "Die Strecke AB ist "+laengeABcm+" cm lang. Konstruiere ihre Mittelsenkrechte. Wie lang ist die Strecke AM (also die Hälfte von AB)?";
+      ex.inputType = "number"; ex.unit = "cm";
+      ex.answer = laengeABcm/2;
+      ex.hint = "Die Mittelsenkrechte steht senkrecht auf AB und halbiert AB. Rechne: "+laengeABcm+" : 2 = "+laengeABcm/2+" cm. Miss die Hälfte mit dem Zirkel und setze dort den rechten Winkel an.";
+      ex.svg = svg; ex.badge = "Konstruktion · Mittelsenkrechte"; ex.badgeColor = farbe;
+      ex.explanation = "Die Mittelsenkrechte steht senkrecht auf AB und halbiert die Strecke im Mittelpunkt M. Deshalb gilt: AM = MB = AB : 2 = "+laengeABcm+" : 2 = "+laengeABcm/2+" cm. Konstruktion: mit dem Zirkel von A und B gleich weit absetzen, die beiden Kreise schneiden sich in zwei Punkten – die Verbindungsgerade dieser Punkte ist die Mittelsenkrechte.";
+      ex.tips = ["Mittelsenkrechte = senkrecht auf der Strecke + halbiert die Strecke. Also: Länge : 2.",
+                 "Bauanleitung: Kreise mit gleichem Radius um A und B zeichnen – ihre Schnittpunkte liegen auf der Mittelsenkrechten."];
+      return ex;
+    }
+  }
+
   /* ============ Pools & Modes ============ */
   // Hilfsfunktion: setzt _currentCurriculumKey und ruft den Generator auf
   function withCurriculum(key, fn){
@@ -3555,7 +3771,8 @@
     lineareGleichungssysteme: withCurriculum("lineareGleichungssysteme", genLineareGleichungssysteme),
     binomischeFormeln:  withCurriculum("binomischeFormeln",    genBinomischeFormeln),
     lineareFunktionen:  withCurriculum("lineareFunktionen",    genLineareFunktionen),
-    kongruenzKonstruktionen: withCurriculum("kongruenzKonstruktionen", genKongruenzKonstruktionen)
+    kongruenzKonstruktionen: withCurriculum("kongruenzKonstruktionen", genKongruenzKonstruktionen),
+    grundkonstruktionen:     withCurriculum("grundkonstruktionen",     genGrundkonstruktionen)
   };
 
   var MODES = [
@@ -3580,7 +3797,8 @@
     {id:"teilbarkeit", label:"➗ Teilbarkeit, Primzahlen, kgV/ggT", group:"Zahlen & Operationen · H1", pool:["teilbarkeit"]},
     {id:"terme", label:"🔤 Terme vereinfachen", group:"Größen & Variablen · H2", pool:["termeDistributiv","binomischeFormeln"]},
     {id:"funktionen", label:"📈 Lineare Funktionen", group:"Größen & Variablen · H2", pool:["lineareFunktionen"]},
-    {id:"kongruenz", label:"🔗 Kongruenz & Konstruktionen", group:"Geometrie · H3", pool:["kongruenzKonstruktionen"]}
+    {id:"kongruenz", label:"🔗 Kongruenz & Konstruktionen", group:"Geometrie · H3", pool:["kongruenzKonstruktionen","grundkonstruktionen"]},
+    {id:"konstruktionen", label:"✂️ Grundkonstruktionen", group:"Geometrie · H3", pool:["grundkonstruktionen"]}
   ];
 
   /* Schulstufen-Zuordnung je Übungstyp (1.–4. Klasse Mittelschule) */
@@ -3602,7 +3820,7 @@
     tabelleLesen:[2,3],
     diagrammBalken:[2,3], gemischteZahlen:[1,2], bruchDezimal:[1,2],
     zinsrechnung:[3,4], proportionalitaet:[2,3], indirekteProportionalitaet:[3,4], mehrstufig:[2,3],
-    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], einheiten:[2,3,4], potenzenWurzeln:[3,4], potenzenErweitert:[3,4], teilbarkeit:[3,4], termeDistributiv:[3,4], binomischeFormeln:[3,4], lineareFunktionen:[3,4], kongruenzKonstruktionen:[3,4]
+    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], einheiten:[2,3,4], potenzenWurzeln:[3,4], potenzenErweitert:[3,4], teilbarkeit:[3,4], termeDistributiv:[3,4], binomischeFormeln:[3,4], lineareFunktionen:[3,4], kongruenzKonstruktionen:[3,4], grundkonstruktionen:[3,4]
   };
   var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
   var GRADES = [
@@ -3703,7 +3921,8 @@ termeDistributiv:  {codes:["H2.I1"], kompetenz:"Terme vereinfachen und das Distr
     potenzenErweitert: {codes:["H1.I1","H2.I2"], kompetenz:"Zehnerpotenzen und Gleitkommadarstellung anwenden; Potenzen mit negativen Exponenten als Kehrwert deuten"},
     lineareGleichungssysteme: {codes:["H2.I1"], kompetenz:"Lineare Gleichungssysteme 2x2 lösen (Einsetz- und Additionsverfahren) und die Lösung in beiden Gleichungen prüfen"},
     lineareFunktionen: {codes:["H2.I2"], kompetenz:"Lineare Funktionen y = m·x + t: Steigung m und y-Achsenabschnitt t aus Graph ablesen; Funktionsgleichung aufstellen"},
-    kongruenzKonstruktionen: {codes:["H3.I2","H3.I5"], kompetenz:"Kongruenzsätze und Ähnlichkeit von Figuren anwenden"}
+    kongruenzKonstruktionen: {codes:["H3.I2","H3.I5"], kompetenz:"Kongruenzsätze und Ähnlichkeit von Figuren anwenden"},
+    grundkonstruktionen:     {codes:["H3.I2","H3.I5"], kompetenz:"Grundkonstruktionen durchführen: Strecken- und Winkelsymmetrale, Mittelsenkrechte und Winkelhalbierende konstruieren"}
   };
 
   /* ============ P4.3: Spaced Repetition ============
@@ -3869,7 +4088,7 @@ termeDistributiv:  {codes:["H2.I1"], kompetenz:"Terme vereinfachen und das Distr
   var GARTEN_BEREICHE = [
     { id:"brueche",  icon:"🌰", name:"Zahlen-Baum",   thema:"Brüche",     untertitel:"Zahlen & Brüche (H1.I1, H1.I3)",  generatoren:["einheiten","ganzeZahlen","bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal","potenzenWurzeln","potenzenErweitert","teilbarkeit"] },
     { id:"prozente", icon:"🪙", name:"Prozent-Baum",  thema:"Prozente",   untertitel:"Prozente & Verhältnisse (H1.I2, H2.I2)", generatoren:["prozentVonZahl","prozentAnteil","zinsrechnung","proportionalitaet","indirekteProportionalitaet"] },
-    { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck","kongruenzKonstruktionen"] },
+    { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck","kongruenzKonstruktionen","grundkonstruktionen"] },
     { id:"messen",   icon:"📏", name:"Flächen-Baum",  thema:"Maße",       untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","pythagoras","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","weitereKoerper","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },
     { id:"alltag",   icon:"🧺", name:"Alltags-Baum",  thema:"Sachaufgaben", untertitel:"Sachaufgaben aus dem Alltag (I1.M1)", generatoren:["textaufgabeGarten","textaufgabePizza","textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSkikurs","textaufgabeWandertag","textaufgabeSchulheft","textaufgabeEiscafe","mehrstufig"] },
     { id:"struktur", icon:"🔗", name:"Daten-Baum",    thema:"Gleichungen", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","lineareGleichungssysteme","tabelleLesen","diagrammBalken","wahrscheinlichkeit","mittelwerte","termeDistributiv","binomischeFormeln","lineareFunktionen"] }

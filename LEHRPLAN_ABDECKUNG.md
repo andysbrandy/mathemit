@@ -40,7 +40,7 @@
 | Pythagoras | `pythagoras` | ✅ |
 | Volumen & Oberfläche (Quader, Würfel, Zylinder + Pyramide/Prisma/Kegel/Kugel) | `quaderVolumen`, `wuerfelVolumen`, `zylinderVolumen`, `weitereKoerper`, `quaderOberflaeche`, `wuerfelOberflaeche`, `zylinderOberflaeche` | ✅ |
 | Kongruenz & Ähnlichkeit | `kongruenzKonstruktionen` | ✅ |
-| Grundkonstruktionen (Strecken-/Winkelsymmetrale) | — | ⬜ P1.23 |
+| Grundkonstruktionen (Strecken-/Winkelsymmetrale) | `grundkonstruktionen` | ✅ P1.23 |
 | Lagebeziehungen Punkt/Gerade, Gerade/Gerade | — | ⬜ P1.24 |
 
 ## H4 — Statistische Darstellungen und Kenngrößen ⚠️

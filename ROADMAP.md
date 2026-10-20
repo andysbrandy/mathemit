@@ -44,8 +44,8 @@ Erzwungen durch `scripts/check-generator-surfaces.js` (Commit-Abbruch bei fehlen
 ## 📚 Lehrplan-Abdeckung
 
 > Maßgeblich ist die Soll-Ist-Matrix in [`LEHRPLAN_ABDECKUNG.md`](LEHRPLAN_ABDECKUNG.md)
-> (H1 ✅, H2 ⚠️ 3 offen, H3 ⚠️ 2 offen, H4 ⚠️ 2 offen + P1.18, I1–I3 ✅).
-> Stand nach Lehrplan-Abgleich: H1 ✅, H2 ✅ vollständig. Offen: P1.23, P1.24 (H3), P1.26, P1.27 (H4).
+> (H1 ✅, H2 ✅, H3 ⚠️ 1 offen, H4 ⚠️ 2 offen + P1.18, I1–I3 ✅).
+> Stand nach Lehrplan-Abgleich: H1 ✅, H2 ✅, H3 ✅ fast vollständig. Offen: P1.24 (H3), P1.26, P1.27 (H4).
 
 ---
 ## 🗓️ Roadmap-Phasen
@@ -183,10 +183,12 @@ am Einstieg (nur Klassen-Code im Registrierungs-Formular).
 
 ## 🔜 Nächste Schritte
 
-1. **P1.23** Grundkonstruktionen (H3)
-2. **P1.24** Lagebeziehungen (H3)
-3. **P1.26** Absolute & relative Häufigkeiten (H4)
-4. **P1.27** Kreisdiagramm (H4)
+1. **P1.24** Lagebeziehungen (H3)
+2. **P1.26** Absolute & relative Häufigkeiten (H4)
+3. **P1.27** Kreisdiagramm (H4)
+
+> ✅ Erledigt: P1.23 Grundkonstruktionen (H3) – Strecken- und Winkelsymmetrale
+> sowie Mittelsenkrechte mit Schritt-für-Schritt-Konstruktion.
 
 ---
 

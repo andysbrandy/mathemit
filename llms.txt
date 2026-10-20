@@ -1,7 +1,7 @@
 # Mathe mit Andybrandy
 
 > Kostenlose, werbefreie Mathe-Lern-App für die österreichische Mittelschule
-> nach dem Lehrplan AHS/MS 2023. 53 Übungstypen, 3 Schwierigkeitsstufen,
+> nach dem Lehrplan AHS/MS 2023. 63 Übungstypen, 3 Schwierigkeitsstufen,
 > Tipp-System, Wissensgarten & Eulenhain. Als PWA offline nutzbar. Keine
 > Werbung, kein Tracking, DSGVO-konform.
 
@@ -15,6 +15,7 @@
 - Neu (H1/H2): Zehnerpotenzen, Gleitkommadarstellung und negative Exponenten (Kehrwert) – mit Nullen-Balken und Komma-Schiebe-Bild.
 - Neu (H2): Lineare Gleichungssysteme 2x2 – Einsetz- und Additionsverfahren mit Schritt-Anleitung und Probe.
 - Neu (H3): Kongruenz & Konstruktionen – Kongruenzsätze (SSS, SWS, WSW), Ähnlichkeitsprüfung, Konstruktionsfragen mit SVG-Zeichnungen.
+- Neu (H3): Grundkonstruktionen – Streckensymmetrale (Spiegelung an einer Geraden), Winkelsymmetrale (Spiegelung an einem Schenkel) und Mittelsenkrechte einer Strecke mit Zirkel-und-Lineal-Anleitung, Schritt-für-Schritt-Konstruktion und berechneter Streckenhälfte.
 
 ## Für Lehrkräfte
 

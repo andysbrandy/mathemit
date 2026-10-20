@@ -31,7 +31,7 @@
 | Binomische Formeln | `binomischeFormeln` | ✅ P1.21 |
 | Lineare Gleichungssysteme 2×2 | `lineareGleichungssysteme` | ✅ P1.22 |
 
-## H3 — Geometrische Figuren und Körper ⚠️
+## H3 — Geometrische Figuren und Körper ✅
 
 | Lehrplan-Soll | Generator-Ist | Status |
 |---|---|---|
@@ -41,7 +41,7 @@
 | Volumen & Oberfläche (Quader, Würfel, Zylinder + Pyramide/Prisma/Kegel/Kugel) | `quaderVolumen`, `wuerfelVolumen`, `zylinderVolumen`, `weitereKoerper`, `quaderOberflaeche`, `wuerfelOberflaeche`, `zylinderOberflaeche` | ✅ |
 | Kongruenz & Ähnlichkeit | `kongruenzKonstruktionen` | ✅ |
 | Grundkonstruktionen (Strecken-/Winkelsymmetrale) | `grundkonstruktionen` | ✅ P1.23 |
-| Lagebeziehungen Punkt/Gerade, Gerade/Gerade | — | ⬜ P1.24 |
+| Lagebeziehungen Punkt/Gerade, Gerade/Gerade | `lagebeziehungen` | ✅ P1.24 |
 
 ## H4 — Statistische Darstellungen und Kenngrößen ⚠️
 
@@ -61,6 +61,6 @@
 | I2 Rechnen/Operieren | Rechenlogik, Verfahren in allen Generatoren | ✅ |
 | I3 Interpretieren | Tabellen, Diagramme, Kenngrößen, Wahrscheinlichkeit | ✅ |
 
-## Offene Punkte (3)
+## Offene Punkte (2)
 
-P1.24 Lagebeziehungen · P1.26 Häufigkeiten · P1.27 Kreisdiagramm
+P1.26 Absolute & relative Häufigkeiten · P1.27 Kreisdiagramm

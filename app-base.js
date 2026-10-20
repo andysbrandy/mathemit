@@ -491,6 +491,9 @@
     streckensymmetrale:"Bei der Streckensymmetrale liegt der gespiegelte Punkt genauso weit von der Geraden entfernt wie der ursprüngliche – nur auf der anderen Seite. Die Strecke zwischen beiden steht senkrecht auf der Geraden.",
     winkelsymmetrale:"Bei der Winkelsymmetrale liegt der gespiegelte Punkt genauso weit vom Schenkel entfernt wie der ursprüngliche – nur auf der anderen Seite. Die Winkelhalbierende teilt den Winkel in zwei gleich große Winkel.",
     mittelsenkrechte:"Die Mittelsenkrechte steht senkrecht auf der Strecke und halbiert sie. Deshalb: Länge der Strecke : 2 = Länge der Hälfte.",
+    punktGerade:"Drei Lagen: P liegt auf g · P liegt auf einer Seite von g · g und P schneiden sich nicht (parallel). Zeichne g ein Stück über P hinaus: schneidet die Gerade genau P, liegt P auf g.",
+    geradeGerade:"Zwei Geraden: identisch · parallel (kein Schnittpunkt) · schneidend (genau ein Schnittpunkt). Zwei verschiedene Geraden können nie in zwei Punkten schneiden.",
+    punktGeradeAbstand:"Der Abstand eines Punktes von einer Geraden ist die kürzeste Strecke von P zur Geraden – sie steht senkrecht auf g (Lotfusspunkt F).",
     _default:"Lies die Aufgabe noch einmal langsam – welche Zahlen und welche Frage gibt es?"
   };
   function deriveTips(ex){
@@ -3699,6 +3702,139 @@
       return ex;
     }
   }
+  /* ============ P1.24: Lagebeziehungen (Generator) ============ */
+  function genLagebeziehungen(diff){
+    diff = diff || 2;
+    var farbe = COLORS.viereck.main;
+    var typ = rand(0, 2); // 0 = Punkt-Gerade, 1 = Gerade-Gerade, 2 = Punkt-Gerade-Abstand
+    if(typ === 0){
+      // Gerade waagerecht; P liegt entweder genau auf g oder auf einer Seite von g
+      var gY = 130;
+      var gA = { x: 20, y: gY };
+      var dirG = { x: 1, y: 0 };
+      var aufG = rand(0,1) === 0;
+      var px = rand(70, 230);
+      var P = aufG ? { x: px, y: gY } : { x: px, y: gY - rand(45, 80) };
+      var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+      svg += geradeSVG(gA, dirG, farbe, "g");
+      svg += punktSVG(P, farbe, "P");
+      svg += '<text x="150" y="30" text-anchor="middle" class="dim-label" fill="'+farbe+'">P und g: In welcher Lage liegen sie zueinander?</text>';
+      svg += '<text x="150" y="200" text-anchor="middle" class="dim-label" fill="'+farbe+'">Zeichne g ein Stueck ueber P hinaus und pruefe, ob P auf g liegt.</text>';
+      svg += '</svg>';
+      var ex = baseEx("konstruktion","punktGerade");
+      ex.question = "Gegeben sind die Gerade g und der Punkt P. In welcher Lage befindet sich P zur Geraden g?";
+      ex.hint = "Ueberlege: Liegt P auf der Geraden, auf einer Seite von g oder hat P mit g ueberhaupt keinen gemeinsamen Punkt? Zeichne zur Not die Gerade g ein Stueck ueber den Punkt P hinaus.";
+      ex.svg = svg; ex.badge = "Lagebeziehung · Punkt und Gerade"; ex.badgeColor = farbe;
+      ex.inputType = "mc";
+      var korrekt = aufG
+        ? "P liegt genau auf der Geraden g"
+        : "P liegt auf einer Seite der Geraden g (P liegt nicht auf g)";
+      var falsch = aufG ? [
+        "P liegt auf einer Seite der Geraden g (P liegt nicht auf g)",
+        "P und g haben keinen gemeinsamen Punkt",
+        "P liegt doppelt so weit von g entfernt wie die halbe Strecke PQ"
+      ] : [
+        "P liegt genau auf der Geraden g",
+        "P und g haben keinen gemeinsamen Punkt",
+        "g und P schneiden sich in zwei Punkten"
+      ];
+      ex.choices = shuffle([korrekt].concat(shuffle(falsch).slice(0,2)));
+      ex.correctIndex = ex.choices.indexOf(korrekt);
+      ex.answer = ex.choices[ex.correctIndex];
+      ex.explanation = "Richtig ist: "+korrekt+". Es gibt drei moegliche Lagen: Der Punkt P liegt genau auf der Geraden g, P liegt auf einer Seite von g oder P hat mit g ueberhaupt keinen gemeinsamen Punkt (g waere dann eine Punktgerade zu P). "+(aufG ? "In dieser Zeichnung liegt P genau auf g – P gehoert also zu g." : "In dieser Zeichnung liegt P oberhalb der Geraden g, also auf einer Seite von g, aber nicht auf g selbst.") + " Wichtig: Eine Gerade, die nicht parallel zu g ist, schneidet g zwar genau einmal, aber das heisst noch nicht, dass P auf g liegt – P liegt auf g nur, wenn der Schnittpunkt genau P ist.";
+      ex.tips = ["Drei Lagen: P auf g · P neben g · P und g schneiden sich nicht (parallel). Zeichne g durch P: schneidet die Gerade genau P, liegt P auf g.",
+                 "Merke: Zwei verschiedene Geraden schneiden sich in hoechstens einem Punkt. Schneiden sie sich in keinem, sind sie parallel."];
+      return ex;
+    }
+    if(typ === 1){
+      // Zwei Geraden: parallel oder schneidend
+      var parallel = rand(0,1) === 0;
+      var g1Y = 110, g2Y = 170;
+      var winkelGrad = parallel ? 0 : rand(35, 70);
+      var rad = winkelGrad * Math.PI / 180;
+      var g1A = { x: 30, y: g1Y };
+      var g1Richtung = { x: 1, y: 0 };
+      // h steigt nach rechts oben (SVG-y waechst nach unten -> negatives sin)
+      var g2Richtung = { x: Math.cos(rad), y: -Math.sin(rad) };
+      var g2A = parallel ? { x: 30, y: g2Y } : { x: 40, y: g2Y };
+      var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+      svg += geradeSVG(g1A, g1Richtung, farbe, "g");
+      svg += geradeSVG(g2A, g2Richtung, farbe, "h");
+      // Hilfspunkte auf den Geraden (A auf g, B auf h) – machen die Lage sichtbar
+      svg += punktSVG({ x: 45, y: g1Y }, farbe, "A");
+      var tb = (45 - g2A.x) / (g2Richtung.x || 1e-6);
+      svg += punktSVG({ x: 45, y: g2A.y + g2Richtung.y*tb }, farbe, "B");
+      if(!parallel){
+        // Schnittpunkt: g1 waagerecht durch g1A, h durch g2A mit Richtung
+        var t = (g1Y - g2A.y) / (g2Richtung.y || -1e-6);
+        var S = { x: g2A.x + g2Richtung.x*t, y: g1Y };
+        svg += punktSVG(S, farbe, "S");
+      }
+      svg += '<text x="150" y="30" text-anchor="middle" class="dim-label" fill="'+farbe+'">Wie liegen die Geraden g und h zueinander?</text>';
+      svg += '</svg>';
+      var ex = baseEx("konstruktion","geradeGerade");
+      ex.question = "Betrachte die beiden Geraden g und h. In welcher Lage befinden sie sich zueinander?";
+      ex.hint = "Schaue, ob sich g und h in genau einem Punkt schneiden oder ob sie immer den gleichen Abstand haben. Verschiebe dein Geodreieck oder einen Lineal: zwei Geraden, die sich nie schneiden, sind parallel.";
+      ex.svg = svg; ex.badge = "Lagebeziehung · Gerade und Gerade"; ex.badgeColor = farbe;
+      ex.inputType = "mc";
+      var korrekt = parallel
+        ? "g und h sind parallel – sie schneiden sich nicht"
+        : "g und h schneiden sich in genau einem Punkt (Schnittpunkt S)";
+      var falsch = parallel ? [
+        "g und h schneiden sich in genau einem Punkt",
+        "g und h sind identisch (dieselbe Gerade)",
+        "g und h schneiden sich in zwei Punkten"
+      ] : [
+        "g und h sind parallel – sie schneiden sich nicht",
+        "g und h sind identisch (dieselbe Gerade)",
+        "g und h schneiden sich in zwei Punkten"
+      ];
+      ex.choices = shuffle([korrekt].concat(shuffle(falsch).slice(0,2)));
+      ex.correctIndex = ex.choices.indexOf(korrekt);
+      ex.answer = ex.choices[ex.correctIndex];
+      ex.explanation = "Richtig ist: "+korrekt+". Zwei Geraden in der Ebene haben genau drei moegliche Lagen: Sie sind identisch, sie sind parallel (schneiden sich in keinem Punkt) oder sie schneiden sich in genau einem Punkt (Schnittpunkt). Zwei verschiedene Geraden koennen nie in zwei Punkten schneiden – sonst waeren sie identisch. "+(parallel ? "Hier haben g und h durchgehend den gleichen Abstand, sie schneiden sich also nicht." : "Hier schneiden sich g und h im Punkt S – die Geraden sind nicht parallel.");
+      ex.tips = ["Drei Lagen: identisch · parallel (kein Schnittpunkt) · schneidend (genau ein Schnittpunkt).",
+                 "Schnelltest: Lege ein Lineal entlang g und schiebe es entlang h. Bleibt der Abstand immer gleich, sind g und h parallel."];
+      return ex;
+    }
+    if(typ === 2){
+      // Punkt P und Gerade g: Abstand messen (1 Kaestchen = 1 cm), Wert steht NICHT im Text
+      var scaleCm = 8;
+      var abstandCm = diff === 1 ? rand(2, 4) : (diff === 3 ? rand(6, 10) : rand(3, 7));
+      var gY = 160;
+      var gA = { x: 20, y: gY };
+      var F = { x: rand(80, 220), y: gY };
+      var P = { x: F.x, y: gY - abstandCm*scaleCm };
+      var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
+      // Raster: 1 Kaestchen = 1 cm
+      for(var gx = 20; gx <= 280; gx += scaleCm){
+        svg += '<line x1="'+gx+'" y1="20" x2="'+gx+'" y2="200" stroke="var(--paper)" stroke-width="1"/>';
+      }
+      for(var gy = 24; gy <= 200; gy += scaleCm){
+        svg += '<line x1="20" y1="'+gy+'" x2="280" y2="'+gy+'" stroke="var(--paper)" stroke-width="1"/>';
+      }
+      svg += geradeSVG(gA, { x: 1, y: 0 }, farbe, "g");
+      // Senkrechte von P auf g (gestrichelt) mit rechtem Winkel bei F
+      svg += '<line x1="'+P.x+'" y1="'+P.y+'" x2="'+F.x+'" y2="'+F.y+'" stroke="'+farbe+'" stroke-width="2" stroke-dasharray="5 4"/>';
+      svg += rechterWinkelPunkt(F, {x:0,y:-1}, {x:1,y:0}, farbe, 10);
+      svg += punktSVG(P, farbe, "P");
+      svg += '<text class="dim-label" x="'+(F.x+8)+'" y="'+(F.y+16)+'" fill="'+farbe+'">F</text>';
+      svg += '<text x="150" y="16" text-anchor="middle" class="dim-label" fill="'+farbe+'">1 Kaestchen im Raster = 1 cm</text>';
+      svg += '<text x="150" y="212" text-anchor="middle" class="dim-label" fill="'+farbe+'">PF steht senkrecht auf g (Lotfusspunkt F)</text>';
+      svg += '</svg>';
+      var ex = baseEx("konstruktion","punktGeradeAbstand");
+      ex.question = "Miss den Abstand des Punktes P von der Geraden g. (Ein Kaestchen im Raster entspricht 1 cm.) Wie lang ist die Strecke PF?";
+      ex.hint = "Der Abstand eines Punktes von einer Geraden ist die kuerzeste Strecke von P zur Geraden – also genau PF. Sie steht senkrecht auf g. Zaehle jetzt die Kaestchen von P bis zur Geraden g.";
+      ex.svg = svg; ex.badge = "Lagebeziehung · Abstand Punkt–Gerade"; ex.badgeColor = farbe;
+      ex.inputType = "number"; ex.unit = "cm";
+      ex.answer = abstandCm;
+      ex.explanation = "Der Abstand eines Punktes P von einer Geraden g ist die Laenge der kuerzesten Strecke von P zu g. Diese Strecke PF steht senkrecht auf g – F heisst Lotfusspunkt. In der Zeichnung sind es "+abstandCm+" Kaestchen, also ist PF = "+abstandCm+" cm. Wichtig: Der Abstand ist immer die SENKRECHTE Strecke, nicht irgendeine Verbindung – eine schraege Strecke von P zur Geraden waere immer laenger.";
+      ex.tips = ["Abstand Punkt–Gerade = Laenge der senkrechten Strecke (Lot) von P auf g. Der Lotfusspunkt F liegt auf g.",
+                 "Merke: PF ist senkrecht zu g – der Winkel bei F ist also genau 90 Grad. Zaehle die Kaestchen bis zur Geraden."];
+      return ex;
+    }
+  }
+
 
   /* ============ Pools & Modes ============ */
   // Hilfsfunktion: setzt _currentCurriculumKey und ruft den Generator auf
@@ -3772,7 +3908,8 @@
     binomischeFormeln:  withCurriculum("binomischeFormeln",    genBinomischeFormeln),
     lineareFunktionen:  withCurriculum("lineareFunktionen",    genLineareFunktionen),
     kongruenzKonstruktionen: withCurriculum("kongruenzKonstruktionen", genKongruenzKonstruktionen),
-    grundkonstruktionen:     withCurriculum("grundkonstruktionen",     genGrundkonstruktionen)
+    grundkonstruktionen:     withCurriculum("grundkonstruktionen",     genGrundkonstruktionen),
+    lagebeziehungen:        withCurriculum("lagebeziehungen",        genLagebeziehungen)
   };
 
   var MODES = [
@@ -3798,7 +3935,8 @@
     {id:"terme", label:"🔤 Terme vereinfachen", group:"Größen & Variablen · H2", pool:["termeDistributiv","binomischeFormeln"]},
     {id:"funktionen", label:"📈 Lineare Funktionen", group:"Größen & Variablen · H2", pool:["lineareFunktionen"]},
     {id:"kongruenz", label:"🔗 Kongruenz & Konstruktionen", group:"Geometrie · H3", pool:["kongruenzKonstruktionen","grundkonstruktionen"]},
-    {id:"konstruktionen", label:"✂️ Grundkonstruktionen", group:"Geometrie · H3", pool:["grundkonstruktionen"]}
+    {id:"konstruktionen", label:"✂️ Grundkonstruktionen", group:"Geometrie · H3", pool:["grundkonstruktionen"]},
+    {id:"lagebeziehungen", label:"📐 Lagebeziehungen", group:"Geometrie · H3", pool:["lagebeziehungen"]}
   ];
 
   /* Schulstufen-Zuordnung je Übungstyp (1.–4. Klasse Mittelschule) */
@@ -3820,7 +3958,7 @@
     tabelleLesen:[2,3],
     diagrammBalken:[2,3], gemischteZahlen:[1,2], bruchDezimal:[1,2],
     zinsrechnung:[3,4], proportionalitaet:[2,3], indirekteProportionalitaet:[3,4], mehrstufig:[2,3],
-    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], einheiten:[2,3,4], potenzenWurzeln:[3,4], potenzenErweitert:[3,4], teilbarkeit:[3,4], termeDistributiv:[3,4], binomischeFormeln:[3,4], lineareFunktionen:[3,4], kongruenzKonstruktionen:[3,4], grundkonstruktionen:[3,4]
+    ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], einheiten:[2,3,4], potenzenWurzeln:[3,4], potenzenErweitert:[3,4], teilbarkeit:[3,4], termeDistributiv:[3,4], binomischeFormeln:[3,4], lineareFunktionen:[3,4], kongruenzKonstruktionen:[3,4], grundkonstruktionen:[3,4], lagebeziehungen:[3,4]
   };
   var GRADE_GROUPS = { "12":[1,2], "34":[3,4] };
   var GRADES = [
@@ -3922,7 +4060,8 @@ termeDistributiv:  {codes:["H2.I1"], kompetenz:"Terme vereinfachen und das Distr
     lineareGleichungssysteme: {codes:["H2.I1"], kompetenz:"Lineare Gleichungssysteme 2x2 lösen (Einsetz- und Additionsverfahren) und die Lösung in beiden Gleichungen prüfen"},
     lineareFunktionen: {codes:["H2.I2"], kompetenz:"Lineare Funktionen y = m·x + t: Steigung m und y-Achsenabschnitt t aus Graph ablesen; Funktionsgleichung aufstellen"},
     kongruenzKonstruktionen: {codes:["H3.I2","H3.I5"], kompetenz:"Kongruenzsätze und Ähnlichkeit von Figuren anwenden"},
-    grundkonstruktionen:     {codes:["H3.I2","H3.I5"], kompetenz:"Grundkonstruktionen durchführen: Strecken- und Winkelsymmetrale, Mittelsenkrechte und Winkelhalbierende konstruieren"}
+    grundkonstruktionen:     {codes:["H3.I2","H3.I5"], kompetenz:"Grundkonstruktionen durchführen: Strecken- und Winkelsymmetrale, Mittelsenkrechte und Winkelhalbierende konstruieren"},
+    lagebeziehungen:        {codes:["H3.I2","H3.I5"], kompetenz:"Lagebeziehungen beschreiben: Lage von Punkt und Gerade, von zwei Geraden (parallel, schneidend, identisch) und den Abstand eines Punktes von einer Geraden bestimmen"}
   };
 
   /* ============ P4.3: Spaced Repetition ============
@@ -4088,7 +4227,7 @@ termeDistributiv:  {codes:["H2.I1"], kompetenz:"Terme vereinfachen und das Distr
   var GARTEN_BEREICHE = [
     { id:"brueche",  icon:"🌰", name:"Zahlen-Baum",   thema:"Brüche",     untertitel:"Zahlen & Brüche (H1.I1, H1.I3)",  generatoren:["einheiten","ganzeZahlen","bruchKuerzen","bruchAddition","bruchAdditionVerschNenner","bruchVergleich","bruchMultiplikation","bruchDivision","gemischteZahlen","bruchDezimal","potenzenWurzeln","potenzenErweitert","teilbarkeit"] },
     { id:"prozente", icon:"🪙", name:"Prozent-Baum",  thema:"Prozente",   untertitel:"Prozente & Verhältnisse (H1.I2, H2.I2)", generatoren:["prozentVonZahl","prozentAnteil","zinsrechnung","proportionalitaet","indirekteProportionalitaet"] },
-    { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck","kongruenzKonstruktionen","grundkonstruktionen"] },
+    { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck","kongruenzKonstruktionen","grundkonstruktionen","lagebeziehungen"] },
     { id:"messen",   icon:"📏", name:"Flächen-Baum",  thema:"Maße",       untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","pythagoras","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","weitereKoerper","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },
     { id:"alltag",   icon:"🧺", name:"Alltags-Baum",  thema:"Sachaufgaben", untertitel:"Sachaufgaben aus dem Alltag (I1.M1)", generatoren:["textaufgabeGarten","textaufgabePizza","textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSkikurs","textaufgabeWandertag","textaufgabeSchulheft","textaufgabeEiscafe","mehrstufig"] },
     { id:"struktur", icon:"🔗", name:"Daten-Baum",    thema:"Gleichungen", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","lineareGleichungssysteme","tabelleLesen","diagrammBalken","wahrscheinlichkeit","mittelwerte","termeDistributiv","binomischeFormeln","lineareFunktionen"] }

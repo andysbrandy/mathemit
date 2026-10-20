@@ -4,7 +4,7 @@
 > Grundlage: BMBWF Lehrplan 2023, Mathematik AHS-Unterstufe / Mittelschule
 > (Kompetenzbereiche H1–H4, Handlungsbereiche I1–I3 — siehe `LEHRPLAN`-Objekt in `app-base.js`).
 > Die ROADMAP.md verweist hierher und enthält keine eigene Stoffliste mehr.
-> Stand: v202. Legende: ✅ umgesetzt · ⬜ offen (mit P-Nummer) · 🔶 teilweise.
+> Stand: v210. Legende: ✅ umgesetzt · ⬜ offen (mit P-Nummer) · 🔶 teilweise.
 
 ## H1 — Zahlen und Maße ✅ (Basis vollständig, Erweiterung offen)
 
@@ -61,7 +61,6 @@
 | I2 Rechnen/Operieren | Rechenlogik, Verfahren in allen Generatoren | ✅ |
 | I3 Interpretieren | Tabellen, Diagramme, Kenngrößen, Wahrscheinlichkeit | ✅ |
 
-## Offene Punkte (4)
+## Offene Punkte (3)
 
-P1.23 Grundkonstruktionen · P1.24 Lagebeziehungen ·
-P1.26 Häufigkeiten · P1.27 Kreisdiagramm
+P1.24 Lagebeziehungen · P1.26 Häufigkeiten · P1.27 Kreisdiagramm

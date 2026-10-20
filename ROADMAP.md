@@ -51,7 +51,7 @@ Erzwungen durch `scripts/check-generator-surfaces.js` (Commit-Abbruch bei fehlen
 ## 🗓️ Roadmap-Phasen
 
 ### P1–P3: Kern-Generatoren ✅ abgeschlossen
-Alle 51 Generatoren implementiert, registriert und getestet.
+Alle 63 Generatoren implementiert, registriert und getestet.
 
 ### P4: Lernsystem ✅ abgeschlossen
 

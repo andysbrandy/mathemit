@@ -20,6 +20,17 @@ const PIPELINE = path.join(__dirname, "..");
 const REPO = path.join(PIPELINE, "..");
 const CHROME = process.env.CHROME_PATH || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 
+/* Anzahl der Generatoren dynamisch aus app-base.js: der Test darf bei jedem
+ * neuen Generator (P1.x) nicht rot werden. */
+function anzahlGeneratoren() {
+  const sandbox = { window: {} };
+  const src = fs.readFileSync(path.join(REPO, "app-base.js"), "utf8");
+  // eslint-disable-next-line no-new-func
+  new Function("window", src)(sandbox.window);
+  return Object.keys(sandbox.window.MB.GEN).length;
+}
+const ANZAHL_GENERATOREN = anzahlGeneratoren();
+
 const TYPEN = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css",
   ".png": "image/png", ".svg": "image/svg+xml",
@@ -112,7 +123,7 @@ function serverStarten() {
     ["Backend NICHT gecacht", cache.pfade.every(function (p) { return p.indexOf("/backend/") === -1; })],
     ["offline: Worker aktiv", offline.worker],
     ["offline: window.MB da", offline.mbDa],
-    ["offline: 47 Generatoren", offline.generatoren === 47, "anzahl " + offline.generatoren],
+    ["offline: alle Generatoren da", offline.generatoren === ANZAHL_GENERATOREN, "anzahl " + offline.generatoren],
     ["offline: Chips gerendert", offline.chips > 5, "anzahl " + offline.chips],
     ["offline: Aufgabe geladen", offline.aufgabe.length > 3 && !offline.nochAmLaden,
       offline.aufgabe.slice(0, 42)],

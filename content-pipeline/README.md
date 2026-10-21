@@ -105,10 +105,10 @@ npm run select -- \
   --difficulty 3 \
   --generators dreieckFlaeche,gleichungEinfach,bruchAddition
 
-# Alle 47 Generatoren einmal aufdecken (für einen Vollständigkeitstest)
+# Alle Generatoren einmal aufdecken (für einen Vollständigkeitstest)
 npm run select -- --seed generator-matrix --difficulty 1 --all-generators --stdout
 
-# Abnahme: Determinismus, 47 Generatoren × 3 Stufen, Fehler und Dateiausgabe
+# Abnahme: Determinismus, alle Generatoren × 3 Stufen, Fehler und Dateiausgabe
 npm test
 ```
 

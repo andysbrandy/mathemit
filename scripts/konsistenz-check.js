@@ -1,4 +1,4 @@
-/* Mathemit Konsistenz-Harness — globale Pruefung aller 47 Generatoren.
+/* Mathemit Konsistenz-Harness — globale Pruefung aller Generatoren.
  * Nutzt window.MB (app-base.js): GEN, phrase-Guards, barChartSVG-Labels.
  * Prueft pro Generator x 3 Stufen x 25 Laeufe:
  *  1. Pflichtfelder: question/hint/svg/badge/badgeColor/inputType/answer/explanation

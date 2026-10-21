@@ -13,6 +13,17 @@ const path = require("node:path");
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const SCRIPT = path.join(REPO_ROOT, "content-pipeline", "select-exercises.js");
 
+// Anzahl der Generatoren dynamisch aus app-base.js lesen, damit der Test
+// nicht bei jedem neuen Generator (P1.x) rot wird.
+function countGenerators() {
+  const sandbox = { window: {} };
+  const file = path.join(REPO_ROOT, "app-base.js");
+  const src = fs.readFileSync(file, "utf8");
+  // eslint-disable-next-line no-new-func
+  new Function("window", src)(sandbox.window);
+  return Object.keys(sandbox.window.MB.GEN).length;
+}
+
 function run(args, expectFailure, cwd) {
   const result = childProcess.spawnSync(process.execPath, [SCRIPT].concat(args), {
     cwd: cwd || REPO_ROOT,
@@ -59,12 +70,13 @@ function testFixedWhitelist() {
 }
 
 function testAllGeneratorMatrix() {
+  const expected = countGenerators();
   [1, 2, 3].forEach(function (difficulty) {
     const result = JSON.parse(run([
       "--seed", "alle-generatoren-" + difficulty, "--difficulty", String(difficulty), "--all-generators", "--stdout"
     ]).stdout);
-    assert.equal(result.exercises.length, 47);
-    assert.equal(new Set(result.exercises.map(function (ex) { return ex.generator; })).size, 47);
+    assert.equal(result.exercises.length, expected);
+    assert.equal(new Set(result.exercises.map(function (ex) { return ex.generator; })).size, expected);
     assert.ok(result.exercises.every(function (ex) { return ex.difficulty === difficulty; }));
     result.exercises.forEach(function (ex) {
       ["prompt", "hint", "svg", "badge", "badgeColor", "inputType", "answer", "explanation"].forEach(function (field) {

@@ -9,7 +9,7 @@
 
 | Bereich | Status | Details |
 |---------|--------|---------|
-| **Generatoren** | ✅ 51 | 15 lehrplangetreue Themen-Modi (H1–H3, I1–I3) |
+| **Generatoren** | ✅ 64 | 23 lehrplangetreue Themen-Modi (H1–H3, I1–I3) |
 | **Schwierigkeitsstufen** | ✅ 3 | 🌱 / 🎯 / 🚀 je Generator |
 | **Tipp-System** | ✅ | Progressive Offenlegung: Andeuten → Formel/Ansatz → gezielte Korrekturhinweise |
 | **Wiederholungstraining** | ✅ | Falsch gelöste Aufgaben gespeichert, über 🔁-Chip bis zum Erfolg wiederholt |
@@ -18,7 +18,7 @@
 | **Eulenhain** | ✅ | Endlose Stufen, eigene Eule pro Stufe, wachsender Baum, Tippen für Show |
 | **Feedback** | ✅ | 💬-Button → GitHub-Issue, KI-Wochenanalyse freitags 12:00 CET |
 | **PWA / Offline** | ✅ | Installierbar, Offline-Start, Warteschlange für DB-Sync bei Netz-Rückkehr |
-| **Qualitätssicherung** | ✅ | Pre-Commit-Check: 58 Generatoren, 21 Topic-Chips, 6 Wissensgarten-Bäume |
+| **Qualitätssicherung** | ✅ | Pre-Commit-Check: 64 Generatoren, 23 Topic-Chips, 6 Wissensgarten-Bäume |
 
 ---
 ## 🎯 Die 6 Pflicht-Einbaupunkte jedes Generators
@@ -102,7 +102,7 @@ Indexierbarer Abdeckungs-Abschnitt in `index.html` (Sichtbarer Dokumentfluss, ke
 
 ## 🎨 UX-Optimierung
 
-> Motivation: Bei 51+ Generatoren und 21 Topic-Chips muss die App auch mobil
+> Motivation: Bei 64+ Generatoren und 23 Topic-Chips muss die App auch mobil
 > (kleines Display, Touch) sofort benutzbar bleiben: Aufgabe + Lösungsfeld immer
 > sichtbar, Auflösung klar lesbar, neue Nutzer in < 30 s beim Lernen.
 

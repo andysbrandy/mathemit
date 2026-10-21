@@ -9,7 +9,7 @@
 
 | Bereich | Status | Details |
 |---------|--------|---------|
-| **Generatoren** | ✅ 64 | 23 lehrplangetreue Themen-Modi (H1–H3, I1–I3) |
+| **Generatoren** | ✅ 65 | 23 lehrplangetreue Themen-Modi (H1–H3, I1–I3) |
 | **Schwierigkeitsstufen** | ✅ 3 | 🌱 / 🎯 / 🚀 je Generator |
 | **Tipp-System** | ✅ | Progressive Offenlegung: Andeuten → Formel/Ansatz → gezielte Korrekturhinweise |
 | **Wiederholungstraining** | ✅ | Falsch gelöste Aufgaben gespeichert, über 🔁-Chip bis zum Erfolg wiederholt |
@@ -18,7 +18,7 @@
 | **Eulenhain** | ✅ | Endlose Stufen, eigene Eule pro Stufe, wachsender Baum, Tippen für Show |
 | **Feedback** | ✅ | 💬-Button → GitHub-Issue, KI-Wochenanalyse freitags 12:00 CET |
 | **PWA / Offline** | ✅ | Installierbar, Offline-Start, Warteschlange für DB-Sync bei Netz-Rückkehr |
-| **Qualitätssicherung** | ✅ | Pre-Commit-Check: 64 Generatoren, 23 Topic-Chips, 6 Wissensgarten-Bäume |
+| **Qualitätssicherung** | ✅ | Pre-Commit-Check: 65 Generatoren, 23 Topic-Chips, 6 Wissensgarten-Bäume |
 
 ---
 ## 🎯 Die 6 Pflicht-Einbaupunkte jedes Generators
@@ -44,14 +44,14 @@ Erzwungen durch `scripts/check-generator-surfaces.js` (Commit-Abbruch bei fehlen
 ## 📚 Lehrplan-Abdeckung
 
 > Maßgeblich ist die Soll-Ist-Matrix in [`LEHRPLAN_ABDECKUNG.md`](LEHRPLAN_ABDECKUNG.md)
-> (H1 ✅, H2 ✅, H3 ✅, H4 ⚠️ 2 offen + P1.18, I1–I3 ✅).
-> Stand nach Lehrplan-Abgleich: H1 ✅, H2 ✅, H3 ✅ vollständig. Offen: P1.26, P1.27 (H4).
+> (H1 ✅, H2 ✅, H3 ✅, H4 ⚠️ 1 offen + P1.18, I1–I3 ✅).
+> Stand nach Lehrplan-Abgleich: H1 ✅, H2 ✅, H3 ✅ vollständig. Offen: P1.27 (H4).
 
 ---
 ## 🗓️ Roadmap-Phasen
 
 ### P1–P3: Kern-Generatoren ✅ abgeschlossen
-Alle 64 Generatoren implementiert, registriert und getestet.
+Alle 65 Generatoren implementiert, registriert und getestet.
 
 ### P4: Lernsystem ✅ abgeschlossen
 
@@ -183,9 +183,11 @@ am Einstieg (nur Klassen-Code im Registrierungs-Formular).
 
 ## 🔜 Nächste Schritte
 
-1. **P1.26** Absolute & relative Häufigkeiten (H4)
-2. **P1.27** Kreisdiagramm (H4)
+1. **P1.27** Kreisdiagramm (H4)
 
+> ✅ Erledigt: P1.26 Absolute & relative Häufigkeiten (H4) – absolute
+> Häufigkeit aus der Tabelle ablesen, Gesamtmenge bestimmen, relative
+> Häufigkeit in Prozent und als gekürzter Bruch, Kategorien vergleichen.
 > ✅ Erledigt: P1.24 Lagebeziehungen (H3) – Lage von Punkt und Gerade,
 > Parallelität/Schnittpunkt zweier Geraden und Abstand Punkt–Gerade
 > mit maßstäblichem Raster.

@@ -50,7 +50,7 @@
 | Tabellen & Balkendiagramme lesen | `tabelleLesen`, `diagrammBalken` | ✅ |
 | Wahrscheinlichkeit (Laplace) | `wahrscheinlichkeit` | ✅ |
 | Mittelwert / Modus / Median | `mittelwerte` | ✅ |
-| Absolute & relative Häufigkeiten | — | ⬜ P1.26 |
+| Absolute & relative Häufigkeiten | `haeufigkeit` | ✅ P1.26 |
 | Kreisdiagramm lesen & zeichnen | — | ⬜ P1.27 |
 
 ## I1–I3 — Handlungsbereiche ✅
@@ -61,6 +61,6 @@
 | I2 Rechnen/Operieren | Rechenlogik, Verfahren in allen Generatoren | ✅ |
 | I3 Interpretieren | Tabellen, Diagramme, Kenngrößen, Wahrscheinlichkeit | ✅ |
 
-## Offene Punkte (2)
+## Offene Punkte (1)
 
-P1.26 Absolute & relative Häufigkeiten · P1.27 Kreisdiagramm
+P1.27 Kreisdiagramm

@@ -3455,6 +3455,175 @@
     ex.explanation = "A = "+l+" m · "+b+" m = "+fmtAT(flaeche)+" m².";
     return ex;
 }
+/*
+ * P1.27: Kreisdiagramm (H4)
+ * Aus einem Kreisdiagramm:
+ *   - absolute Häufigkeit (Anzahl eines Sektors ablesen),
+ *   - Gesamtmenge (Summe aller Sektoren),
+ *   - relative Häufigkeit in Prozent und als gekürzter Bruch,
+ *   - Vergleich: welche Kategorie die größte relative Häufigkeit hat?
+ */
+function genKreisdiagramm(diff){
+  diff = diff || 2;
+
+  // Theme + Items (5 Themen, n Items je Schwierigkeit)
+  var themen = [
+    {label:"Farbe", count:"Lieblingsfarben", items:["Rot","Blau","Grün","Gelb","Schwarz"]},
+    {label:"Haustier", count:"Haustiere", items:["Katze","Hund","Fisch","Kaninchen","Pferd"]},
+    {label:"Sportart", count:"Sportarten", items:["Fußball","Basketball","Schwimmen","Tennis","Laufen"]},
+    {label:"Fach", count:"Lieblingsfächer", items:["Mathematik","Deutsch","Englisch","Musik","Sport"]},
+    {label:"Getränk", count:"Getränke", items:["Wasser","Apfelsaft","Cola","Milch","Limonade"]}
+  ];
+  var thema = themen[Math.floor(Math.random()*themen.length)];
+  var n = diff===1 ? 3 : (diff===3 ? 5 : 4);
+  var items = thema.items.slice(0,n);
+
+  // Konstruktive Gewichte: verschiedene 5%-Vielfache, Summe 100,
+  // verschiedene Stückzahlen, eindeutiges Maximum
+  var minU = diff===1 ? 2 : (diff===2 ? 1 : 1);
+  var teile = [];
+  (function rec(i, start, sum, arr){
+    if(i===n){ if(sum===20) teile.push(arr.slice()); return; }
+    for(var u=start; u<=20; u++){
+      var rest = n-i-1;
+      if(sum + u + rest*u + rest*(rest+1)/2 > 20) break;
+      arr.push(u); rec(i+1, u+1, sum+u, arr); arr.pop();
+    }
+  })(0, minU, 0, []);
+  var weights = choice(teile).map(function(u){ return u*5; });
+  var i; weights = shuffle(weights);
+
+  var scale = diff===1 ? 1 : (diff===2 ? 2 : 5);
+  var counts = weights.map(function(x){ return x*scale; });
+  var total = counts.reduce(function(a,b){ return a+b; }, 0);
+
+  // Fokus-Sektor
+  var qIdx = Math.floor(Math.random()*n);
+  var focus = items[qIdx];
+  var focusCount = counts[qIdx];
+
+  // SVG-Kreisdiagramm (300×220, glueck-Modus Pattern)
+  var svg = "<svg viewBox=\"0 0 300 220\" xmlns=\"http://www.w3.org/2000/svg\">";
+  var cumAngle = 0;
+  for(i=0; i<n; i++){
+    var sectorAng = (counts[i]/total)*360;
+    var large = sectorAng > 180 ? 1 : 0;
+    var a0 = (cumAngle - 90)*Math.PI/180;
+    var a1 = (cumAngle + sectorAng - 90)*Math.PI/180;
+    var x1 = 150 + 75*Math.cos(a0); var y1 = 100 + 75*Math.sin(a0);
+    var x2 = 150 + 75*Math.cos(a1); var y2 = 100 + 75*Math.sin(a1);
+    var fill = i===qIdx ? COLORS.kreis.main : COLORS.gleichung.soft;
+    svg += "<path d=\"M150 100 L"+Math.round(x1)+" "+Math.round(y1)+" A75 75 0 "+large+" 1 "+Math.round(x2)+" "+Math.round(y2)+" Z\" "
+      "fill=\""+fill+"\" stroke=\"var(--ink)\" stroke-width=\"2\"/>";
+    cumAngle += sectorAng;
+  }
+  svg += "<circle cx=\"150\" cy=\"100\" r=\"10\" fill=\"var(--ink)\"/>";
+  svg += "<text class=\"dim-label\" x=\"150\" y=\"200\" text-anchor=\"middle\">"
+    + focus + ": " + focusCount + " / " + total + "</text>";
+  svg += "</svg>";
+
+  // Platzhalter für Aufgabentyp (wird später ergänzt)
+  var typ = "absolut";
+  var answer, ex;
+
+  if(typ==="absolut"){
+    answer = focusCount;
+    ex = {question: "placeholder", answer: answer};
+  } else if(typ==="gesamt"){
+    answer = total;
+    ex = {question: "placeholder", answer: answer};
+  }
+
+  ex.svg = svg; ex.badgeColor = COLORS.gleichung.main; return ex;
+if(typ==="absolut"){
+    answer = focusCount;
+    ex = {
+      question: "Wie viele "+thema.count+" von "+focus+" wurden gezählt? (Lies den Wert im Diagramm ab.)",
+      hint: "Finde den Sektor von "+focus+" und lies die Anzahl ab.",
+      badge: "Diagramm · Absolute Häufigkeit",
+      badgeColor: COLORS.gleichung.main,
+      inputType: "number", unit: "", tolerance: 0,
+      answer: answer,
+      explanation: focus+" kommt "+answer+"-mal vor – das ist die absolute Häufigkeit."
+    };
+  } else if(typ==="gesamt"){
+    answer = total;
+    ex = {
+      question: "Wie viele "+thema.count+" wurden insgesamt gezählt? (Addiere alle Sektoren.)",
+      hint: "Addiere alle Werte oder lies die Gesamtmenge ab.",
+      badge: "Diagramm · Gesamtmenge",
+      badgeColor: COLORS.gleichung.main,
+      inputType: "number", unit: "", tolerance: 0,
+      answer: answer,
+      explanation: "Gesamtzahl = "+counts.join(" + ")+" = "+total+" ."
+    };
+  } else if(typ==="relativ"){
+    answer = Math.round(focusCount/total*100);
+    ex = {
+      question: "Wie viel Prozent der gezählten "+thema.count+" fallen auf "+focus+"? (Antwort in Prozent, ganze Zahl ohne %-Zeichen.)",
+      hint: "Relative Häufigkeit = Anzahl von "+focus+" : Gesamtzahl. Multipliziere mit 100.",
+      badge: "Diagramm · Relative Häufigkeit",
+      badgeColor: COLORS.gleichung.main,
+      inputType: "number", unit: "%", tolerance: 0,
+      answer: answer,
+      explanation: focus+" : "+total+" = "+(focusCount/total)+" = "+answer+" % relative Häufigkeit."
+    };
+  } else if(typ==="relativBruch"){
+    var zaehler = focusCount; var nenner = 100; var g = ggT(zaehler, nenner);
+    answer = (zaehler/g) + "/" + (nenner/g);
+
+    function bruchWert(str){
+      var p = String(str).split("/");
+      if(p.length!==2) return null;
+      var a = parseInt(p[0],10), b = parseInt(p[1],10);
+      if(isNaN(a) || isNaN(b) || b===0) return null;
+      return a/b;
+    }
+    var distract = [], seen = {}; seen[bruchWert(answer)] = true;
+    function addDistrakt(str){
+      var v = bruchWert(str);
+      if(v===null || seen[v]) return false;
+      seen[v] = true; distract.push(str); return true;
+    }
+    for(i=0; i<n; i++){
+      if(i===qIdx) continue;
+      var zz = counts[i], gg = ggT(zz,100);
+      var cand = [(zz/gg)+"/"+(100/gg), zz+"/"+100, (zz/5)+"/20"];
+      for(var c=0; c<cand.length; c++) addDistrakt(cand[c]);
+    }
+    var extra = ["1/2","1/4","1/5","3/4","2/3","1/10","3/5","2/5","4/5","3/10","7/10","1/20"];
+    for(i=0; i<extra.length && distract.length<3; i++) addDistrakt(extra[i]);
+    var opts = shuffle([answer].concat(distract.slice(0,3)));
+    correctIndex = opts.indexOf(answer);
+    ex = {
+      question: "Welcher Bruch gibt die relative Häufigkeit von "+focus+" an?",
+      hint: "Relative Häufigkeit = Anzahl von "+focus+" : Gesamtzahl. Teile Zähler und Nenner durch GGT.",
+      badge: "Diagramm · Anteil als Bruch",
+      badgeColor: COLORS.gleichung.main,
+      inputType: "mc", choices: opts, correctIndex: correctIndex,
+      answer: answer,
+      explanation: "Relative Häufigkeit = "+counts[qIdx]+ " : "+total+" = "+zaehler+" : "+nenner+" = "+answer+" ."
+    };
+  } else { // typ === "vergleich"
+    var maxIdx = 0; for(i=1; i<n; i++){ if(counts[i]>counts[maxIdx]) maxIdx=i; }
+    answer = items[maxIdx]; var others = items.filter(function(it,k){ return k!==maxIdx; });
+    var opts2 = shuffle([answer].concat(others.slice(0,3)));
+    correctIndex = opts2.indexOf(answer);
+    ex = {
+      question: "Welche Kategorie hat die größte relative Häufigkeit? (Wähle aus der Liste.)",
+      hint: "Vergleiche die Anteile: Die Kategorie mit der größten Anzahl hat auch den größten Anteil.",
+      badge: "Diagramm · Vergleich",
+      badgeColor: COLORS.gleichung.main,
+      inputType: "mc", choices: opts2, correctIndex: correctIndex,
+      answer: answer,
+      explanation: answer+" hat "+counts[maxIdx]+ " von "+total+" = "+(counts[maxIdx]/total)+ " % – die größte relative Häufigkeit."
+    };
+  }
+
+  ex.svg = svg; ex.badgeColor = COLORS.gleichung.main; return ex;
+}
+
+// Wandern: Höhenmeter (sehr österreichisch!)
 
   // Wandern: Höhenmeter (sehr österreichisch!)
   function genTextaufgabeWandern(diff){

@@ -43,7 +43,7 @@
 | Grundkonstruktionen (Strecken-/Winkelsymmetrale) | `grundkonstruktionen` | ✅ P1.23 |
 | Lagebeziehungen Punkt/Gerade, Gerade/Gerade | `lagebeziehungen` | ✅ P1.24 |
 
-## H4 — Statistische Darstellungen und Kenngrößen ⚠️
+## H4 — Statistische Darstellungen und Kenngrößen ✅
 
 | Lehrplan-Soll | Generator-Ist | Status |
 |---|---|---|
@@ -51,7 +51,7 @@
 | Wahrscheinlichkeit (Laplace) | `wahrscheinlichkeit` | ✅ |
 | Mittelwert / Modus / Median | `mittelwerte` | ✅ |
 | Absolute & relative Häufigkeiten | `haeufigkeit` | ✅ P1.26 |
-| Kreisdiagramm lesen & zeichnen | — | ⬜ P1.27 |
+| Kreisdiagramm lesen & zeichnen | `kreisdiagramm` | ✅ P1.27 |
 
 ## I1–I3 — Handlungsbereiche ✅
 
@@ -61,6 +61,6 @@
 | I2 Rechnen/Operieren | Rechenlogik, Verfahren in allen Generatoren | ✅ |
 | I3 Interpretieren | Tabellen, Diagramme, Kenngrößen, Wahrscheinlichkeit | ✅ |
 
-## Offene Punkte (1)
+## Offene Punkte (0)
 
-P1.27 Kreisdiagramm
+Alle Lehrplan-Bereiche H1–H4, I1–I3 sind vollständig abgedeckt.

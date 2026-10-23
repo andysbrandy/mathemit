@@ -1,7 +1,7 @@
 # Mathe mit Andybrandy
 
 > Kostenlose, werbefreie Mathe-Lern-App für die österreichische Mittelschule
-> nach dem Lehrplan AHS/MS 2023. 65 Übungstypen, 3 Schwierigkeitsstufen,
+> nach dem Lehrplan AHS/MS 2023. 66 Übungstypen, 3 Schwierigkeitsstufen,
 > Tipp-System, Wissensgarten & Eulenhain. Als PWA offline nutzbar. Keine
 > Werbung, kein Tracking, DSGVO-konform.
 
@@ -18,6 +18,8 @@
 - Neu (H3): Grundkonstruktionen – Streckensymmetrale (Spiegelung an einer Geraden), Winkelsymmetrale (Spiegelung an einem Schenkel) und Mittelsenkrechte einer Strecke mit Zirkel-und-Lineal-Anleitung, Schritt-für-Schritt-Konstruktion und berechneter Streckenhälfte.
 - Neu (H3): Lagebeziehungen – Lage von Punkt und Gerade (auf der Geraden / auf einer Seite), Parallelität und Schnittpunkt zweier Geraden sowie Abstand eines Punktes von einer Geraden (senkrechte Strecke, Lotfußpunkt) mit maßstäblichem Raster zum Nachmessen.
 - Neu (H4): Absolute & relative Häufigkeiten – Häufigkeitstabelle lesen, Gesamtmenge bestimmen, relative Häufigkeit in Prozent und als gekürzter Bruch, Kategorien vergleichen.
+- Neu (H4): Kreisdiagramm – absolute/relative Häufigkeiten aus Kreisdiagramm ablesen, Gesamtmenge berechnen, vergleichen (5 Aufgabentypen: absolut, gesamt, relativ, relativBruch, vergleich).
+- Verfeinert (H3): genDreieckWinkel – Edge-Case-Winkelberechnung mit Validierung, erweiterte Hinweise und Erklärungen; genDreieckFlaeche – Dreiecksarten nach Schwierigkeit, erweiterte Hinweise und Erklärungen (P1.28).
 
 ## Für Lehrkräfte
 

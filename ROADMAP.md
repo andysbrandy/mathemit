@@ -9,7 +9,7 @@
 
 | Bereich | Status | Details |
 |---------|--------|---------|
-| **Generatoren** | ✅ 65 | 23 lehrplangetreue Themen-Modi (H1–H3, I1–I3) |
+| **Generatoren** | ✅ 66 | 24 lehrplangetreue Themen-Modi (H1–H4, I1–I3) |
 | **Schwierigkeitsstufen** | ✅ 3 | 🌱 / 🎯 / 🚀 je Generator |
 | **Tipp-System** | ✅ | Progressive Offenlegung: Andeuten → Formel/Ansatz → gezielte Korrekturhinweise |
 | **Wiederholungstraining** | ✅ | Falsch gelöste Aufgaben gespeichert, über 🔁-Chip bis zum Erfolg wiederholt |
@@ -18,7 +18,7 @@
 | **Eulenhain** | ✅ | Endlose Stufen, eigene Eule pro Stufe, wachsender Baum, Tippen für Show |
 | **Feedback** | ✅ | 💬-Button → GitHub-Issue, KI-Wochenanalyse freitags 12:00 CET |
 | **PWA / Offline** | ✅ | Installierbar, Offline-Start, Warteschlange für DB-Sync bei Netz-Rückkehr |
-| **Qualitätssicherung** | ✅ | Pre-Commit-Check: 65 Generatoren, 23 Topic-Chips, 6 Wissensgarten-Bäume |
+| **Qualitätssicherung** | ✅ | Pre-Commit-Check: 66 Generatoren, 23 Topic-Chips, 6 Wissensgarten-Bäume |
 
 ---
 ## 🎯 Die 6 Pflicht-Einbaupunkte jedes Generators
@@ -44,8 +44,8 @@ Erzwungen durch `scripts/check-generator-surfaces.js` (Commit-Abbruch bei fehlen
 ## 📚 Lehrplan-Abdeckung
 
 > Maßgeblich ist die Soll-Ist-Matrix in [`LEHRPLAN_ABDECKUNG.md`](LEHRPLAN_ABDECKUNG.md)
-> (H1 ✅, H2 ✅, H3 ✅, H4 ⚠️ 1 offen + P1.18, I1–I3 ✅).
-> Stand nach Lehrplan-Abgleich: H1 ✅, H2 ✅, H3 ✅ vollständig. Offen: P1.27 (H4).
+> (H1 ✅, H2 ✅, H3 ✅, H4 ✅, I1–I3 ✅).
+> Stand nach Lehrplan-Abgleich: H1 ✅, H2 ✅, H3 ✅, H4 ✅ vollständig. Alle Lehrplan-Bereiche abgedeckt.
 
 ---
 ## 🗓️ Roadmap-Phasen
@@ -183,8 +183,8 @@ am Einstieg (nur Klassen-Code im Registrierungs-Formular).
 
 ## 🔜 Nächste Schritte
 
-1. **P1.27** Kreisdiagramm (H4)
-
+> ✅ Erledigt: P1.27 Kreisdiagramm (H4) – genKreisdiagramm implementiert mit 5 Aufgabentypen (absolut, gesamt, relativ, relativBruch, vergleich), SVG-Kreisdiagramm, MC-Distraktoren, KONSISTENZ_OK. H4 ist damit vollständig abgedeckt.
+> ✅ Erledigt: P1.28 H3 Geometrie Refinement – genDreieckWinkel (Edge-Case-Winkelberechnung, erweiterte Hinweise) und genDreieckFlaeche (Dreiecksarten, erweiterte Hinweise/Erklärungen) verbessert. KONSISTENZ_OK.
 > ✅ Erledigt: P1.26 Absolute & relative Häufigkeiten (H4) – absolute
 > Häufigkeit aus der Tabelle ablesen, Gesamtmenge bestimmen, relative
 > Häufigkeit in Prozent und als gekürzter Bruch, Kategorien vergleichen.

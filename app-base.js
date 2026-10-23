@@ -3457,6 +3457,8 @@
 }
 /*
  * P1.27: Kreisdiagramm (H4)
+/*
+ * P1.27: Kreisdiagramm (H4)
  * Aus einem Kreisdiagramm:
  *   - absolute Häufigkeit (Anzahl eines Sektors ablesen),
  *   - Gesamtmenge (Summe aller Sektoren),
@@ -3465,8 +3467,6 @@
  */
 function genKreisdiagramm(diff){
   diff = diff || 2;
-
-  // Theme + Items (5 Themen, n Items je Schwierigkeit)
   var themen = [
     {label:"Farbe", count:"Lieblingsfarben", items:["Rot","Blau","Grün","Gelb","Schwarz"]},
     {label:"Haustier", count:"Haustiere", items:["Katze","Hund","Fisch","Kaninchen","Pferd"]},
@@ -3477,101 +3477,71 @@ function genKreisdiagramm(diff){
   var thema = themen[Math.floor(Math.random()*themen.length)];
   var n = diff===1 ? 3 : (diff===3 ? 5 : 4);
   var items = thema.items.slice(0,n);
-
-  // Konstruktive Gewichte: verschiedene 5%-Vielfache, Summe 100,
-  // verschiedene Stückzahlen, eindeutiges Maximum
-  var minU = diff===1 ? 2 : (diff===2 ? 1 : 1);
+  var minU = diff===1 ? 2 : 1;
   var teile = [];
-  (function rec(i, start, sum, arr){
+  (function rec(i, s, sum, arr){
     if(i===n){ if(sum===20) teile.push(arr.slice()); return; }
-    for(var u=start; u<=20; u++){
+    for(var u=s; u<=20; u++){
       var rest = n-i-1;
       if(sum + u + rest*u + rest*(rest+1)/2 > 20) break;
       arr.push(u); rec(i+1, u+1, sum+u, arr); arr.pop();
     }
   })(0, minU, 0, []);
   var weights = choice(teile).map(function(u){ return u*5; });
-  var i; weights = shuffle(weights);
-
+  weights = shuffle(weights);
   var scale = diff===1 ? 1 : (diff===2 ? 2 : 5);
   var counts = weights.map(function(x){ return x*scale; });
   var total = counts.reduce(function(a,b){ return a+b; }, 0);
-
-  // Fokus-Sektor
+  var typen = ["absolut","gesamt","relativ","relativBruch","vergleich"];
+  var typ = diff===1 ? choice(["absolut","gesamt"]) : choice(typen);
   var qIdx = Math.floor(Math.random()*n);
   var focus = items[qIdx];
   var focusCount = counts[qIdx];
-
-  // SVG-Kreisdiagramm (300×220, glueck-Modus Pattern)
   var svg = "<svg viewBox=\"0 0 300 220\" xmlns=\"http://www.w3.org/2000/svg\">";
   var cumAngle = 0;
-  for(i=0; i<n; i++){
+  for(var i=0; i<n; i++){
     var sectorAng = (counts[i]/total)*360;
     var large = sectorAng > 180 ? 1 : 0;
     var a0 = (cumAngle - 90)*Math.PI/180;
     var a1 = (cumAngle + sectorAng - 90)*Math.PI/180;
     var x1 = 150 + 75*Math.cos(a0); var y1 = 100 + 75*Math.sin(a0);
     var x2 = 150 + 75*Math.cos(a1); var y2 = 100 + 75*Math.sin(a1);
-    var fill = i===qIdx ? COLORS.kreis.main : COLORS.gleichung.soft;
+    var fill = i===qIdx ? COLORS.gleichung.main : COLORS.gleichung.soft;
     svg += "<path d=\"M150 100 L"+Math.round(x1)+" "+Math.round(y1)+" A75 75 0 "+large+" 1 "+Math.round(x2)+" "+Math.round(y2)+" Z\" "
-      "fill=\""+fill+"\" stroke=\"var(--ink)\" stroke-width=\"2\"/>";
+      + "fill=\""+fill+"\" stroke=\"var(--ink)\" stroke-width=\"2\"/>";
     cumAngle += sectorAng;
   }
   svg += "<circle cx=\"150\" cy=\"100\" r=\"10\" fill=\"var(--ink)\"/>";
   svg += "<text class=\"dim-label\" x=\"150\" y=\"200\" text-anchor=\"middle\">"
     + focus + ": " + focusCount + " / " + total + "</text>";
   svg += "</svg>";
-
-  // Platzhalter für Aufgabentyp (wird später ergänzt)
-  var typ = "absolut";
-  var answer, ex;
-
+  var ex = baseEx("diagramm","kreisdiagramm");
+  ex.svg = svg;
+  ex.badgeColor = COLORS.gleichung.main;
   if(typ==="absolut"){
-    answer = focusCount;
-    ex = {question: "placeholder", answer: answer};
+    ex.question = "Wie viele "+thema.count+" von "+focus+" wurden gezählt? (Lies den Wert im Diagramm ab.)";
+    ex.hint = "Finde den Sektor von "+focus+" und lies die Anzahl ab.";
+    ex.badge = "Diagramm · Absolute Häufigkeit";
+    ex.inputType = "number"; ex.unit = ""; ex.tolerance = 0;
+    ex.answer = focusCount;
+    ex.explanation = focus+" kommt "+focusCount+"-mal vor – das ist die absolute Häufigkeit.";
   } else if(typ==="gesamt"){
-    answer = total;
-    ex = {question: "placeholder", answer: answer};
-  }
-
-  ex.svg = svg; ex.badgeColor = COLORS.gleichung.main; return ex;
-if(typ==="absolut"){
-    answer = focusCount;
-    ex = {
-      question: "Wie viele "+thema.count+" von "+focus+" wurden gezählt? (Lies den Wert im Diagramm ab.)",
-      hint: "Finde den Sektor von "+focus+" und lies die Anzahl ab.",
-      badge: "Diagramm · Absolute Häufigkeit",
-      badgeColor: COLORS.gleichung.main,
-      inputType: "number", unit: "", tolerance: 0,
-      answer: answer,
-      explanation: focus+" kommt "+answer+"-mal vor – das ist die absolute Häufigkeit."
-    };
-  } else if(typ==="gesamt"){
-    answer = total;
-    ex = {
-      question: "Wie viele "+thema.count+" wurden insgesamt gezählt? (Addiere alle Sektoren.)",
-      hint: "Addiere alle Werte oder lies die Gesamtmenge ab.",
-      badge: "Diagramm · Gesamtmenge",
-      badgeColor: COLORS.gleichung.main,
-      inputType: "number", unit: "", tolerance: 0,
-      answer: answer,
-      explanation: "Gesamtzahl = "+counts.join(" + ")+" = "+total+" ."
-    };
+    ex.question = "Wie viele "+thema.count+" wurden insgesamt gezählt? (Addiere alle Sektoren.)";
+    ex.hint = "Addiere alle Werte oder lies die Gesamtmenge ab.";
+    ex.badge = "Diagramm · Gesamtmenge";
+    ex.inputType = "number"; ex.unit = ""; ex.tolerance = 0;
+    ex.answer = total;
+    ex.explanation = "Gesamtzahl = "+counts.join(" + ")+" = "+total+".";
   } else if(typ==="relativ"){
-    answer = Math.round(focusCount/total*100);
-    ex = {
-      question: "Wie viel Prozent der gezählten "+thema.count+" fallen auf "+focus+"? (Antwort in Prozent, ganze Zahl ohne %-Zeichen.)",
-      hint: "Relative Häufigkeit = Anzahl von "+focus+" : Gesamtzahl. Multipliziere mit 100.",
-      badge: "Diagramm · Relative Häufigkeit",
-      badgeColor: COLORS.gleichung.main,
-      inputType: "number", unit: "%", tolerance: 0,
-      answer: answer,
-      explanation: focus+" : "+total+" = "+(focusCount/total)+" = "+answer+" % relative Häufigkeit."
-    };
+    ex.answer = Math.round(focusCount/total*100);
+    ex.question = "Wie viel Prozent der gezählten "+thema.count+" fallen auf "+focus+"? (Antwort in Prozent, ganze Zahl ohne %-Zeichen.)";
+    ex.hint = "Relative Häufigkeit = Anzahl von "+focus+" : Gesamtzahl. Multipliziere mit 100.";
+    ex.badge = "Diagramm · Relative Häufigkeit";
+    ex.inputType = "number"; ex.unit = "%"; ex.tolerance = 0;
+    ex.explanation = focus+" : "+total+" = "+(focusCount/total)+" = "+ex.answer+" % relative Häufigkeit.";
   } else if(typ==="relativBruch"){
-    var zaehler = focusCount; var nenner = 100; var g = ggT(zaehler, nenner);
-    answer = (zaehler/g) + "/" + (nenner/g);
-
+    var zaehler = focusCount; var nenner = 100; var g = gcd(zaehler, nenner);
+    ex.answer = (zaehler/g) + "/" + (nenner/g);
     function bruchWert(str){
       var p = String(str).split("/");
       if(p.length!==2) return null;
@@ -3579,7 +3549,7 @@ if(typ==="absolut"){
       if(isNaN(a) || isNaN(b) || b===0) return null;
       return a/b;
     }
-    var distract = [], seen = {}; seen[bruchWert(answer)] = true;
+    var distract = [], seen = {}; seen[bruchWert(ex.answer)] = true;
     function addDistrakt(str){
       var v = bruchWert(str);
       if(v===null || seen[v]) return false;
@@ -3587,42 +3557,33 @@ if(typ==="absolut"){
     }
     for(i=0; i<n; i++){
       if(i===qIdx) continue;
-      var zz = counts[i], gg = ggT(zz,100);
+      var zz = counts[i], gg = gcd(zz,100);
       var cand = [(zz/gg)+"/"+(100/gg), zz+"/"+100, (zz/5)+"/20"];
       for(var c=0; c<cand.length; c++) addDistrakt(cand[c]);
     }
     var extra = ["1/2","1/4","1/5","3/4","2/3","1/10","3/5","2/5","4/5","3/10","7/10","1/20"];
     for(i=0; i<extra.length && distract.length<3; i++) addDistrakt(extra[i]);
-    var opts = shuffle([answer].concat(distract.slice(0,3)));
-    correctIndex = opts.indexOf(answer);
-    ex = {
-      question: "Welcher Bruch gibt die relative Häufigkeit von "+focus+" an?",
-      hint: "Relative Häufigkeit = Anzahl von "+focus+" : Gesamtzahl. Teile Zähler und Nenner durch GGT.",
-      badge: "Diagramm · Anteil als Bruch",
-      badgeColor: COLORS.gleichung.main,
-      inputType: "mc", choices: opts, correctIndex: correctIndex,
-      answer: answer,
-      explanation: "Relative Häufigkeit = "+counts[qIdx]+ " : "+total+" = "+zaehler+" : "+nenner+" = "+answer+" ."
-    };
+    var opts = shuffle([ex.answer].concat(distract.slice(0,3)));
+    var correctIndex = opts.indexOf(ex.answer);
+    ex.question = "Welcher Bruch gibt die relative Häufigkeit von "+focus+" an?";
+    ex.hint = "Relative Häufigkeit = Anzahl von "+focus+" : Gesamtzahl. Teile Zähler und Nenner durch GGT.";
+    ex.badge = "Diagramm · Anteil als Bruch";
+    ex.inputType = "mc"; ex.choices = opts; ex.correctIndex = correctIndex;
+    ex.explanation = "Relative Häufigkeit = "+counts[qIdx]+" : "+total+" = "+zaehler+" : "+nenner+" = "+ex.answer+".";
   } else { // typ === "vergleich"
     var maxIdx = 0; for(i=1; i<n; i++){ if(counts[i]>counts[maxIdx]) maxIdx=i; }
-    answer = items[maxIdx]; var others = items.filter(function(it,k){ return k!==maxIdx; });
-    var opts2 = shuffle([answer].concat(others.slice(0,3)));
-    correctIndex = opts2.indexOf(answer);
-    ex = {
-      question: "Welche Kategorie hat die größte relative Häufigkeit? (Wähle aus der Liste.)",
-      hint: "Vergleiche die Anteile: Die Kategorie mit der größten Anzahl hat auch den größten Anteil.",
-      badge: "Diagramm · Vergleich",
-      badgeColor: COLORS.gleichung.main,
-      inputType: "mc", choices: opts2, correctIndex: correctIndex,
-      answer: answer,
-      explanation: answer+" hat "+counts[maxIdx]+ " von "+total+" = "+(counts[maxIdx]/total)+ " % – die größte relative Häufigkeit."
-    };
+    ex.answer = items[maxIdx];
+    var others = items.filter(function(it,k){ return k!==maxIdx; });
+    var opts2 = shuffle([ex.answer].concat(others.slice(0,3)));
+    var correctIndex2 = opts2.indexOf(ex.answer);
+    ex.question = "Welche Kategorie hat die größte relative Häufigkeit? (Wähle aus der Liste.)";
+    ex.hint = "Vergleiche die Anteile: Die Kategorie mit der größten Anzahl hat auch den größten Anteil.";
+    ex.badge = "Diagramm · Vergleich";
+    ex.inputType = "mc"; ex.choices = opts2; ex.correctIndex = correctIndex2;
+    ex.explanation = ex.answer+" hat "+counts[maxIdx]+" von "+total+" = "+(counts[maxIdx]/total)+" % – die größte relative Häufigkeit.";
   }
-
-  ex.svg = svg; ex.badgeColor = COLORS.gleichung.main; return ex;
+  return ex;
 }
-
 // Wandern: Höhenmeter (sehr österreichisch!)
 
   // Wandern: Höhenmeter (sehr österreichisch!)
@@ -4212,6 +4173,7 @@ if(typ==="absolut"){
     wahrscheinlichkeit:  withCurriculum("wahrscheinlichkeit",   genWahrscheinlichkeit),
     mittelwerte:        withCurriculum("mittelwerte",          genMittelwerte),
     haeufigkeit:        withCurriculum("haeufigkeit",          genHaeufigkeiten),
+    kreisdiagramm:      withCurriculum("kreisdiagramm",        genKreisdiagramm),
     einheiten:          withCurriculum("einheiten",            genEinheiten),
     potenzenWurzeln:    withCurriculum("potenzenWurzeln",      genPotenzenWurzeln),
     potenzenErweitert:   withCurriculum("potenzenErweitert",     genPotenzenErweitert),
@@ -4240,7 +4202,7 @@ if(typ==="absolut"){
     {id:"textaufgaben", label:"📖 Textaufgaben", group:"Sachrechnen · I1", pool:["textaufgabeGarten","textaufgabePizza","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag","mehrstufig"]},
     {id:"alltag", label:"🇦🇹 Alltag in Österreich", group:"Sachrechnen · I1", pool:["textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSchulheft","textaufgabeEiscafe","textaufgabeSkikurs","textaufgabeWandertag","mehrstufig"]},
     {id:"gleichungen", label:"⚖️ Gleichungen & Verhältnisse", group:"Größen & Variablen · H2", pool:["gleichungEinfach","proportionalitaet","indirekteProportionalitaet","lineareGleichungssysteme"]},
-    {id:"daten-diagramme", label:"📊 Daten & Diagramme", group:"Daten & Statistik · H4", pool:["tabelleLesen","diagrammBalken","wahrscheinlichkeit","mittelwerte","haeufigkeit"]},
+    {id:"daten-diagramme", label:"📊 Daten & Diagramme", group:"Daten & Statistik · H4", pool:["tabelleLesen","diagrammBalken","kreisdiagramm","wahrscheinlichkeit","mittelwerte","haeufigkeit"]},
     {id:"ganze-zahlen", label:"🔢 Ganze Zahlen", group:"Zahlen & Operationen · H1", pool:["ganzeZahlen"]},
     {id:"einheiten", label:"📐 Maße & Einheiten", group:"Zahlen & Operationen · H1", pool:["einheiten"]},
     {id:"potenzen-wurzeln", label:"⚡ Potenzen & Wurzeln", group:"Zahlen & Operationen · H1", pool:["potenzenWurzeln","potenzenErweitert"]},
@@ -4269,7 +4231,7 @@ if(typ==="absolut"){
     textaufgabeSkikurs:[3,4], textaufgabeWandertag:[2,3], textaufgabeSchulheft:[2,3], textaufgabeEiscafe:[2,3],
     gleichungEinfach:[3,4], lineareGleichungssysteme:[4],
     tabelleLesen:[2,3],
-    diagrammBalken:[2,3], gemischteZahlen:[1,2], bruchDezimal:[1,2],
+    diagrammBalken:[2,3], kreisdiagramm:[2,3], gemischteZahlen:[1,2], bruchDezimal:[1,2],
     zinsrechnung:[3,4], proportionalitaet:[2,3], indirekteProportionalitaet:[3,4], mehrstufig:[2,3],
     ganzeZahlen:[1,2], wahrscheinlichkeit:[3,4], mittelwerte:[3,4], haeufigkeit:[3,4], einheiten:[2,3,4], potenzenWurzeln:[3,4], potenzenErweitert:[3,4], teilbarkeit:[3,4], termeDistributiv:[3,4], binomischeFormeln:[3,4], lineareFunktionen:[3,4], kongruenzKonstruktionen:[3,4], grundkonstruktionen:[3,4], lagebeziehungen:[3,4]
   };
@@ -4366,6 +4328,7 @@ if(typ==="absolut"){
     wahrscheinlichkeit:  {codes:["I3.M1"], kompetenz:"Einfache Wahrscheinlichkeiten bestimmen (günstige durch mögliche Fälle)"},
     mittelwerte:        {codes:["I3.M1"], kompetenz:"Mittelwert, Modus und Median einer Datenreihe bestimmen und interpretieren"},
     haeufigkeit:        {codes:["I3.M1","H4.I1"], kompetenz:"Absolute und relative Häufigkeiten aus einer Häufigkeitstabelle bestimmen und vergleichen"},
+    kreisdiagramm:      {codes:["I3.M1","H4.I1"], kompetenz:"Daten in Kreisdiagramm lesen und darstellen; absolute und relative Häufigkeiten bestimmen"},
     einheiten:          {codes:["H1.I3","I2.M1"], kompetenz:"Größen in unterschiedlichen Maßeinheiten umrechnen (Länge, Masse, Geld)"},
     potenzenWurzeln:   {codes:["H1.I1","H2.I2"], kompetenz:"Potenzen mit ganzzahligem Exponenten bilden und auswerten; Wurzeln ziehen (Quadrat-, Kubikwurzel)"},
 teilbarkeit:       {codes:["H1.I1"], kompetenz:"Teilbarkeitsregeln anwenden; Primzahlen erkennen; kgV und ggT kleinerer Zahlen bestimmen"},
@@ -4545,7 +4508,7 @@ termeDistributiv:  {codes:["H2.I1"], kompetenz:"Terme vereinfachen und das Distr
     { id:"formen",   icon:"📐", name:"Winkel-Baum",   thema:"Winkel",     untertitel:"Figuren & Winkel (H3.I1/I2/I5)", generatoren:["dreieckWinkel","viereckWinkel","dreieckErkennen","viereckErkennen","eigenschaftenDreieck","eigenschaftenViereck","kongruenzKonstruktionen","grundkonstruktionen","lagebeziehungen"] },
     { id:"messen",   icon:"📏", name:"Flächen-Baum",  thema:"Maße",       untertitel:"Umfang, Fläche & Körper (H3.I3/I4)", generatoren:["dreieckUmfang","pythagoras","viereckUmfang","dreieckFlaeche","rechteckFlaeche","parallelogrammFlaeche","trapezFlaeche","kreisUmfang","kreisFlaeche","quaderVolumen","wuerfelVolumen","zylinderVolumen","weitereKoerper","quaderOberflaeche","wuerfelOberflaeche","zylinderOberflaeche"] },
     { id:"alltag",   icon:"🧺", name:"Alltags-Baum",  thema:"Sachaufgaben", untertitel:"Sachaufgaben aus dem Alltag (I1.M1)", generatoren:["textaufgabeGarten","textaufgabePizza","textaufgabeWien","textaufgabeWandern","textaufgabeEinkauf","textaufgabeWeihnacht","textaufgabeSchule","textaufgabeSkikurs","textaufgabeWandertag","textaufgabeSchulheft","textaufgabeEiscafe","mehrstufig"] },
-    { id:"struktur", icon:"🔗", name:"Daten-Baum",    thema:"Gleichungen", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","lineareGleichungssysteme","tabelleLesen","diagrammBalken","wahrscheinlichkeit","mittelwerte","haeufigkeit","termeDistributiv","binomischeFormeln","lineareFunktionen"] }
+    { id:"struktur", icon:"🔗", name:"Daten-Baum",    thema:"Gleichungen", untertitel:"Gleichungen & Daten (H2.I1, I3.M1)", generatoren:["gleichungEinfach","lineareGleichungssysteme","tabelleLesen","diagrammBalken","kreisdiagramm","wahrscheinlichkeit","mittelwerte","haeufigkeit","termeDistributiv","binomischeFormeln","lineareFunktionen"] }
   ];
   function bereichFuerKey(key){
     var i;

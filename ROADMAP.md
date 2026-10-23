@@ -179,6 +179,153 @@ am Einstieg (nur Klassen-Code im Registrierungs-Formular).
 5. Akzeptanz: Erstbesuch → Klick „Sofort loslernen“ < 30 s messbar;
    Lehrer-Seite indexierbar (Titel, Meta-Description, JSON-LD wie `index.html`).
 
+### UX4: Revolutionäre Chip-Lehrplanauswahl (geplant, Zukunft) ⬜
+
+**Problem:** Drei separate Chip-Leisten (`#chips`, `#gradeChips`, `#diffChips`)
+drängen das Board auf Mobilgeräten nach unten; vertikales und horizontales
+Scrollen konkurrieren; Stufen- und Schwierigkeits-Chips sind wenig entdeckbar.
+
+**Ziel:** Eine einzige, adaptive Steuerleiste (Single Surface) statt drei
+getrennter Leisten; Thema → Schwierigkeit hierarchisch; Ampel-First
+(🔴/🟡/🟢 als primäre Kodierung); Vorhersage „Empfohlen für dich“ basierend
+auf Wissens-Ampel + Spaced Repetition.
+
+**Design-Säulen:**
+1. **Single Surface** — Eine Leiste, nicht drei (Themen + Stufen + Schwierigkeit in einer navigierbaren Hierarchie)
+2. **Mobile First** — Nach Chip-Tap: Board sofort im First Viewport (360×640), kein vertikales Scrollen
+3. **Ampel-First** — Rot/Gelb/Grün als primäre visuelle Kodierung, nicht als subtiler Hintergrund-Schleier
+4. **Predictive** — „Empfohlen für dich“ als erster Chip mit 🎯, basierend auf fälligen Wiederholungen und Lernbedarf
+5. **Hierarchisch** — Hauptthema → Unterthema → spezifischer Generator (Ebenen statt Flachliste)
+6. **Adaptive** — Häufig genutzte Themen rutschen nach vorne, basierend auf Nutzverlauf
+
+**Konkrete UI (Skizze):**
+```
+┌─────────────────────────────────────────────────────────┐
+│  🎯 EMPFOHLEN: ▲ Dreieck · Winkel (🔴 · fällig in 2 Tage) │
+│  ┌─────────┬─────────┬─────────┬─────────┬─────────┐   │
+│  │ 🔺      │ ◻       │ ⭕       │ 📦      │ 📊      │   │
+│  │ Dreieck │ Viereck │ Kreis   │ Körper  │ Daten   │   │
+│  └─────────┴─────────┴─────────┴─────────┴─────────┘   │
+│  📚 Stufen: 🌱1 🎯2 🚀3 │ 🔁 Wiederholung: 12 offen │   │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Erfolgsmetriken (nach Implementierung von Analytics, siehe P9):**
+- Zeit bis erste Aufgabe (Mobile): < 5 s
+- Chip-Klicks bis Themenwechsel: 1 (direkte Hierarchie statt 3× Scrollen)
+- Rückkehrrate 24h: > 60 %
+
+**Status:** ⬜ Geplanter Zukunftsschritt (abhängig von P9 Analytics für datengetriebene Optimierung)
+
+## P9: Lern-Analytics mit Dashboard ⬜ (geplant)
+
+> **DSGVO-konform:** Alle Daten werden **lokal im Browser** gespeichert (`localStorage` / `IndexedDB`). Es erfolgt **kein** externer Server-Aufruf, kein Tracking zu Werbezwecken, keine Cookies für Dritte. Der Datenschutz bleibt wie bisher gewahrt.
+
+**Motivation:** Aktuell gibt es keine messbaren Nutzerdaten. Um datengetriebene Entscheidungen für UX4 (Chip-Optimierung), Welcome-Screen und pädagogische Verbesserungen zu treffen, benötigt die App ein vollständiges, lokales Analytics-System mit Schüler- und Lehrer-Dashboard.
+
+### 9.1 Erfasste Metriken (lokal)
+
+| Kategorie | Metrik | Beispiel |
+|-----------|--------|----------|
+| **Interaktion** | Chip-Klicks, Thema-Wechsel, Schwierigkeits-Wechsel | „Chip ‚🔺 Dreiecke‘ geklickt um 14:32 Uhr“ |
+| **Verweildauer** | Zeit pro Aufgabe, Zeit pro Thema, Gesamt-Sitzungsdauer | „Aufgabe genKreisdiagramm: 47 s“ |
+| **Übungsdauer** | Aufgaben pro Sitzung, Sitzungen pro Woche, Streak-Tage | „3 Sitzungen diese Woche, Ø 12 Aufgaben“ |
+| **Lernerfolg** | Richtig/Falsch pro Generator, Fehlerrate, Ampel-Veränderungen | „DreieckWinkel: 8/10 richtig, Ampel 🟡→🟢“ |
+| **Wiederholung** | 🔁-Chip-Nutzung, Wiederholungs-Erfolgsrate, Intervall-Einhaltung | „12 Wiederholungen, 9 erfolgreich“ |
+| **Eulenhain** | Stufe erreicht, Eulen gesammelt, Bäume im Wissensgarten | „Stufe 7, 3 Eulen, Garten-Baum ‚Daten‘ zu 40 %“ |
+
+### 9.2 Speicherarchitektur (lokal)
+
+```
+localStorage:
+  mathemit_analytics_v1: {
+    events: [           // Events-Log (max. 1000 Einträge, FIFO)
+      {t: 1712345678, type: 'chip_click', mode: 'dreieck', ...},
+      {t: 1712345725, type: 'exercise_start', generator: 'genDreieckWinkel', diff: 2},
+      {t: 1712345772, type: 'exercise_end', correct: true, durationMs: 47000},
+      ...
+    ],
+    sessions: [         // Sitzungs-Log
+      {start: 1712345600, end: 1712346100, exercises: 12, correct: 9},
+      ...
+    ],
+    summary: {          // Aggregierte Kennzahlen
+      totalExercises: 342,
+      totalTimeMs: 12345000,
+      streakDays: 5,
+      lastExercise: 1712345772,
+      ampereHistory: {  // Ampel-Verlauf pro Generator
+        genDreieckWinkel: ['🔴','🟡','🟢',...],
+        ...
+      }
+    }
+  }
+```
+
+### 9.3 Schüler-Dashboard (in der App)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  📊 Dein Lern-Fortschritt                               │
+├─────────────────────────────────────────────────────────┤
+│  🎯 Diese Woche:  14 Aufgaben · 11 richtig · 79 %      │
+│  ⏱️  Gesamtzeit:   4 h 23 min · Ø 18 s/Aufgabe         │
+│  🔥 Streak:        5 Tage · 🏆 Rang: „Eulen-Meister“   │
+├─────────────────────────────────────────────────────────┤
+│  📈 Ampel-Übersicht pro Thema:                          │
+│  🔴 Dreieck·Winkel    🟡 Viereck·Fläche   🟢 Kreis·Umfang│
+│  🔴 Körper·Volumen    🟡 Daten·Häufigkeit 🟢 Brüche     │
+├─────────────────────────────────────────────────────────┤
+│  🔁 Wiederholung:    12 Aufgaben offen                 │
+│  ⏰ Nächst fällig:  GenKreisdiagramm (heute 18:00)      │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 9.4 Lehrer-Dashboard (`/lehrer.html`)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  👨‍🏫 Klassen-Fortschritt — Code: 7X-M2-K9            │
+├─────────────────────────────────────────────────────────┤
+│  👥 24 Schüler · Ø 9,2 Aufgaben/Woche · Ø 84 % richtig │
+│  📅 Letzte Aktivität: Heute 14:32 Uhr                   │
+├─────────────────────────────────────────────────────────┤
+│  📊 Thema-Übersicht (Klasse):                           │
+│  🔴 Brüche (Ø 62 %)   🟡 Prozent (Ø 74 %)   🟢 Kreis (Ø 91 %)│
+│  🔴 Körper·Volumen    🟡 Gleichungen          🟢 Flächen  │
+├─────────────────────────────────────────────────────────┤
+│  ⚠️  Aufmerksamkeit: 3 Schüler bei < 50 % in Brüchen    │
+│  ✅  Erfolge:          8 Schüler Streak > 7 Tage        │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 9.5 Export & Datenschutz
+
+- **Export:** Schüler/Lehrer können ihre Daten als JSON exportieren (Recht auf Datenübertragbarkeit, DSGVO Art. 20)
+- **Löschung:** Ein-Klick-Löschung aller Analytics-Daten (`localStorage.clear()` für `mathemit_analytics_v1`)
+- **Kein Server:** Alle Daten bleiben auf dem Endgerät; keine Cloud, keine API, kein Tracking
+
+### 9.6 Akzeptanzkriterien
+
+1. Alle Klicks, Verweildauern, Übungsdauern werden lokal protokolliert
+2. Schüler-Dashboard zeigt persönliche Statistiken (Ampel, Streak, Rang)
+3. Lehrer-Dashboard zeigt Klassen-Statistiken über Klassen-Code
+4. Export- und Löschfunktion vorhanden (DSGVO-konform)
+5. Keine externen Netzwerk-Anfragen für Analytics
+6. KONSISTENZ_OK bleibt erhalten
+
+### 9.7 Implementierungsphasen
+
+| Phase | Inhalt | Dauer |
+|-------|--------|-------|
+| 9.1 | Event-Logging-Framework (`logEvent()`, `logExercise()`, `logSession()`) | 3 Tage |
+| 9.2 | Schüler-Dashboard in der App integrieren | 5 Tage |
+| 9.3 | Lehrer-Landingpage (`/lehrer.html`) mit Klassen-Dashboard | 7 Tage |
+| 9.4 | Export/Löschung (DSGVO) + Datenschutz-Info | 3 Tage |
+| 9.5 | Test & Polish (Mobile, Tastatur, Screenreader) | 3 Tage |
+
+**Gesamt:** ca. 3 Wochen
+
 ---
 
 ## 🔜 Nächste Schritte

@@ -51,7 +51,112 @@ var state = {
 };
 var missByGen = {}, hitByGen = {}; // P2.2: Fehler-/Treffer-Serien je Übungstyp (Session)
 
-/* P6: Endlose Stufen — Mathematik & Eulen-Engine liegen in app-base.js (MB.*) */
+/* ============ Analytics-Client (P9) ============ */
+// Nur aktivieren wenn Nutzer Consent gegeben hat (gespeichert in localStorage)
+(function() {
+  var ANALYTICS_ENABLED_KEY = 'mathemit_analytics_enabled';
+  var ANALYTICS_URL = '/backend/analytics.php';
+  var startedAt = Date.now();
+
+  function getConsentState() {
+    try {
+      var raw = localStorage.getItem(ANALYTICS_ENABLED_KEY);
+      if (raw !== null) return JSON.parse(raw);
+    } catch(e) {}
+    return { enabled: false, consentTimestamp: null };
+  }
+
+  function setConsentState(state) {
+    try {
+      localStorage.setItem(ANALYTICS_ENABLED_KEY, JSON.stringify(state));
+    } catch(e) {}
+  }
+
+  function isAnalyticsEnabled() {
+    return getConsentState().enabled === true;
+  }
+
+  function generateSessionId() {
+    try {
+      var stored = localStorage.getItem('mathemit_session_id');
+      if (stored) return stored;
+    } catch(e) {}
+    var id = 'm' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9);
+    try { localStorage.setItem('mathemit_session_id', id); } catch(e) {}
+    return id;
+  }
+
+  function sendEvent(eventType, eventData) {
+    var consent = getConsentState();
+    if (!consent.enabled) return;
+
+    var event = {
+      sessionId: generateSessionId(),
+      userId: null,
+      events: [{
+        type: eventType,
+        data: eventData,
+        timestamp: Math.floor(Date.now() / 1000),
+        durationMs: null
+      }]
+    };
+
+    // Sicheres POST ohne "referrer" / "origin" Headers
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', ANALYTICS_URL, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        // Fehler schweigt – niemals den UI-Flow unterbrechen
+        if (xhr.status >= 400) {
+          try { localStorage.setItem(ANALYTICS_ENABLED_KEY, JSON.stringify({enabled:false})); } catch(e) {}
+        }
+      }
+    };
+    xhr.send(JSON.stringify(event));
+  }
+
+  function detectDeviceType() {
+    var ua = navigator.userAgent || '';
+    if (/android|iphone|ipad|ipod|opera mini|webos/i.test(ua)) {
+      if (/android/i.test(ua)) return 'mobile';
+      return 'tablet';
+    }
+    return 'desktop';
+  }
+
+  function detectBrowser() {
+    var ua = navigator.userAgent || '';
+    if (/edg/i.test(ua)) return 'Edge';
+    if (/chrome/i.test(ua) && /opr/i.test(ua) === false) return 'Chrome';
+    if (/firefox/i.test(ua)) return 'Firefox';
+    if (/safari/i.test(ua) && /chrome/i.test(ua) === false) return 'Safari';
+    if (/opr/i.test(ua)) return 'Opera';
+    return 'Unknown';
+  }
+
+  // Exports für die Hauptfunktionen
+  window.__mbAnalytics = {
+    isEnabled: isAnalyticsEnabled,
+    sendEvent: sendEvent,
+    enable: function() {
+      var state = getConsentState();
+      state.enabled = true;
+      state.consentTimestamp = Math.floor(Date.now() / 1000);
+      setConsentState(state);
+      sendEvent('consent_changed', { enabled: true, timestamp: state.consentTimestamp });
+    },
+    disable: function() {
+      var state = getConsentState();
+      state.enabled = false;
+      state.consentTimestamp = null;
+      setConsentState(state);
+      sendEvent('consent_changed', { enabled: false });
+    }
+  };
+})();
+
+
 var punkteFuerStufe = MB.punkteFuerStufe;
 var stufeVonPunkten = MB.stufeVonPunkten;
 var rangTitel = MB.rangTitel;
@@ -684,6 +789,18 @@ function nextExercise(){
   state.current = ex;
   state.answered = false;
 
+  // P9: Analytics — exercise_start
+  if(window.__mbAnalytics && window.__mbAnalytics.isEnabled()) {
+    window.__mbAnalytics.sendEvent('exercise_start', {
+      generator: ex.generator,
+      topic: ex.topic,
+      difficulty: state.diff,
+      deviceType: detectDeviceType(),
+      browser: detectBrowser(),
+      timestamp: Math.floor(Date.now() / 1000)
+    });
+  }
+
   document.getElementById("eyebrow").textContent = eyebrowMap[ex.topic] || "Aufgabe";
   document.getElementById("questionText").innerHTML = ex.question;
   document.getElementById("hintText").textContent = "";
@@ -859,6 +976,20 @@ function handleCheck(){
   var isCorrect = Math.abs(val - ex.answer) <= tol;
   input.disabled = true;
   finishRound(isCorrect, ex.explanation);
+  // P9: Analytics — answer_submitted
+  if(window.__mbAnalytics && window.__mbAnalytics.isEnabled()) {
+    window.__mbAnalytics.sendEvent('answer_submitted', {
+      generator: ex.generator,
+      topic: ex.topic,
+      correct: isCorrect,
+      timestamp: Math.floor(Date.now() / 1000)
+    });
+    window.__mbAnalytics.sendEvent(isCorrect ? 'answer_correct' : 'answer_wrong', {
+      generator: ex.generator,
+      topic: ex.topic,
+      timestamp: Math.floor(Date.now() / 1000)
+    });
+  }
 }
 
 function handleChoice(i){
@@ -870,6 +1001,20 @@ function handleChoice(i){
   buttons[i].classList.add(isCorrect?"correct":"wrong");
   if(!isCorrect){ buttons[ex.correctIndex].classList.add("correct"); }
   finishRound(isCorrect, ex.explanation);
+  // P9: Analytics — answer_submitted
+  if(window.__mbAnalytics && window.__mbAnalytics.isEnabled()) {
+    window.__mbAnalytics.sendEvent('answer_submitted', {
+      generator: ex.generator,
+      topic: ex.topic,
+      correct: isCorrect,
+      timestamp: Math.floor(Date.now() / 1000)
+    });
+    window.__mbAnalytics.sendEvent(isCorrect ? 'answer_correct' : 'answer_wrong', {
+      generator: ex.generator,
+      topic: ex.topic,
+      timestamp: Math.floor(Date.now() / 1000)
+    });
+  }
 }
 
 document.getElementById("checkBtn").addEventListener("click", handleCheck);
@@ -878,6 +1023,14 @@ document.getElementById("tipBtn").addEventListener("click", function(){
   var tips = deriveTips(state.current);
   if(state.tipShown < tips.length){
     state.tipShown++;
+    // P9: Analytics — hint_shown
+    if(window.__mbAnalytics && window.__mbAnalytics.isEnabled()) {
+      window.__mbAnalytics.sendEvent('hint_shown', {
+        generator: state.current.generator,
+        topic: state.current.topic,
+        timestamp: Math.floor(Date.now() / 1000)
+      });
+    }
     var ht = document.getElementById("hintText");
     var line = "💡 " + tips[state.tipShown-1];
     ht.innerHTML = ht.innerHTML ? ht.innerHTML+"<br>"+line : line;

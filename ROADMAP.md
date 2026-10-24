@@ -281,11 +281,16 @@ localStorage:
 └─────────────────────────────────────────────────────────┘
 ```
 
-### 9.4 Lehrer-Dashboard (`/lehrer.html`)
+### 9.4 Lehrer-/Admin-Dashboard (kreativer, versteckter Link)
+
+Das Admin-Dashboard ist **nicht** unter `/admin` oder `/lehrer` erreichbar, sondern hinter einem kreativen, schwer zu erratenden Pfad:
+**`/_m_staff_2025_x7k9`** (z. B. `https://mathemit.andybrandy.at/_m_staff_2025_x7k9`).
+
+Dieses "Security through Obscurity" ergänzt (nicht ersetzt!) die Passwort-Authentifizierung und verhindert automatisiertes Scanning/Bot-Traffic auf dem Admin-Bereich.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  👨‍🏫 Klassen-Fortschritt — Code: 7X-M2-K9            │
+│  👨‍🏫 Mathemit Staff — Zugang: /_m_staff_2025_x7k9   │
 ├─────────────────────────────────────────────────────────┤
 │  👥 24 Schüler · Ø 9,2 Aufgaben/Woche · Ø 84 % richtig │
 │  📅 Letzte Aktivität: Heute 14:32 Uhr                   │
@@ -301,30 +306,35 @@ localStorage:
 
 ### 9.5 Export & Datenschutz
 
-- **Export:** Schüler/Lehrer können ihre Daten als JSON exportieren (Recht auf Datenübertragbarkeit, DSGVO Art. 20)
-- **Löschung:** Ein-Klick-Löschung aller Analytics-Daten (`localStorage.clear()` für `mathemit_analytics_v1`)
-- **Kein Server:** Alle Daten bleiben auf dem Endgerät; keine Cloud, keine API, kein Tracking
+- **Export:** Nutzer/Lehrer können ihre Daten als JSON exportieren (Recht auf Datenübertragbarkeit, DSGVO Art. 20)
+- **Löschung:** Ein-Klick-Löschung aller Analytics-Daten über das Admin-Dashboard oder direkt in der App (DSGVO Art. 17)
+- **Serverseitig:** Alle Interaktionsdaten werden auf einem EU-Server gespeichert (PostgreSQL), IP-Adressen sofort gehasht (SHA-256), keine Cookies für Tracking
+- **DSGVO-Konform:** Keine Werbung, kein Drittanbieter-Tracking, datensparsame Verarbeitung, Opt-out jederzeit möglich
 
 ### 9.6 Akzeptanzkriterien
 
-1. Alle Klicks, Verweildauern, Übungsdauern werden lokal protokolliert
+1. Alle Klicks, Verweildauern, Übungsdauern werden serverseitig protokolliert (pseudonym, IP-gehasht)
 2. Schüler-Dashboard zeigt persönliche Statistiken (Ampel, Streak, Rang)
-3. Lehrer-Dashboard zeigt Klassen-Statistiken über Klassen-Code
-4. Export- und Löschfunktion vorhanden (DSGVO-konform)
-5. Keine externen Netzwerk-Anfragen für Analytics
-6. KONSISTENZ_OK bleibt erhalten
+3. Admin-Dashboard unter `/_m_staff_2025_x7k9` zeigt aggregierte Klassen-/Nutzer-Statistiken
+4. Export- und Löschfunktion vorhanden (DSGVO Art. 17, 20)
+5. Keine externen Netzwerk-Anfragen für Analytics (eigener EU-Server)
+6. Consent-Management für Cookies (Art. 5(3) ePrivacy) und Opt-out für Analytics (Art. 21 GDPR)
+7. KONSISTENZ_OK bleibt erhalten
 
 ### 9.7 Implementierungsphasen
 
 | Phase | Inhalt | Dauer |
 |-------|--------|-------|
-| 9.1 | Event-Logging-Framework (`logEvent()`, `logExercise()`, `logSession()`) | 3 Tage |
-| 9.2 | Schüler-Dashboard in der App integrieren | 5 Tage |
-| 9.3 | Lehrer-Landingpage (`/lehrer.html`) mit Klassen-Dashboard | 7 Tage |
-| 9.4 | Export/Löschung (DSGVO) + Datenschutz-Info | 3 Tage |
-| 9.5 | Test & Polish (Mobile, Tastatur, Screenreader) | 3 Tage |
+| 9.1 | Backend-API (Node.js/Express + PostgreSQL, Event-Empfang, IP-Hashing, Rate-Limiting) | 4 Tage |
+| 9.2 | Client-seitiges Event-Tracking (`logEvent()`, `logExercise()`, `logSession()` in `app-active.js`) | 3 Tage |
+| 9.3 | Consent-Banner + Opt-out-Logik (DSGVO/ePrivacy) | 2 Tage |
+| 9.4 | Admin-Dashboard unter `/_m_staff_2025_x7k9` (Passwort-geschützt, Übersicht, Generatoren, Fehler) | 6 Tage |
+| 9.5 | Nutzer-Detailansicht (pseudonym, pro Generator) | 3 Tage |
+| 9.6 | Daten-Export & Löschung (DSGVO Art. 17, 20) | 3 Tage |
+| 9.7 | Sicherheit: Passwort-Auth, Session-Management, CORS, Security-Headers | 2 Tage |
+| 9.8 | Test & Polish (Mobile, Tastatur, Screenreader, GDPR-Audit) | 4 Tage |
 
-**Gesamt:** ca. 3 Wochen
+**Gesamt: ca. 3 Wochen**
 
 ---
 

@@ -45,16 +45,35 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['admin_passwor
         $loginError = 'Konfigurationsfehler: ADMIN_PASSWORD_HASH nicht in .htaccess gesetzt und kein Fallback aktiv';
     } elseif (admin_login($password)) {
         $token = bin2hex(random_bytes(32));
+        
+        // Dynamisch secure-Flag basierend auf HTTPS
+        $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || 
+                   (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+        
         setcookie('admin_session', $token, [
             'expires' => time() + 86400,
             'path' => '/',
             'domain' => '.andybrandy.at',
-            'secure' => true,
+            'secure' => $isHttps,
             'httponly' => true,
             'samesite' => 'Lax',
         ]);
-        // Kurze Erfolgsseite mit Auto-Redirect (meta-refresh funktioniert zuverlässiger als PHP-Header)
-        echo '<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta http-equiv="refresh" content="2;URL=/_m_staff_2025_x7k9.php"><title>Login erfolgreich</title><style>body{font-family:sans-serif;background:#0f172a;color:#f8fafc;padding:2rem;text-align:center;} .success{background:#14532d;color:#4ade80;padding:1rem;border-radius:6px;border:1px solid #166534;max-width:400px;margin:2rem auto;}</style></head><body><div class="success">✅ Login erfolgreich – Weiterleitung in 2 Sekunden…</div></body></html>';
+        
+        // Debug: Cookie gesetzt?
+        $cookieSet = setcookie('admin_session_debug', $token, [
+            'expires' => time() + 86400,
+            'path' => '/',
+            'domain' => '.andybrandy.at',
+            'secure' => $isHttps,
+            'httponly' => false,
+            'samesite' => 'Lax',
+        ]);
+        
+        $debugCookieSet = $cookieSet ? 'JA' : 'NEIN';
+        $debugIsHttps = $isHttps ? 'JA' : 'NEIN';
+        
+        // Kurze Erfolgsseite mit Auto-Redirect
+        echo '<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta http-equiv="refresh" content="2;URL=/_m_staff_2025_x7k9.php"><title>Login erfolgreich</title><style>body{font-family:sans-serif;background:#0f172a;color:#f8fafc;padding:2rem;text-align:center;} .success{background:#14532d;color:#4ade80;padding:1rem;border-radius:6px;border:1px solid #166534;max-width:400px;margin:2rem auto;} .debug{font-family:monospace;font-size:0.75rem;background:#0f172a;border:1px solid #334155;color:#94a3b8;padding:0.5rem;margin-top:1rem;text-align:left;}</style></head><body><div class="success">✅ Login erfolgreich – Weiterleitung in 2 Sekunden…</div><div class="debug">🍪 Cookie gesetzt: ' . $debugCookieSet . '<br>🔒 HTTPS aktiv: ' . $debugIsHttps . '<br>🔑 Token: ' . substr($token, 0, 16) . '…</div></body></html>';
         exit;
     } else {
         $loginError = 'Falsches Passwort';

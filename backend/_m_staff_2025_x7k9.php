@@ -16,7 +16,7 @@ header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-in
 
 $adminHash = getenv('ADMIN_PASSWORD_HASH');
 if (!$adminHash) {
-    $adminHash = '$2y$12$K8Z9M2N7P4Q6R8S0T1U2V3W4X5Y6Z7A8B9C0D1E2F3G4H5I6J7K';
+    $adminHash = '$2y$12$ZDY37Fq5/4lsy4KzSTCBCeWlftyT0kL2fi80ncxwTHSRjJRIkfJ22';
 }
 
 function admin_authenticated(): bool {

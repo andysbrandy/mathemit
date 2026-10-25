@@ -76,6 +76,22 @@ if (isset($_GET['logout'])) {
 
 $isAuthenticated = admin_authenticated();
 
+// Debug-Sammlung
+$debugInfo = [];
+$debugInfo['cookie_received'] = isset($_COOKIE['admin_session']) ? 'JA (' . substr($_COOKIE['admin_session'], 0, 16) . '...)' : 'NEIN';
+$debugInfo['auth_result'] = $isAuthenticated ? 'TRUE' : 'FALSE';
+$debugInfo['server_name'] = $_SERVER['SERVER_NAME'] ?? 'unbekannt';
+$debugInfo['http_host'] = $_SERVER['HTTP_HOST'] ?? 'unbekannt';
+$debugInfo['request_uri'] = $_SERVER['REQUEST_URI'] ?? 'unbekannt';
+$debugInfo['all_cookies'] = !empty($_COOKIE) ? json_encode($_COOKIE) : 'keine';
+
+if ($isAuthenticated && isset($_COOKIE['admin_session'])) {
+    $token = $_COOKIE['admin_session'];
+    $expectedHash = hash('sha256', $token . 'mathemit-admin-salt');
+    $debugInfo['cookie_hash_match'] = hash_equals($adminHash, $expectedHash) ? 'JA' : 'NEIN';
+    $debugInfo['expected_hash_prefix'] = substr($expectedHash, 0, 16);
+}
+
 // ========== HTML-Ausgabe komplett via PHP echo ==========
 
 echo '<!DOCTYPE html>';
@@ -144,6 +160,7 @@ echo '        .login-card button:hover { background: #7dd3fc; }';
 echo '        .error { color: #f87171; margin-bottom: 1rem; font-size: 0.875rem; padding: 0.75rem; background: #7f1d1d; border-radius: 6px; border: 1px solid #991b1b; }';
 echo '        .success { color: #4ade80; margin-bottom: 1rem; font-size: 0.875rem; padding: 0.75rem; background: #14532d; border-radius: 6px; border: 1px solid #166534; }';
 echo '        .info { color: #93c5fd; margin-bottom: 1rem; font-size: 0.875rem; padding: 0.75rem; background: #1e3a8a; border-radius: 6px; border: 1px solid #1d4ed8; }';
+echo '        .debug { font-family: monospace; font-size: 0.75rem; background: #0f172a; border: 1px solid #334155; color: #94a3b8; white-space: pre-wrap; word-break: break-all; }';
 echo '        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }';
 echo '        .stat-card {';
 echo '            background: #1e293b;';
@@ -212,7 +229,7 @@ if (!$isAuthenticated) {
     
     // Debug: Env-Variable gefunden oder Fallback?
     if (!$isAuthenticated) {
-        echo '        <div class="info">🔍 Debug: Env-Hash gefunden: ' . ($envHashFound ? 'JA' : 'NEIN') . ' | Fallback verwendet: ' . ($usingFallback ? 'JA' : 'NEIN') . '</div>';
+        echo '        <div class="info">🔍 Debug: Env-Hash gefunden: ' . ($envHashFound ? 'JA' : 'NEIN') . ' | Fallback verwendet: ' . ($usingFallback ? 'JA' : 'NEIN') . ' | Server: ' . htmlspecialchars($_SERVER['HTTP_HOST'] ?? 'unbekannt') . '</div>';
     }
     
     // Login-Fehler
@@ -259,6 +276,7 @@ if (!$isAuthenticated) {
     echo '        </div>';
     echo '    </div>';
     echo '    <div class="info">🔐 Sie sind eingeloggt als Admin. Sitzung läuft 24 Stunden.</div>';
+    echo '    <div class="info">🐛 <strong>Debug:</strong> ' . htmlspecialchars(json_encode($debugInfo, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)) . '</div>';
     echo '    <h2 style="margin: 2rem 0 1rem 0; color: #f8fafc;">📈 Generatoren-Ranking (letzte 7 Tage)</h2>';
     echo '    <table>';
     echo '        <thead>';

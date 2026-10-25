@@ -15,8 +15,12 @@ header('Content-Type: text/html; charset=utf-8');
 header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; font-src 'self';");
 
 $adminHash = getenv('ADMIN_PASSWORD_HASH');
+$envHashFound = !empty($adminHash);
 if (!$adminHash) {
     $adminHash = '$2y$12$ZDY37Fq5/4lsy4KzSTCBCeWlftyT0kL2fi80ncxwTHSRjJRIkfJ22';
+    $usingFallback = true;
+} else {
+    $usingFallback = false;
 }
 
 function admin_authenticated(): bool {
@@ -36,11 +40,9 @@ function admin_login(string $password): bool {
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['admin_password'])) {
     $password = $_POST['admin_password'] ?? '';
 
-    // Debug-Info: Ist Umgebungsvariable gesetzt?
-    $hashConfigured = !empty($adminHash);
-
-    if (!$hashConfigured) {
-        $loginError = 'Konfigurationsfehler: ADMIN_PASSWORD_HASH nicht gesetzt';
+    // Konfigurationsfehler prüfen (vor Fallback)
+    if (!$envHashFound) {
+        $loginError = 'Konfigurationsfehler: ADMIN_PASSWORD_HASH nicht in .htaccess gesetzt und kein Fallback aktiv';
     } elseif (admin_login($password)) {
         $token = bin2hex(random_bytes(32));
         setcookie('admin_session', $token, [
@@ -203,8 +205,13 @@ if (!$isAuthenticated) {
     echo '        <h2>Admin-Login</h2>';
     
     // Konfigurations-Info
-    if (!$hashConfigured) {
+    if (!$envHashFound) {
         echo '        <div class="error">⚠️ Konfigurationsfehler: ADMIN_PASSWORD_HASH Umgebungsvariable nicht gesetzt!</div>';
+    }
+    
+    // Debug: Env-Variable gefunden oder Fallback?
+    if (!$isAuthenticated) {
+        echo '        <div class="info">🔍 Debug: Env-Hash gefunden: ' . ($envHashFound ? 'JA' : 'NEIN') . ' | Fallback verwendet: ' . ($usingFallback ? 'JA' : 'NEIN') . '</div>';
     }
     
     // Login-Fehler

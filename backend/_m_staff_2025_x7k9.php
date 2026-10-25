@@ -53,8 +53,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['admin_passwor
             'httponly' => true,
             'samesite' => 'Lax',
         ]);
-        $loginSuccess = 'Login erfolgreich – Weiterleitung…';
-        header('Refresh: 1; URL=/_m_staff_2025_x7k9.php');
+        // Kurze Erfolgsseite mit Auto-Redirect (meta-refresh funktioniert zuverlässiger als PHP-Header)
+        echo '<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta http-equiv="refresh" content="2;URL=/_m_staff_2025_x7k9.php"><title>Login erfolgreich</title><style>body{font-family:sans-serif;background:#0f172a;color:#f8fafc;padding:2rem;text-align:center;} .success{background:#14532d;color:#4ade80;padding:1rem;border-radius:6px;border:1px solid #166534;max-width:400px;margin:2rem auto;}</style></head><body><div class="success">✅ Login erfolgreich – Weiterleitung in 2 Sekunden…</div></body></html>';
+        exit;
     } else {
         $loginError = 'Falsches Passwort';
     }

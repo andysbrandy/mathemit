@@ -34,7 +34,14 @@ function admin_login(string $password): bool {
 }
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['admin_password'])) {
-    if (admin_login($_POST['admin_password'])) {
+    $password = $_POST['admin_password'] ?? '';
+
+    // Debug-Info: Ist Umgebungsvariable gesetzt?
+    $hashConfigured = !empty($adminHash);
+
+    if (!$hashConfigured) {
+        $loginError = 'Konfigurationsfehler: ADMIN_PASSWORD_HASH nicht gesetzt';
+    } elseif (admin_login($password)) {
         $token = bin2hex(random_bytes(32));
         setcookie('admin_session', $token, [
             'expires' => time() + 86400,
@@ -44,8 +51,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['admin_passwor
             'httponly' => true,
             'samesite' => 'Lax',
         ]);
-        header('Location: /_m_staff_2025_x7k9.php');
-        exit;
+        $loginSuccess = 'Login erfolgreich – Weiterleitung…';
+        header('Refresh: 1; URL=/_m_staff_2025_x7k9.php');
     } else {
         $loginError = 'Falsches Passwort';
     }
@@ -131,7 +138,9 @@ echo '            font-weight: 600;';
 echo '            cursor: pointer;';
 echo '        }';
 echo '        .login-card button:hover { background: #7dd3fc; }';
-echo '        .error { color: #f87171; margin-bottom: 1rem; font-size: 0.875rem; }';
+echo '        .error { color: #f87171; margin-bottom: 1rem; font-size: 0.875rem; padding: 0.75rem; background: #7f1d1d; border-radius: 6px; border: 1px solid #991b1b; }';
+echo '        .success { color: #4ade80; margin-bottom: 1rem; font-size: 0.875rem; padding: 0.75rem; background: #14532d; border-radius: 6px; border: 1px solid #166534; }';
+echo '        .info { color: #93c5fd; margin-bottom: 1rem; font-size: 0.875rem; padding: 0.75rem; background: #1e3a8a; border-radius: 6px; border: 1px solid #1d4ed8; }';
 echo '        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }';
 echo '        .stat-card {';
 echo '            background: #1e293b;';
@@ -192,9 +201,22 @@ echo '    </div>';
 if (!$isAuthenticated) {
     echo '    <div class="login-card">';
     echo '        <h2>Admin-Login</h2>';
-    if (isset($loginError)) {
-        echo '            <div class="error">' . htmlspecialchars($loginError) . '</div>';
+    
+    // Konfigurations-Info
+    if (!$hashConfigured) {
+        echo '        <div class="error">⚠️ Konfigurationsfehler: ADMIN_PASSWORD_HASH Umgebungsvariable nicht gesetzt!</div>';
     }
+    
+    // Login-Fehler
+    if (isset($loginError)) {
+        echo '        <div class="error">❌ ' . htmlspecialchars($loginError) . '</div>';
+    }
+    
+    // Login-Erfolg
+    if (isset($loginSuccess)) {
+        echo '        <div class="success">✅ ' . htmlspecialchars($loginSuccess) . '</div>';
+    }
+    
     echo '        <form method="POST">';
     echo '            <label for="admin_password">Admin-Passwort</label>';
     echo '            <input type="password" id="admin_password" name="admin_password" required>';
@@ -228,6 +250,7 @@ if (!$isAuthenticated) {
     echo '            <div class="trend trend-up">↑ 4%</div>';
     echo '        </div>';
     echo '    </div>';
+    echo '    <div class="info">🔐 Sie sind eingeloggt als Admin. Sitzung läuft 24 Stunden.</div>';
     echo '    <h2 style="margin: 2rem 0 1rem 0; color: #f8fafc;">📈 Generatoren-Ranking (letzte 7 Tage)</h2>';
     echo '    <table>';
     echo '        <thead>';

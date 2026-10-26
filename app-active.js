@@ -200,22 +200,34 @@ function stopHeartbeat() {
 
 /* ============ DSGVO Consent Banner (UI) – einfache, selbstdurchlaufende Funktion ============ */
 (function initConsentBanner() {
+  console.log('[CONSENT] initConsentBanner gestartet');
+
   var banner     = document.getElementById('consentBanner');
   var btnYes     = document.getElementById('btnConsentYes');
   var btnNo      = document.getElementById('btnConsentNo');
   var btnOptOut  = document.getElementById('btnAnalyticsOptOut');
   var KEY        = 'mathemit_analytics_enabled';
 
-  if (!banner || !btnYes || !btnNo) return;
+  console.log('[CONSENT] banner existiert:', !!banner);
+  console.log('[CONSENT] btnYes existiert:', !!btnYes);
+  console.log('[CONSENT] btnNo existiert:', !!btnNo);
+  console.log('[CONSENT] btnOptOut existiert:', !!btnOptOut);
 
-  /* ---- Hilfsfunktionen (lokal, kein IIFE-Problem) ---- */
+  if (!banner || !btnYes || !btnNo) {
+    console.warn('[CONSENT] Abbruch: Pflicht-Elemente fehlen');
+    return;
+  }
+
+  /* ---- Hilfsfunktionen ---- */
 
   function getConsent() {
     try {
       var raw = localStorage.getItem(KEY);
+      console.log('[CONSENT] localStorage raw:', raw);
       if (raw === null) return null;
       return JSON.parse(raw);
     } catch (e) {
+      console.warn('[CONSENT] localStorage Fehler:', e);
       return null;
     }
   }
@@ -223,7 +235,10 @@ function stopHeartbeat() {
   function setConsent(enabled) {
     try {
       localStorage.setItem(KEY, JSON.stringify({ enabled: enabled }));
-    } catch (e) {}
+      console.log('[CONSENT] localStorage gesetzt:', enabled);
+    } catch (e) {
+      console.warn('[CONSENT] localStorage set Fehler:', e);
+    }
   }
 
   function updateToggle() {
@@ -239,9 +254,13 @@ function stopHeartbeat() {
   /* ---- Banner anzeigen wenn noch keine Entscheidung ---- */
 
   var consent = getConsent();
+  console.log('[CONSENT] consent-State:', consent);
+
   if (consent === null) {
+    console.log('[CONSENT] Zeige Banner (keine Entscheidung)');
     banner.style.display = 'block';
   } else {
+    console.log('[CONSENT] Banner ausgeblendet (Entscheidung:', consent.enabled, ')');
     banner.style.display = 'none';
   }
   updateToggle();
@@ -249,6 +268,7 @@ function stopHeartbeat() {
   /* ---- Click-Handler ---- */
 
   btnYes.addEventListener('click', function() {
+    console.log('[CONSENT] btnYes geklickt');
     setConsent(true);
     banner.style.display = 'none';
     updateToggle();
@@ -258,6 +278,7 @@ function stopHeartbeat() {
   });
 
   btnNo.addEventListener('click', function() {
+    console.log('[CONSENT] btnNo geklickt');
     setConsent(false);
     banner.style.display = 'none';
     updateToggle();
@@ -268,6 +289,7 @@ function stopHeartbeat() {
 
   if (btnOptOut) {
     btnOptOut.addEventListener('click', function() {
+      console.log('[CONSENT] btnOptOut geklickt');
       var consent2 = getConsent();
       var isOn     = consent2 === true;
       if (isOn) {
@@ -285,6 +307,8 @@ function stopHeartbeat() {
       updateToggle();
     });
   }
+
+  console.log('[CONSENT] initConsentBanner abgeschlossen');
 })();
 
 

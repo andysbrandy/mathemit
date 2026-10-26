@@ -68,11 +68,14 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['admin_passwor
 }
 
 if (isset($_GET['logout'])) {
+    // HTTPS-Erkennung (konsistent mit Login)
+    $isHttpsLogout = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
+                   (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
     setcookie('admin_session', '', [
         'expires' => time() - 3600,
         'path' => '/',
         'domain' => '.andybrandy.at',
-        'secure' => true,
+        'secure' => $isHttpsLogout,
         'httponly' => true,
         'samesite' => 'Lax',
     ]);
@@ -205,7 +208,7 @@ echo '        <h1>👨‍🏫 Mathemit Staff</h1>';
 echo '        <div>';
 echo '            <span class="badge">Zugang: /_m_staff_2025_x7k9</span>';
 if ($isAuthenticated) {
-    echo '                <a href="?_m_staff_2025_x7k9.php?logout=1" class="logout">🚪 Abmelden</a>';
+    echo '                <a href="/_m_staff_2025_x7k9.php?logout=1" class="logout">🚪 Abmelden</a>';
 }
 echo '        </div>';
 echo '    </div>';

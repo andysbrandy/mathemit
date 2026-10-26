@@ -63,7 +63,7 @@ var missByGen = {}, hitByGen = {}; // P2.2: Fehler-/Treffer-Serien je Übungstyp
       var raw = localStorage.getItem(ANALYTICS_ENABLED_KEY);
       if (raw !== null) return JSON.parse(raw);
     } catch(e) {}
-    return { enabled: false, consentTimestamp: null };
+    return { enabled: null, consentTimestamp: null };
   }
 
   function setConsentState(state) {

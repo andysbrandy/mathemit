@@ -138,6 +138,7 @@ var missByGen = {}, hitByGen = {}; // P2.2: Fehler-/Treffer-Serien je Übungstyp
   // Exports für die Hauptfunktionen
   window.__mbAnalytics = {
     isEnabled: isAnalyticsEnabled,
+    getConsentState: getConsentState,
     sendEvent: sendEvent,
     enable: function() {
       var state = getConsentState();
@@ -208,7 +209,7 @@ function stopHeartbeat() {
 
   function updateOptOutButton() {
     if (!btnOptOut) return;
-    var enabled = isAnalyticsEnabled();
+    var enabled = window.__mbAnalytics.isEnabled();
     btnOptOut.textContent = enabled ? 'Analyse: Ein' : 'Analyse: Aus';
     btnOptOut.style.background = enabled ? '#16a34a' : '#334155';
     btnOptOut.style.color = enabled ? '#fff' : '#cbd5e1';
@@ -216,7 +217,7 @@ function stopHeartbeat() {
   }
 
   function showBanner() {
-    var consent = getConsentState();
+    var consent = window.__mbAnalytics.getConsentState();
     // Nur anzeigen wenn noch keine Entscheidung getroffen wurde
     if (consent.enabled === null || consent.enabled === undefined) {
       banner.style.display = 'block';
@@ -238,7 +239,7 @@ function stopHeartbeat() {
 
   if (btnOptOut) {
     btnOptOut.addEventListener('click', function() {
-      var enabled = isAnalyticsEnabled();
+      var enabled = window.__mbAnalytics.isEnabled();
       if (enabled) {
         window.__mbAnalytics.disable();
       } else {

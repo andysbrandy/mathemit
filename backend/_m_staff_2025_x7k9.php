@@ -59,21 +59,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['admin_passwor
             'samesite' => 'Lax',
         ]);
         
-        // Debug: Cookie gesetzt?
-        $cookieSet = setcookie('admin_session_debug', $token, [
-            'expires' => time() + 86400,
-            'path' => '/',
-            'domain' => '.andybrandy.at',
-            'secure' => $isHttps,
-            'httponly' => false,
-            'samesite' => 'Lax',
-        ]);
-        
-        $debugCookieSet = $cookieSet ? 'JA' : 'NEIN';
-        $debugIsHttps = $isHttps ? 'JA' : 'NEIN';
-        
         // Kurze Erfolgsseite mit Auto-Redirect
-        echo '<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta http-equiv="refresh" content="2;URL=/_m_staff_2025_x7k9.php"><title>Login erfolgreich</title><style>body{font-family:sans-serif;background:#0f172a;color:#f8fafc;padding:2rem;text-align:center;} .success{background:#14532d;color:#4ade80;padding:1rem;border-radius:6px;border:1px solid #166534;max-width:400px;margin:2rem auto;} .debug{font-family:monospace;font-size:0.75rem;background:#0f172a;border:1px solid #334155;color:#94a3b8;padding:0.5rem;margin-top:1rem;text-align:left;}</style></head><body><div class="success">✅ Login erfolgreich – Weiterleitung in 2 Sekunden…</div><div class="debug">🍪 Cookie gesetzt: ' . $debugCookieSet . '<br>🔒 HTTPS aktiv: ' . $debugIsHttps . '<br>🔑 Token: ' . substr($token, 0, 16) . '…</div></body></html>';
+        echo '<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta http-equiv="refresh" content="2;URL=/_m_staff_2025_x7k9.php"><title>Login erfolgreich</title><style>body{font-family:sans-serif;background:#0f172a;color:#f8fafc;padding:2rem;text-align:center;} .success{background:#14532d;color:#4ade80;padding:1rem;border-radius:6px;border:1px solid #166534;max-width:400px;margin:2rem auto;}</style></head><body><div class="success">✅ Login erfolgreich – Weiterleitung in 2 Sekunden…</div></body></html>';
         exit;
     } else {
         $loginError = 'Falsches Passwort';
@@ -95,21 +82,7 @@ if (isset($_GET['logout'])) {
 
 $isAuthenticated = admin_authenticated();
 
-// Debug-Sammlung
-$debugInfo = [];
-$debugInfo['cookie_received'] = isset($_COOKIE['admin_session']) ? 'JA (' . substr($_COOKIE['admin_session'], 0, 16) . '...)' : 'NEIN';
-$debugInfo['auth_result'] = $isAuthenticated ? 'TRUE' : 'FALSE';
-$debugInfo['server_name'] = $_SERVER['SERVER_NAME'] ?? 'unbekannt';
-$debugInfo['http_host'] = $_SERVER['HTTP_HOST'] ?? 'unbekannt';
-$debugInfo['request_uri'] = $_SERVER['REQUEST_URI'] ?? 'unbekannt';
-$debugInfo['all_cookies'] = !empty($_COOKIE) ? json_encode($_COOKIE) : 'keine';
 
-if ($isAuthenticated && isset($_COOKIE['admin_session'])) {
-    $token = $_COOKIE['admin_session'];
-    $expectedHash = hash('sha256', $token . 'mathemit-admin-salt');
-    $debugInfo['cookie_hash_match'] = hash_equals($adminHash, $expectedHash) ? 'JA' : 'NEIN';
-    $debugInfo['expected_hash_prefix'] = substr($expectedHash, 0, 16);
-}
 
 // ========== HTML-Ausgabe komplett via PHP echo ==========
 
@@ -179,7 +152,7 @@ echo '        .login-card button:hover { background: #7dd3fc; }';
 echo '        .error { color: #f87171; margin-bottom: 1rem; font-size: 0.875rem; padding: 0.75rem; background: #7f1d1d; border-radius: 6px; border: 1px solid #991b1b; }';
 echo '        .success { color: #4ade80; margin-bottom: 1rem; font-size: 0.875rem; padding: 0.75rem; background: #14532d; border-radius: 6px; border: 1px solid #166534; }';
 echo '        .info { color: #93c5fd; margin-bottom: 1rem; font-size: 0.875rem; padding: 0.75rem; background: #1e3a8a; border-radius: 6px; border: 1px solid #1d4ed8; }';
-echo '        .debug { font-family: monospace; font-size: 0.75rem; background: #0f172a; border: 1px solid #334155; color: #94a3b8; white-space: pre-wrap; word-break: break-all; }';
+
 echo '        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }';
 echo '        .stat-card {';
 echo '            background: #1e293b;';
@@ -245,12 +218,6 @@ if (!$isAuthenticated) {
     if (!$envHashFound) {
         echo '        <div class="error">⚠️ Konfigurationsfehler: ADMIN_PASSWORD_HASH Umgebungsvariable nicht gesetzt!</div>';
     }
-    
-    // Debug: Env-Variable gefunden oder Fallback?
-    if (!$isAuthenticated) {
-        echo '        <div class="info">🔍 Debug: Env-Hash gefunden: ' . ($envHashFound ? 'JA' : 'NEIN') . ' | Fallback verwendet: ' . ($usingFallback ? 'JA' : 'NEIN') . ' | Server: ' . htmlspecialchars($_SERVER['HTTP_HOST'] ?? 'unbekannt') . '</div>';
-    }
-    
     // Login-Fehler
     if (isset($loginError)) {
         echo '        <div class="error">❌ ' . htmlspecialchars($loginError) . '</div>';
@@ -295,7 +262,6 @@ if (!$isAuthenticated) {
     echo '        </div>';
     echo '    </div>';
     echo '    <div class="info">🔐 Sie sind eingeloggt als Admin. Sitzung läuft 24 Stunden.</div>';
-    echo '    <div class="info">🐛 <strong>Debug:</strong> ' . htmlspecialchars(json_encode($debugInfo, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)) . '</div>';
     echo '    <h2 style="margin: 2rem 0 1rem 0; color: #f8fafc;">📈 Generatoren-Ranking (letzte 7 Tage)</h2>';
     echo '    <table>';
     echo '        <thead>';

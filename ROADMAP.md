@@ -353,6 +353,17 @@ Dieses "Security through Obscurity" ergänzt (nicht ersetzt!) die Passwort-Authe
 
 ---
 
+## 🐛 Bekannte offene Probleme
+
+| Bereich | Problem | Status | Geplante Lösung |
+|---------|---------|--------|-----------------|
+| **P9 Analytics – Consent-Banner** | Banner erscheint nicht zuverlässig. Ursache: zwei separate IIFE-Scopes in `app-active.js` – `getConsentState()` / `isAnalyticsEnabled()` sind im Banner-IIFE nicht direkt erreichbar (Scope-Grenze). Mehrfache Fixes (v243, v244, v245) brachten keine stabile Lösung. | ⚠️ offen | Komplettes Refactoring des Consent-Codes in eine einfache, selbstdurchlaufende Funktion mit direktem `localStorage`-Zugriff (keine IIFE-Abhängigkeiten mehr). Falls weiterhin Probleme: Service Worker (`sw.js`) vollständig entfernen und auf Cache-busting umstellen. |
+| **P9 Analytics – Backend-Dateien** | PHP-Dateien liegen auf `mapi.andybrandy.at`, Frontend auf `mathemit.andybrandy.at` (GitHub Pages). Bei jedem Deploy müssen beide Synkron gehalten werden. | ⚠️ offen | CI/CD-Pipeline oder Deploy-Skript, das beide Ziele gleichzeitig aktualisiert. |
+
+---
+
+---
+
 ## 📞 Kontakt & Rechtliches
 
 - **Impressum:** https://mathemit.andybrandy.at/impressum.html

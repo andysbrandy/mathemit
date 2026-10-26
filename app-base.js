@@ -4079,21 +4079,31 @@ function genKreisdiagramm(diff){
       var F = { x: rand(80, 220), y: gY };
       var P = { x: F.x, y: gY - abstandCm*scaleCm };
       var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
-      // Raster: 1 Kaestchen = 1 cm
+      // Raster: 1 Kaestchen = 1 cm (dezent im Hintergrund)
       for(var gx = 20; gx <= 280; gx += scaleCm){
         svg += '<line x1="'+gx+'" y1="20" x2="'+gx+'" y2="200" stroke="var(--paper)" stroke-width="1"/>';
       }
       for(var gy = 24; gy <= 200; gy += scaleCm){
         svg += '<line x1="20" y1="'+gy+'" x2="280" y2="'+gy+'" stroke="var(--paper)" stroke-width="1"/>';
       }
+      // Gerade g
       svg += geradeSVG(gA, { x: 1, y: 0 }, farbe, "g");
-      // Senkrechte von P auf g (gestrichelt) mit rechtem Winkel bei F
-      svg += '<line x1="'+P.x+'" y1="'+P.y+'" x2="'+F.x+'" y2="'+F.y+'" stroke="'+farbe+'" stroke-width="2" stroke-dasharray="5 4"/>';
-      svg += rechterWinkelPunkt(F, {x:0,y:-1}, {x:1,y:0}, farbe, 10);
+      // Lot von P auf g (gestrichene senkrechte Strecke PF)
+      svg += '<line x1="'+P.x+'" y1="'+P.y+'" x2="'+F.x+'" y2="'+F.y+'" stroke="'+farbe+'" stroke-width="2.5" stroke-dasharray="6 4"/>';
+      // Rechter Winkel bei F (deutlicher, 14px)
+      svg += rechterWinkelPunkt(F, {x:0,y:-1}, {x:1,y:0}, farbe, 14);
+      // Punkt P
       svg += punktSVG(P, farbe, "P");
-      svg += '<text class="dim-label" x="'+(F.x+8)+'" y="'+(F.y+16)+'" fill="'+farbe+'">F</text>';
+      // Lotfusspunkt F als gefüllter Kreis + Label
+      svg += '<circle cx="'+F.x+'" cy="'+F.y+'" r="4" fill="'+farbe+'"/>';
+      svg += '<text class="dim-label" x="'+(F.x+8)+'" y="'+(F.y+18)+'" fill="'+farbe+'" font-weight="600">F</text>';
+      // Abstand-Label mittig auf der Strecke PF
+      var labelY = (P.y + F.y) / 2 - 6;
+      svg += '<rect x="'+(P.x-16)+'" y="'+(labelY-10)+'" width="32" height="20" rx="3" fill="var(--paper)" stroke="'+farbe+'" stroke-width="1.5"/>';
+      svg += '<text x="'+P.x+'" y="'+(labelY+5)+'" text-anchor="middle" fill="'+farbe+'" font-weight="700" font-size="13">'+abstandCm+' cm</text>';
+      // Hinweise unten
       svg += '<text x="150" y="16" text-anchor="middle" class="dim-label" fill="'+farbe+'">1 Kaestchen im Raster = 1 cm</text>';
-      svg += '<text x="150" y="212" text-anchor="middle" class="dim-label" fill="'+farbe+'">PF steht senkrecht auf g (Lotfusspunkt F)</text>';
+      svg += '<text x="150" y="212" text-anchor="middle" class="dim-label" fill="'+farbe+'">Abstand = senkrechte Strecke PF (Lotfusspunkt F)</text>';
       svg += '</svg>';
       var ex = baseEx("konstruktion","punktGeradeAbstand");
       ex.question = "Miss den Abstand des Punktes P von der Geraden g. (Ein Kaestchen im Raster entspricht 1 cm.) Wie lang ist die Strecke PF?";

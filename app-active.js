@@ -145,6 +145,7 @@ var missByGen = {}, hitByGen = {}; // P2.2: Fehler-/Treffer-Serien je Übungstyp
       state.consentTimestamp = Math.floor(Date.now() / 1000);
       setConsentState(state);
       sendEvent('consent_changed', { enabled: true, timestamp: state.consentTimestamp });
+      startHeartbeat();
     },
     disable: function() {
       var state = getConsentState();
@@ -152,8 +153,104 @@ var missByGen = {}, hitByGen = {}; // P2.2: Fehler-/Treffer-Serien je Übungstyp
       state.consentTimestamp = null;
       setConsentState(state);
       sendEvent('consent_changed', { enabled: false });
+      stopHeartbeat();
     }
   };
+})();
+
+/* ============ Heartbeat für Live-Dashboard ============ */
+// Sendet alle 30 Sekunden last_seen + current_generator an /analytics_heartbeat.php
+var heartbeatTimer = null;
+var HEARTBEAT_URL = '/backend/analytics_heartbeat.php';
+var HEARTBEAT_INTERVAL = 30000; // 30 Sekunden
+
+function sendHeartbeat() {
+  if (!isAnalyticsEnabled()) return;
+  var sessionId = generateSessionId();
+  var currentGen = state.current ? (state.current.generator || null) : null;
+  var payload = {
+    sessionId: sessionId,
+    currentGenerator: currentGen,
+    timestamp: Math.floor(Date.now() / 1000)
+  };
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', HEARTBEAT_URL, true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === 4 && xhr.status >= 400) {
+      try { localStorage.setItem(ANALYTICS_ENABLED_KEY, JSON.stringify({enabled:false})); } catch(e) {}
+    }
+  };
+  xhr.send(JSON.stringify(payload));
+}
+
+function startHeartbeat() {
+  if (heartbeatTimer !== null) return;
+  sendHeartbeat(); // sofort einmal senden
+  heartbeatTimer = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL);
+}
+
+function stopHeartbeat() {
+  if (heartbeatTimer !== null) {
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+  }
+}
+
+/* ============ DSGVO Consent Banner (UI) ============ */
+(function() {
+  var banner = document.getElementById('consentBanner');
+  var btnYes = document.getElementById('btnConsentYes');
+  var btnNo = document.getElementById('btnConsentNo');
+  var btnOptOut = document.getElementById('btnAnalyticsOptOut');
+
+  if (!banner || !btnYes || !btnNo) return;
+
+  function updateOptOutButton() {
+    if (!btnOptOut) return;
+    var enabled = isAnalyticsEnabled();
+    btnOptOut.textContent = enabled ? 'Analyse: Ein' : 'Analyse: Aus';
+    btnOptOut.style.background = enabled ? '#16a34a' : '#334155';
+    btnOptOut.style.color = enabled ? '#fff' : '#cbd5e1';
+    btnOptOut.style.borderColor = enabled ? '#16a34a' : '#475569';
+  }
+
+  function showBanner() {
+    var consent = getConsentState();
+    // Nur anzeigen wenn noch keine Entscheidung getroffen wurde
+    if (consent.enabled === null || consent.enabled === undefined) {
+      banner.style.display = 'block';
+    }
+    updateOptOutButton();
+  }
+
+  btnYes.addEventListener('click', function() {
+    window.__mbAnalytics.enable();
+    banner.style.display = 'none';
+    updateOptOutButton();
+  });
+
+  btnNo.addEventListener('click', function() {
+    window.__mbAnalytics.disable();
+    banner.style.display = 'none';
+    updateOptOutButton();
+  });
+
+  if (btnOptOut) {
+    btnOptOut.addEventListener('click', function() {
+      var enabled = isAnalyticsEnabled();
+      if (enabled) {
+        window.__mbAnalytics.disable();
+      } else {
+        window.__mbAnalytics.enable();
+      }
+      banner.style.display = 'none';
+      updateOptOutButton();
+    });
+  }
+
+  // Banner beim Laden anzeigen (falls noch keine Entscheidung)
+  showBanner();
 })();
 
 

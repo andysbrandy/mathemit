@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v241">
+<meta name="app-version" content="v242">
 <title>Mathe mit Andybrandy – Mathe üben für die Mittelschule</title>
 <meta name="description" content="Mathe üben nach dem österreichischen Lehrplan (AHS/MS 2023): 66 Übungstypen, 3 Schwierigkeitsstufen, Tipp-System, Wissensgarten & Eulenhain. Kostenlos und ohne Werbung.">
 <link rel="canonical" href="https://mathemit.andybrandy.at/">
@@ -155,9 +155,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style-base.css?v=241">
-<link rel="stylesheet" href="style-active.css?v=241">
-<link rel="stylesheet" href="style-info.css?v=241">
+<link rel="stylesheet" href="style-base.css?v=242">
+<link rel="stylesheet" href="style-active.css?v=242">
+<link rel="stylesheet" href="style-info.css?v=242">
 </head>
 <body>
   <!--
@@ -364,14 +364,14 @@
 
 </div>
 
-<script src="app-base.js?v=241"></script>
-<script src="app-active.js?v=241"></script>
+<script src="app-base.js?v=242"></script>
+<script src="app-active.js?v=242"></script>
 
 <!-- ============================================================
      P8.3 — Indexierbarer Info-Abschnitt ("Was die App abdeckt").
      Bewusst sichtbarer Dokumentfluss (KEIN display:none), damit Google &
      KI-Crawler den Inhalt als echten Seiten-Content lesen. Inhalte spiegeln
-     die 6 Kompetenz-Bäume (GARTEN_BEREICHE) und CURRICULUM_MAP in app-base.js?v=241.
+     die 6 Kompetenz-Bäume (GARTEN_BEREICHE) und CURRICULUM_MAP in app-base.js?v=242.
      ============================================================ -->
 <section class="info-section" aria-labelledby="infoTitle">
   <div class="info-inner">
@@ -524,7 +524,7 @@
 </section>
 
 <footer class="app-version">
-  <span class="ver" id="appVersion">v241</span>
+  <span class="ver" id="appVersion">v242</span>
   <span style="margin-left:.6rem; font-size:.75rem; opacity:.75;" class="footer-links">
     <button type="button" class="footer-link" data-legal="datenschutz.html" data-title="Datenschutzerklärung">Datenschutz</button> ·
     <button type="button" class="footer-link" data-legal="impressum.html" data-title="Impressum">Impressum</button> ·
@@ -542,6 +542,53 @@
     <a class="footer-chan" href="https://www.tiktok.com/@mathefit.andybrandy.at" target="_blank" rel="noopener">TikTok</a> ·
     <a class="footer-chan" href="https://www.instagram.com/mathemit.andybrandy.at/" target="_blank" rel="noopener">Instagram</a>
   </span>
+  <button type="button" class="footer-link" id="btnAnalyticsOptOut" style="margin-left:1rem; padding:0.2rem 0.6rem; font-size:0.7rem; background:#334155; color:#cbd5e1; border:1px solid #475569; border-radius:4px; cursor:pointer;">Analyse: Aus</button>
 </footer>
+
+<!-- DSGVO Consent Banner (Analytics) -->
+<div id="consentBanner" class="consent-banner" style="display:none;">
+  <div class="consent-content">
+    <h3 style="margin:0 0 0.5rem 0; font-size:1rem; color:#f8fafc;">📊 Lern-Analyse aktivieren?</h3>
+    <p style="font-size:0.85rem; color:#cbd5e1; margin:0 0 1rem 0; line-height:1.4;">
+      Wir erfassen pseudonymisierte Nutzungsdaten (welche Übungen gelöst werden, Erfolgsrate, Sitzungsdauer), um die App zu verbessern.
+      <br><br>
+      <strong>Keine persönlichen Daten:</strong> Kein Name, keine E-Mail, keine Klartext-IP-Adresse (wird sofort gehasht).
+      <br>
+      <strong>DSGVO-konform:</strong> Auf Basis von berechtigtem Interesse (Art. 6(1)(f) DSGVO). Jederzeit widerrufbar.
+    </p>
+    <div class="consent-buttons" style="display:flex; gap:0.5rem;">
+      <button type="button" id="btnConsentYes" style="flex:1; padding:0.6rem 1rem; background:#16a34a; color:#fff; border:none; border-radius:6px; font-weight:600; cursor:pointer;">Ja, aktivieren</button>
+      <button type="button" id="btnConsentNo" style="flex:1; padding:0.6rem 1rem; background:#334155; color:#cbd5e1; border:1px solid #475569; border-radius:6px; cursor:pointer;">Nein, ablehnen</button>
+    </div>
+    <p style="font-size:0.75rem; color:#94a3b8; margin-top:0.75rem;">
+      <a href="datenschutz.html" style="color:#93c5fd; text-decoration:underline;">Datenschutzerklärung</a> ·
+      <a href="agb.html" style="color:#93c5fd; text-decoration:underline;">Nutzungsbedingungen</a>
+    </p>
+  </div>
+</div>
+
+<style>
+  .consent-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #0f172a;
+    border-top: 1px solid #334155;
+    padding: 1rem;
+    z-index: 10000;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.5);
+  }
+  .consent-content {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  @media (max-width: 600px) {
+    .consent-buttons {
+      flex-direction: column !important;
+    }
+  }
+</style>
 </body>
 </html>

@@ -198,60 +198,93 @@ function stopHeartbeat() {
   }
 }
 
-/* ============ DSGVO Consent Banner (UI) ============ */
-(function() {
-  var banner = document.getElementById('consentBanner');
-  var btnYes = document.getElementById('btnConsentYes');
-  var btnNo = document.getElementById('btnConsentNo');
-  var btnOptOut = document.getElementById('btnAnalyticsOptOut');
+/* ============ DSGVO Consent Banner (UI) – einfache, selbstdurchlaufende Funktion ============ */
+(function initConsentBanner() {
+  var banner     = document.getElementById('consentBanner');
+  var btnYes     = document.getElementById('btnConsentYes');
+  var btnNo      = document.getElementById('btnConsentNo');
+  var btnOptOut  = document.getElementById('btnAnalyticsOptOut');
+  var KEY        = 'mathemit_analytics_enabled';
 
   if (!banner || !btnYes || !btnNo) return;
 
-  function updateOptOutButton() {
-    if (!btnOptOut) return;
-    var enabled = window.__mbAnalytics.isEnabled();
-    btnOptOut.textContent = enabled ? 'Analyse: Ein' : 'Analyse: Aus';
-    btnOptOut.style.background = enabled ? '#16a34a' : '#334155';
-    btnOptOut.style.color = enabled ? '#fff' : '#cbd5e1';
-    btnOptOut.style.borderColor = enabled ? '#16a34a' : '#475569';
+  /* ---- Hilfsfunktionen (lokal, kein IIFE-Problem) ---- */
+
+  function getConsent() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw === null) return null;
+      return JSON.parse(raw);
+    } catch (e) {
+      return null;
+    }
   }
 
-  function showBanner() {
-    var consent = window.__mbAnalytics.getConsentState();
-    // Nur anzeigen wenn noch keine Entscheidung getroffen wurde
-    if (consent.enabled === null || consent.enabled === undefined) {
-      banner.style.display = 'block';
-    }
-    updateOptOutButton();
+  function setConsent(enabled) {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ enabled: enabled }));
+    } catch (e) {}
   }
+
+  function updateToggle() {
+    if (!btnOptOut) return;
+    var enabled = getConsent();
+    var isOn    = enabled === true;
+    btnOptOut.textContent   = isOn ? 'Analyse: Ein' : 'Analyse: Aus';
+    btnOptOut.style.background = isOn ? '#16a34a' : '#334155';
+    btnOptOut.style.color      = isOn ? '#fff' : '#cbd5e1';
+    btnOptOut.style.borderColor = isOn ? '#16a34a' : '#475569';
+  }
+
+  /* ---- Banner anzeigen wenn noch keine Entscheidung ---- */
+
+  var consent = getConsent();
+  if (consent === null) {
+    banner.style.display = 'block';
+  } else {
+    banner.style.display = 'none';
+  }
+  updateToggle();
+
+  /* ---- Click-Handler ---- */
 
   btnYes.addEventListener('click', function() {
-    window.__mbAnalytics.enable();
+    setConsent(true);
     banner.style.display = 'none';
-    updateOptOutButton();
+    updateToggle();
+    if (window.__mbAnalytics && typeof window.__mbAnalytics.enable === 'function') {
+      window.__mbAnalytics.enable();
+    }
   });
 
   btnNo.addEventListener('click', function() {
-    window.__mbAnalytics.disable();
+    setConsent(false);
     banner.style.display = 'none';
-    updateOptOutButton();
+    updateToggle();
+    if (window.__mbAnalytics && typeof window.__mbAnalytics.disable === 'function') {
+      window.__mbAnalytics.disable();
+    }
   });
 
   if (btnOptOut) {
     btnOptOut.addEventListener('click', function() {
-      var enabled = window.__mbAnalytics.isEnabled();
-      if (enabled) {
-        window.__mbAnalytics.disable();
+      var consent2 = getConsent();
+      var isOn     = consent2 === true;
+      if (isOn) {
+        setConsent(false);
+        if (window.__mbAnalytics && typeof window.__mbAnalytics.disable === 'function') {
+          window.__mbAnalytics.disable();
+        }
       } else {
-        window.__mbAnalytics.enable();
+        setConsent(true);
+        if (window.__mbAnalytics && typeof window.__mbAnalytics.enable === 'function') {
+          window.__mbAnalytics.enable();
+        }
       }
       banner.style.display = 'none';
-      updateOptOutButton();
+      updateToggle();
     });
   }
-
-  // Banner beim Laden anzeigen (falls noch keine Entscheidung)
-  showBanner();
 })();
 
 

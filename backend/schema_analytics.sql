@@ -20,16 +20,26 @@ CREATE TABLE IF NOT EXISTS analytics_sessions (
     id CHAR(64) PRIMARY KEY,
     analytics_user_id INT NULL,
     started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_seen DATETIME NULL,
     ended_at DATETIME NULL,
     duration_ms INT NULL,
     device_type VARCHAR(20),
     browser VARCHAR(50),
     country CHAR(2),
+    current_generator VARCHAR(50) NULL,
     ip_hash CHAR(64),
     FOREIGN KEY (analytics_user_id) REFERENCES analytics_users(id) ON DELETE SET NULL,
     INDEX idx_analytics_user (analytics_user_id),
-    INDEX idx_started (started_at)
+    INDEX idx_started (started_at),
+    INDEX idx_last_seen (last_seen),
+    INDEX idx_current_generator (current_generator)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Migration für bestehende DBs (manuell in phpMyAdmin ausführen):
+-- ALTER TABLE analytics_sessions ADD COLUMN last_seen DATETIME NULL AFTER started_at;
+-- ALTER TABLE analytics_sessions ADD COLUMN current_generator VARCHAR(50) NULL AFTER country;
+-- ALTER TABLE analytics_sessions ADD INDEX idx_last_seen (last_seen);
+-- ALTER TABLE analytics_sessions ADD INDEX idx_current_generator (current_generator);
 
 -- Events: alle Nutzer-Interaktionen
 CREATE TABLE IF NOT EXISTS analytics_events (

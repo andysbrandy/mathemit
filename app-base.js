@@ -3468,15 +3468,16 @@
 function genKreisdiagramm(diff){
   diff = diff || 2;
   var themen = [
-    {label:"Farbe", count:"Lieblingsfarben", items:["Rot","Blau","Grün","Gelb","Schwarz"]},
-    {label:"Haustier", count:"Haustiere", items:["Katze","Hund","Fisch","Kaninchen","Pferd"]},
-    {label:"Sportart", count:"Sportarten", items:["Fußball","Basketball","Schwimmen","Tennis","Laufen"]},
-    {label:"Fach", count:"Lieblingsfächer", items:["Mathematik","Deutsch","Englisch","Musik","Sport"]},
-    {label:"Getränk", count:"Getränke", items:["Wasser","Apfelsaft","Cola","Milch","Limonade"]}
+    {label:"Farbe", count:"Lieblingsfarben", items:["Rot","Blau","Grün","Gelb","Schwarz"], colors:["#E53935","#1E88E5","#43A047","#FDD835","#212121"]},
+    {label:"Haustier", count:"Haustiere", items:["Katze","Hund","Fisch","Kaninchen","Pferd"], colors:["#E53935","#1E88E5","#43A047","#FDD835","#212121"]},
+    {label:"Sportart", count:"Sportarten", items:["Fußball","Basketball","Schwimmen","Tennis","Laufen"], colors:["#E53935","#1E88E5","#43A047","#FDD835","#212121"]},
+    {label:"Fach", count:"Lieblingsfächer", items:["Mathematik","Deutsch","Englisch","Musik","Sport"], colors:["#E53935","#1E88E5","#43A047","#FDD835","#212121"]},
+    {label:"Getränk", count:"Getränke", items:["Wasser","Apfelsaft","Cola","Milch","Limonade"], colors:["#E53935","#1E88E5","#43A047","#FDD835","#212121"]}
   ];
   var thema = themen[Math.floor(Math.random()*themen.length)];
   var n = diff===1 ? 3 : (diff===3 ? 5 : 4);
   var items = thema.items.slice(0,n);
+  var sectorColors = thema.colors.slice(0,n);
   var minU = diff===1 ? 2 : 1;
   var teile = [];
   (function rec(i, s, sum, arr){
@@ -3496,7 +3497,18 @@ function genKreisdiagramm(diff){
   var typ = diff===1 ? choice(["absolut","gesamt"]) : choice(typen);
   var qIdx = Math.floor(Math.random()*n);
   var focus = items[qIdx];
+  var focusColor = sectorColors[qIdx];
   var focusCount = counts[qIdx];
+
+  /* Farbe um Prozent aufhellen (für nicht-Fokus-Sektoren) */
+  function lightenColor(hex, pct){
+    var num = parseInt(hex.replace("#",""),16);
+    var amt = Math.round(2.55 * pct);
+    var R = Math.min(255, Math.max(0, (num >> 16) + amt));
+    var G = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amt));
+    var B = Math.min(255, Math.max(0, (num & 0x00FF) + amt));
+    return "#" + (0x1000000 + R*0x10000 + G*0x100 + B).toString(16).slice(1);
+  }
   var svg = "<svg viewBox=\"0 0 300 220\" xmlns=\"http://www.w3.org/2000/svg\">";
   var cumAngle = 0;
   for(var i=0; i<n; i++){
@@ -3506,9 +3518,10 @@ function genKreisdiagramm(diff){
     var a1 = (cumAngle + sectorAng - 90)*Math.PI/180;
     var x1 = 150 + 75*Math.cos(a0); var y1 = 100 + 75*Math.sin(a0);
     var x2 = 150 + 75*Math.cos(a1); var y2 = 100 + 75*Math.sin(a1);
-    var fill = i===qIdx ? COLORS.gleichung.main : COLORS.gleichung.soft;
+    var fill = i===qIdx ? sectorColors[i] : lightenColor(sectorColors[i], 45);
+    var strokeWidth = i===qIdx ? 3 : 2;
     svg += "<path d=\"M150 100 L"+Math.round(x1)+" "+Math.round(y1)+" A75 75 0 "+large+" 1 "+Math.round(x2)+" "+Math.round(y2)+" Z\" "
-      + "fill=\""+fill+"\" stroke=\"var(--ink)\" stroke-width=\"2\"/>";
+      + "fill=\""+fill+"\" stroke=\"var(--ink)\" stroke-width=\""+strokeWidth+"\"/>";
     cumAngle += sectorAng;
   }
   svg += "<circle cx=\"150\" cy=\"100\" r=\"10\" fill=\"var(--ink)\"/>";
@@ -3517,7 +3530,7 @@ function genKreisdiagramm(diff){
   svg += "</svg>";
   var ex = baseEx("diagramm","kreisdiagramm");
   ex.svg = svg;
-  ex.badgeColor = COLORS.gleichung.main;
+  ex.badgeColor = focusColor;
   if(typ==="absolut"){
     ex.question = "Wie viele "+thema.count+" von "+focus+" wurden gezählt? (Lies den Wert im Diagramm ab.)";
     ex.hint = "Finde den Sektor von "+focus+" und lies die Anzahl ab.";

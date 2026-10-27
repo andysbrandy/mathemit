@@ -5,7 +5,49 @@
    ============================================================ */
 (function(){
   "use strict";
-  console.log('[APP-ACTIVE] IIFE gestartet, Version v247');
+  /* ============ DSGVO Consent Banner – erster Block, läuft immer ============ */
+  (function initConsent(){
+    var KEY   = 'mathemit_analytics_enabled';
+    var banner= document.getElementById('consentBanner');
+    var btnYes= document.getElementById('btnConsentYes');
+    var btnNo = document.getElementById('btnConsentNo');
+    var btnOut= document.getElementById('btnAnalyticsOptOut');
+
+    if(!banner || !btnYes || !btnNo) return;
+
+    function get(){ try{ var r=localStorage.getItem(KEY); return r===null?null:JSON.parse(r); }catch(e){return null;} }
+    function set(e){ try{ localStorage.setItem(KEY, JSON.stringify({enabled:e})); }catch(e){} }
+    function upd(){
+      if(!btnOut) return;
+      var on = get()===true;
+      btnOut.textContent   = on?'Analyse: Ein':'Analyse: Aus';
+      btnOut.style.background = on?'#16a34a':'#334155';
+      btnOut.style.color      = on?'#fff':'#cbd5e1';
+      btnOut.style.borderColor= on?'#16a34a':'#475569';
+    }
+    var c = get();
+    banner.style.display = c===null ? 'block' : 'none';
+    upd();
+
+    btnYes.onclick=function(){ set(true); banner.style.display='none'; upd(); if(window.__mbAnalytics&&typeof window.__mbAnalytics.enable==='function') window.__mbAnalytics.enable(); };
+    btnNo.onclick=function(){ set(false); banner.style.display='none'; upd(); if(window.__mbAnalytics&&typeof window.__mbAnalytics.disable==='function') window.__mbAnalytics.disable(); };
+    if(btnOut){
+      var nb = btnOut.cloneNode(true);
+      btnOut.parentNode.replaceChild(nb, btnOut);
+      btnOut = nb;
+      btnOut.onclick=function(){
+        var c2 = get();
+        var on = c2===true;
+        set(!on);
+        banner.style.display='none';
+        upd();
+        if(window.__mbAnalytics){
+          if(on && typeof window.__mbAnalytics.disable==='function') window.__mbAnalytics.disable();
+          if(!on && typeof window.__mbAnalytics.enable==='function') window.__mbAnalytics.enable();
+        }
+      };
+    }
+  })();
 
   // Referenz auf statische Daten aus app-base.js
   var choice      = MB.choice;

@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v251">
+<meta name="app-version" content="v252">
 <title>Mathe mit Andybrandy – Mathe üben für die Mittelschule</title>
 <meta name="description" content="Mathe üben nach dem österreichischen Lehrplan (AHS/MS 2023): 66 Übungstypen, 3 Schwierigkeitsstufen, Tipp-System, Wissensgarten & Eulenhain. Kostenlos und ohne Werbung.">
 <link rel="canonical" href="https://mathemit.andybrandy.at/">
@@ -155,9 +155,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style-base.css?v=251">
-<link rel="stylesheet" href="style-active.css?v=251">
-<link rel="stylesheet" href="style-info.css?v=251">
+<link rel="stylesheet" href="style-base.css?v=252">
+<link rel="stylesheet" href="style-active.css?v=252">
+<link rel="stylesheet" href="style-info.css?v=252">
 </head>
 <body>
   <!--
@@ -364,14 +364,14 @@
 
 </div>
 
-<script src="app-base.js?v=251"></script>
-<script src="app-active.js?v=251"></script>
+<script src="app-base.js?v=252"></script>
+<script src="app-active.js?v=252"></script>
 
 <!-- ============================================================
      P8.3 — Indexierbarer Info-Abschnitt ("Was die App abdeckt").
      Bewusst sichtbarer Dokumentfluss (KEIN display:none), damit Google &
      KI-Crawler den Inhalt als echten Seiten-Content lesen. Inhalte spiegeln
-     die 6 Kompetenz-Bäume (GARTEN_BEREICHE) und CURRICULUM_MAP in app-base.js?v=251.
+     die 6 Kompetenz-Bäume (GARTEN_BEREICHE) und CURRICULUM_MAP in app-base.js?v=252.
      ============================================================ -->
 <section class="info-section" aria-labelledby="infoTitle">
   <div class="info-inner">
@@ -524,7 +524,7 @@
 </section>
 
 <footer class="app-version">
-  <span class="ver" id="appVersion">v251</span>
+  <span class="ver" id="appVersion">v252</span>
   <span style="margin-left:.6rem; font-size:.75rem; opacity:.75;" class="footer-links">
     <button type="button" class="footer-link" data-legal="datenschutz.html" data-title="Datenschutzerklärung">Datenschutz</button> ·
     <button type="button" class="footer-link" data-legal="impressum.html" data-title="Impressum">Impressum</button> ·
@@ -591,7 +591,7 @@
   }
 </style>
 
-<!-- DSGVO Consent Banner Logic – standalone, unabhängig von app-active.js?v=251 und Service Worker -->
+<!-- DSGVO Consent Banner + Footer-Toggle – einzige Implementierung, keine Abhängigkeiten -->
 <script>
 (function(){
   var KEY = 'mathemit_analytics_enabled';
@@ -600,76 +600,30 @@
   var btnNo = document.getElementById('btnConsentNo');
   var btnOptOut = document.getElementById('btnAnalyticsOptOut');
 
-  if(!banner || !btnYes || !btnNo) return;
+  if(!banner || !btnYes || !btnNo || !btnOptOut) return;
 
-  function getConsent(){
-    try{
-      var raw = localStorage.getItem(KEY);
-      if(raw === null) return null;
-      return JSON.parse(raw);
-    }catch(e){ return null; }
-  }
-  function setConsent(enabled){
-    try{ localStorage.setItem(KEY, JSON.stringify({enabled: enabled})); }catch(e){}
-  }
-  function updateToggle(){
-    if(!btnOptOut) return;
-    var enabled = getConsent();
-    var isOn = enabled === true;
-    btnOptOut.textContent = isOn ? 'Analyse: Ein' : 'Analyse: Aus';
-    btnOptOut.style.background = isOn ? '#16a34a' : '#334155';
-    btnOptOut.style.color = isOn ? '#fff' : '#cbd5e1';
-    btnOptOut.style.borderColor = isOn ? '#16a34a' : '#475569';
+  function get(){ try{ var r=localStorage.getItem(KEY); return r===null?null:JSON.parse(r); }catch(e){return null;} }
+  function set(e){ try{ localStorage.setItem(KEY, JSON.stringify({enabled:e})); }catch(e){} }
+  function upd(){
+    var on = get()===true;
+    btnOptOut.textContent   = on?'Analyse: Ein':'Analyse: Aus';
+    btnOptOut.style.background = on?'#16a34a':'#334155';
+    btnOptOut.style.color      = on?'#fff':'#cbd5e1';
+    btnOptOut.style.borderColor= on?'#16a34a':'#475569';
   }
 
-  var consent = getConsent();
-  if(consent === null){
-    banner.style.display = 'block';
-  } else {
-    banner.style.display = 'none';
-  }
-  updateToggle();
+  var c = get();
+  banner.style.display = c===null ? 'block' : 'none';
+  upd();
 
-  btnYes.addEventListener('click', function(){
-    setConsent(true);
-    banner.style.display = 'none';
-    updateToggle();
-    if(window.__mbAnalytics && typeof window.__mbAnalytics.enable === 'function'){
-      window.__mbAnalytics.enable();
-    }
-  });
-  btnNo.addEventListener('click', function(){
-    setConsent(false);
-    banner.style.display = 'none';
-    updateToggle();
-    if(window.__mbAnalytics && typeof window.__mbAnalytics.disable === 'function'){
-      window.__mbAnalytics.disable();
-    }
-  });
-  if(btnOptOut){
-    /* Alten Handler entfernen (Service Worker cached altes app-active.js?v=251) */
-    var newBtn = btnOptOut.cloneNode(true);
-    btnOptOut.parentNode.replaceChild(newBtn, btnOptOut);
-    btnOptOut = newBtn;
-    
-    newBtn.addEventListener('click', function(){
-      var c = getConsent();
-      var isOn = c === true;
-      if(isOn){
-        setConsent(false);
-        if(window.__mbAnalytics && typeof window.__mbAnalytics.disable === 'function'){
-          window.__mbAnalytics.disable();
-        }
-      } else {
-        setConsent(true);
-        if(window.__mbAnalytics && typeof window.__mbAnalytics.enable === 'function'){
-          window.__mbAnalytics.enable();
-        }
-      }
-      banner.style.display = 'none';
-      updateToggle();
-    });
-  }
+  btnYes.onclick=function(){ set(true); banner.style.display='none'; upd(); };
+  btnNo.onclick=function(){ set(false); banner.style.display='none'; upd(); };
+  btnOptOut.onclick=function(){
+    var c2 = get();
+    set(c2!==true);
+    banner.style.display='none';
+    upd();
+  };
 })();
 </script>
 </body>

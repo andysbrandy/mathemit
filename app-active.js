@@ -5,6 +5,7 @@
    ============================================================ */
 (function(){
   "use strict";
+  console.log('[APP-ACTIVE] IIFE gestartet, Version v247');
 
   // Referenz auf statische Daten aus app-base.js
   var choice      = MB.choice;

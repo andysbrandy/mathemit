@@ -35,7 +35,7 @@ const KERN = [
   "./style-base.css",
   "./style-active.css",
   "./app-base.js",
-  "./app-active.js",
+
   "./logo.svg",
   "./manifest.webmanifest",
   "./icon-192.png",

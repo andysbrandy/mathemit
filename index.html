@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v254">
+<meta name="app-version" content="v255">
 <title>Mathe mit Andybrandy – Mathe üben für die Mittelschule</title>
 <meta name="description" content="Mathe üben nach dem österreichischen Lehrplan (AHS/MS 2023): 66 Übungstypen, 3 Schwierigkeitsstufen, Tipp-System, Wissensgarten & Eulenhain. Kostenlos und ohne Werbung.">
 <link rel="canonical" href="https://mathemit.andybrandy.at/">
@@ -155,9 +155,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style-base.css?v=254">
-<link rel="stylesheet" href="style-active.css?v=254">
-<link rel="stylesheet" href="style-info.css?v=254">
+<link rel="stylesheet" href="style-base.css?v=255">
+<link rel="stylesheet" href="style-active.css?v=255">
+<link rel="stylesheet" href="style-info.css?v=255">
 </head>
 <body>
   <!--
@@ -364,14 +364,14 @@
 
 </div>
 
-<script src="app-base.js?v=254"></script>
-<script src="app-active.js?v=254"></script>
+<script src="app-base.js?v=255"></script>
+<script src="app-active.js?v=255"></script>
 
 <!-- ============================================================
      P8.3 — Indexierbarer Info-Abschnitt ("Was die App abdeckt").
      Bewusst sichtbarer Dokumentfluss (KEIN display:none), damit Google &
      KI-Crawler den Inhalt als echten Seiten-Content lesen. Inhalte spiegeln
-     die 6 Kompetenz-Bäume (GARTEN_BEREICHE) und CURRICULUM_MAP in app-base.js?v=254.
+     die 6 Kompetenz-Bäume (GARTEN_BEREICHE) und CURRICULUM_MAP in app-base.js?v=255.
      ============================================================ -->
 <section class="info-section" aria-labelledby="infoTitle">
   <div class="info-inner">
@@ -524,7 +524,7 @@
 </section>
 
 <footer class="app-version">
-  <span class="ver" id="appVersion">v254</span>
+  <span class="ver" id="appVersion">v255</span>
   <span style="margin-left:.6rem; font-size:.75rem; opacity:.75;" class="footer-links">
     <button type="button" class="footer-link" data-legal="datenschutz.html" data-title="Datenschutzerklärung">Datenschutz</button> ·
     <button type="button" class="footer-link" data-legal="impressum.html" data-title="Impressum">Impressum</button> ·
@@ -591,37 +591,77 @@
   }
 </style>
 
-<!-- DSGVO Consent Banner + Footer-Toggle – einzige Implementierung, keine Abhängigkeiten -->
+<!-- DSGVO Consent Banner + Footer-Toggle – einzige Implementierung, keine Abhängigkeiten.
+     Erkennt automatisch, ob localStorage beschreibbar ist (Safari Privatmodus blockiert es).
+     Falls nicht: Entscheidung nur für die aktuelle Sitzung im Speicher halten. -->
 <script>
 (function(){
-  var KEY = 'mathemit_analytics_enabled';
+  var KEY = 'mathemit_consent_v1';
   var banner = document.getElementById('consentBanner');
   var btnYes = document.getElementById('btnConsentYes');
-  var btnNo = document.getElementById('btnConsentNo');
-  var btnOptOut = document.getElementById('btnAnalyticsOptOut');
+  var btnNo  = document.getElementById('btnConsentNo');
+  var btnOut = document.getElementById('btnAnalyticsOptOut');
 
-  if(!banner || !btnYes || !btnNo || !btnOptOut) return;
+  if(!banner || !btnYes || !btnNo || !btnOut) return;
 
-  function get(){ try{ var r=localStorage.getItem(KEY); return r===null?null:JSON.parse(r); }catch(e){return null;} }
-  function set(e){ try{ localStorage.setItem(KEY, JSON.stringify({enabled:e})); }catch(e){} }
-  function upd(){
-    var on = get()===true;
-    btnOptOut.textContent   = on?'Analyse: Ein':'Analyse: Aus';
-    btnOptOut.style.background = on?'#16a34a':'#334155';
-    btnOptOut.style.color      = on?'#fff':'#cbd5e1';
-    btnOptOut.style.borderColor= on?'#16a34a':'#475569';
+  /* ---- Prüfen ob localStorage überhaupt beschreibbar ist ---- */
+  function storageWorks(){
+    try{
+      var test = '__mathemit_storage_test__';
+      localStorage.setItem(test, test);
+      localStorage.removeItem(test);
+      return true;
+    }catch(e){
+      return false;
+    }
   }
 
+  var useStorage = storageWorks();
+  var consentInMemory = null;   /* Fallback für Safari Privatmodus */
+
+  function get(){
+    if(useStorage){
+      try{ var r = localStorage.getItem(KEY); return r === null ? null : r; }catch(e){ return null; }
+    }
+    return consentInMemory;
+  }
+
+  function set(val){
+    if(useStorage){
+      try{ localStorage.setItem(KEY, val); }catch(e){}
+    } else {
+      consentInMemory = val;
+    }
+  }
+
+  function upd(){
+    var on = get() === 'granted';
+    btnOut.textContent   = on ? 'Analyse: Ein' : 'Analyse: Aus';
+    btnOut.style.background = on ? '#16a34a' : '#334155';
+    btnOut.style.color      = on ? '#fff' : '#cbd5e1';
+    btnOut.style.borderColor= on ? '#16a34a' : '#475569';
+  }
+
+  /* ---- Initial ---- */
   var c = get();
-  banner.style.display = c===null ? 'block' : 'none';
+  banner.style.display = c === null ? 'block' : 'none';
   upd();
 
-  btnYes.onclick=function(){ set(true); banner.style.display='none'; upd(); };
-  btnNo.onclick=function(){ set(false); banner.style.display='none'; upd(); };
-  btnOptOut.onclick=function(){
-    var c2 = get();
-    set(c2!==true);
-    banner.style.display='none';
+  /* ---- Click-Handler ---- */
+  btnYes.onclick = function(){
+    set('granted');
+    banner.style.display = 'none';
+    upd();
+  };
+  btnNo.onclick = function(){
+    set('denied');
+    banner.style.display = 'none';
+    upd();
+  };
+  btnOut.onclick = function(){
+    var cur = get();
+    set(cur === 'granted' ? 'denied' : 'granted');
+    banner.style.display = 'none';
     upd();
   };
 })();

@@ -37,8 +37,96 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET') {
     exit;
 }
 
+$view = $_GET['view'] ?? 'overview';
+
 try {
     $pdo = get_db();
+
+    // ========== VIEW: errors ==========
+    if ($view === 'errors') {
+        $stmt = $pdo->prepare(
+            'SELECT e.id, e.event_type, e.event_data, e.timestamp, e.duration_ms,
+                    s.id AS session_id, s.device_type, s.browser, s.current_generator
+             FROM analytics_events e
+             LEFT JOIN analytics_sessions s ON e.session_id = s.id
+             WHERE e.event_type = :type
+             ORDER BY e.timestamp DESC
+             LIMIT 100'
+        );
+        $stmt->execute([':type' => 'error']);
+        $errors = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $errors[] = [
+                'id' => (int)$row['id'],
+                'event_type' => $row['event_type'],
+                'event_data' => $row['event_data'] ? json_decode($row['event_data'], true) : null,
+                'timestamp' => $row['timestamp'],
+                'duration_ms' => $row['duration_ms'],
+                'session_id' => $row['session_id'],
+                'device_type' => $row['device_type'],
+                'browser' => $row['browser'],
+                'current_generator' => $row['current_generator'],
+            ];
+        }
+        echo json_encode(['view' => 'errors', 'count' => count($errors), 'errors' => $errors], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // ========== VIEW: sessions ==========
+    if ($view === 'sessions') {
+        $stmt = $pdo->prepare(
+            'SELECT id AS session_id, started_at, last_seen, ended_at, duration_ms,
+                    device_type, browser, country, current_generator, ip_hash
+             FROM analytics_sessions
+             WHERE started_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+             ORDER BY started_at DESC
+             LIMIT 200'
+        );
+        $stmt->execute();
+        $sessions = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $sessions[] = [
+                'session_id' => $row['session_id'],
+                'started_at' => $row['started_at'],
+                'last_seen' => $row['last_seen'],
+                'ended_at' => $row['ended_at'],
+                'duration_ms' => $row['duration_ms'],
+                'duration_min' => $row['duration_ms'] !== null ? round($row['duration_ms'] / 60000, 1) : null,
+                'device_type' => $row['device_type'],
+                'browser' => $row['browser'],
+                'country' => $row['country'],
+                'current_generator' => $row['current_generator'],
+                'ip_hash' => $row['ip_hash'] !== null ? substr($row['ip_hash'], 0, 16) . '…' : null,
+            ];
+        }
+        echo json_encode(['view' => 'sessions', 'count' => count($sessions), 'sessions' => $sessions], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // ========== VIEW: events ==========
+    if ($view === 'events') {
+        $stmt = $pdo->prepare(
+            'SELECT event_type, COUNT(*) AS cnt,
+                    ROUND(AVG(duration_ms), 1) AS avg_duration_ms
+             FROM analytics_events
+             WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+             GROUP BY event_type
+             ORDER BY cnt DESC'
+        );
+        $stmt->execute();
+        $events = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $events[] = [
+                'event_type' => $row['event_type'],
+                'count' => (int)$row['cnt'],
+                'avg_duration_ms' => $row['avg_duration_ms'] !== null ? (float)$row['avg_duration_ms'] : null,
+            ];
+        }
+        echo json_encode(['view' => 'events', 'count' => count($events), 'events' => $events], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // ========== VIEW: overview (Standard) ==========
 
     // 1. Online-User: Sessions mit last_seen in den letzten 5 Minuten
     $stmt = $pdo->prepare(

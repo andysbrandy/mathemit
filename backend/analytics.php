@@ -116,7 +116,8 @@ try {
             'chip_click', 'chip_hover', 'exercise_start', 'exercise_end',
             'hint_shown', 'answer_submitted', 'answer_correct', 'answer_wrong',
             'repeat_chip_used', 'focus_chip_set', 'consent_changed',
-            'theme_switch', 'difficulty_change', 'page_view', 'error'
+            'theme_switch', 'difficulty_change', 'page_view', 'error',
+            'session_start', 'session_end', 'click', 'navigation'
         ];
         if (!in_array($eventType, $allowedTypes, true)) {
             $eventType = 'unknown';

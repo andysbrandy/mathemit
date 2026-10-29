@@ -50,80 +50,45 @@ var state = {
 };
 var missByGen = {}, hitByGen = {}; // P2.2: Fehler-/Treffer-Serien je Übungstyp (Session)
 
-/* ============ Analytics-Client (P9) ============ */
-// Nur aktivieren wenn Nutzer Consent gegeben hat (gespeichert in localStorage)
+/* ============ Analytics-Client (P9.2) ============ */
+// Umfassendes client-seitiges Event-Tracking für Lern-Analytics.
+// Trackt lückenlos die gesamte User Journey: Sessions, Page Views, Klicks,
+// Übungen, Navigation, Fehler. Events werden gebatcht und periodisch
+// an /backend/analytics.php gesendet. Consent-Key: mathemit_consent_v1
 (function() {
-  var ANALYTICS_ENABLED_KEY = 'mathemit_analytics_enabled';
-  var ANALYTICS_URL = '/backend/analytics.php';
-  var startedAt = Date.now();
-
-  function getConsentState() {
-    try {
-      var raw = localStorage.getItem(ANALYTICS_ENABLED_KEY);
-      if (raw !== null) return JSON.parse(raw);
-    } catch(e) {}
-    return { enabled: null, consentTimestamp: null };
+  "use strict";
+  var CONSENT_KEY      = 'mathemit_consent_v1';
+  var ANALYTICS_URL    = '/backend/analytics.php';
+  var HEARTBEAT_URL    = '/backend/analytics_heartbeat.php';
+  var HEARTBEAT_INTERVAL = 30000;
+  var FLUSH_INTERVAL     = 10000;
+  var MAX_QUEUE_SIZE     = 50;
+  var sessionId       = null;
+  var sessionStartMs  = null;
+  var pageStartMs     = null;
+  var currentPage     = null;
+  var eventQueue      = [];
+  var flushTimer      = null;
+  var heartbeatTimer  = null;
+  var isEnabled       = false;
+  function nowUnix() { return Math.floor(Date.now() / 1000); }
+  function nowMs()   { return Date.now(); }
+  function getConsent() {
+    try { var raw = localStorage.getItem(CONSENT_KEY); return raw === null ? null : raw; } catch(e) { return null; }
   }
-
-  function setConsentState(state) {
-    try {
-      localStorage.setItem(ANALYTICS_ENABLED_KEY, JSON.stringify(state));
-    } catch(e) {}
-  }
-
-  function isAnalyticsEnabled() {
-    return getConsentState().enabled === true;
-  }
-
+  function setConsent(val) { try { localStorage.setItem(CONSENT_KEY, val); } catch(e) {} }
+  function isAnalyticsEnabled() { return getConsent() === 'granted'; }
   function generateSessionId() {
-    try {
-      var stored = localStorage.getItem('mathemit_session_id');
-      if (stored) return stored;
-    } catch(e) {}
+    try { var stored = localStorage.getItem('mathemit_session_id'); if (stored) return stored; } catch(e) {}
     var id = 'm' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9);
     try { localStorage.setItem('mathemit_session_id', id); } catch(e) {}
     return id;
   }
-
-  function sendEvent(eventType, eventData) {
-    var consent = getConsentState();
-    if (!consent.enabled) return;
-
-    var event = {
-      sessionId: generateSessionId(),
-      userId: null,
-      events: [{
-        type: eventType,
-        data: eventData,
-        timestamp: Math.floor(Date.now() / 1000),
-        durationMs: null
-      }]
-    };
-
-    // Sicheres POST ohne "referrer" / "origin" Headers
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', ANALYTICS_URL, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState === 4) {
-        // Fehler schweigt – niemals den UI-Flow unterbrechen
-        if (xhr.status >= 400) {
-          try { localStorage.setItem(ANALYTICS_ENABLED_KEY, JSON.stringify({enabled:false})); } catch(e) {}
-        }
-      }
-    };
-    xhr.send(JSON.stringify(event));
-  }
-
   function detectDeviceType() {
     var ua = navigator.userAgent || '';
-    if (/android|iphone|ipad|ipod|opera mini|webos/i.test(ua)) {
-      if (/android/i.test(ua)) return 'mobile';
-      return 'tablet';
-    }
+    if (/android|iphone|ipad|ipod|opera mini|webos/i.test(ua)) { if (/android/i.test(ua)) return 'mobile'; return 'tablet'; }
     return 'desktop';
   }
-
   function detectBrowser() {
     var ua = navigator.userAgent || '';
     if (/edg/i.test(ua)) return 'Edge';
@@ -133,69 +98,108 @@ var missByGen = {}, hitByGen = {}; // P2.2: Fehler-/Treffer-Serien je Übungstyp
     if (/opr/i.test(ua)) return 'Opera';
     return 'Unknown';
   }
-
-  // Exports für die Hauptfunktionen
-  window.__mbAnalytics = {
-    isEnabled: isAnalyticsEnabled,
-    getConsentState: getConsentState,
-    sendEvent: sendEvent,
-    enable: function() {
-      var state = getConsentState();
-      state.enabled = true;
-      state.consentTimestamp = Math.floor(Date.now() / 1000);
-      setConsentState(state);
-      sendEvent('consent_changed', { enabled: true, timestamp: state.consentTimestamp });
-      startHeartbeat();
-    },
-    disable: function() {
-      var state = getConsentState();
-      state.enabled = false;
-      state.consentTimestamp = null;
-      setConsentState(state);
-      sendEvent('consent_changed', { enabled: false });
-      stopHeartbeat();
-    }
-  };
-})();
+  function enqueue(eventType, eventData, durationMs) {
+    if (!isEnabled) return;
+    eventQueue.push({ type: eventType, data: eventData || null, timestamp: nowUnix(), durationMs: durationMs !== undefined ? durationMs : null });
+    if (eventQueue.length >= MAX_QUEUE_SIZE) flush();
+  }
+  function flush() {
+    if (!isEnabled || eventQueue.length === 0) return;
+    var batch = eventQueue.splice(0, eventQueue.length);
+    var payload = { sessionId: sessionId, userId: null, events: batch };
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', ANALYTICS_URL, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status >= 400) {
+        try { setConsent('denied'); isEnabled = false; stopFlushTimer(); stopHeartbeat(); } catch(e) {}
+      }
+    };
+    xhr.send(JSON.stringify(payload));
+  }
+  function startFlushTimer() { if (flushTimer !== null) return; flushTimer = setInterval(flush, FLUSH_INTERVAL); }
+  function stopFlushTimer() { if (flushTimer !== null) { clearInterval(flushTimer); flushTimer = null; } }
 
 /* ============ Heartbeat für Live-Dashboard ============ */
-// Sendet alle 30 Sekunden last_seen + current_generator an /analytics_heartbeat.php
-var heartbeatTimer = null;
-var HEARTBEAT_URL = '/backend/analytics_heartbeat.php';
-var HEARTBEAT_INTERVAL = 30000; // 30 Sekunden
-
 function sendHeartbeat() {
-  if (!isAnalyticsEnabled()) return;
-  var sessionId = generateSessionId();
+  if (!isEnabled) return;
   var currentGen = state.current ? (state.current.generator || null) : null;
-  var payload = {
-    sessionId: sessionId,
-    currentGenerator: currentGen,
-    timestamp: Math.floor(Date.now() / 1000)
-  };
   var xhr = new XMLHttpRequest();
   xhr.open('POST', HEARTBEAT_URL, true);
   xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.onreadystatechange = function() {
     if (xhr.readyState === 4 && xhr.status >= 400) {
-      try { localStorage.setItem(ANALYTICS_ENABLED_KEY, JSON.stringify({enabled:false})); } catch(e) {}
+      try { setConsent('denied'); isEnabled = false; stopFlushTimer(); stopHeartbeat(); } catch(e) {}
     }
   };
-  xhr.send(JSON.stringify(payload));
+  xhr.send(JSON.stringify({ sessionId: sessionId, currentGenerator: currentGen, timestamp: nowUnix() }));
 }
+function startHeartbeat() { if (heartbeatTimer !== null) return; sendHeartbeat(); heartbeatTimer = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL); }
+function stopHeartbeat() { if (heartbeatTimer !== null) { clearInterval(heartbeatTimer); heartbeatTimer = null; } }
 
-function startHeartbeat() {
-  if (heartbeatTimer !== null) return;
-  sendHeartbeat(); // sofort einmal senden
-  heartbeatTimer = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL);
-}
+/* ============ Öffentliche API: window.__mbAnalytics ============ */
+window.__mbAnalytics = {
+  isEnabled: function() { return isEnabled; },
+  getConsentState: function() { return { enabled: isEnabled, consentTimestamp: null }; },
+  logEvent: function(type, data) { enqueue(type, data); },
+  logExercise: function(action, data) {
+    var m = { start: 'exercise_start', end: 'exercise_end', hint: 'hint_shown', answer: 'answer_submitted' };
+    enqueue(m[action] || 'exercise_start', data);
+  },
+  logSession: function(action, data) {
+    if (action === 'start') enqueue('session_start', data);
+    else if (action === 'end') enqueue('session_end', data);
+  },
+  logPageView: function(path, data) { enqueue('page_view', Object.assign({ path: path }, data || {})); },
+  logClick: function(element, data) { enqueue('click', Object.assign({ element: element }, data || {})); },
+  enable: function() {
+    setConsent('granted'); isEnabled = true;
+    enqueue('consent_changed', { enabled: true, timestamp: nowUnix() });
+    startFlushTimer(); startHeartbeat(); flush();
+  },
+  disable: function() {
+    setConsent('denied'); isEnabled = false;
+    enqueue('consent_changed', { enabled: false, timestamp: nowUnix() });
+    stopFlushTimer(); stopHeartbeat(); flush();
+  },
+  sendEvent: function(type, data) { enqueue(type, data); }
+};
 
-function stopHeartbeat() {
-  if (heartbeatTimer !== null) {
-    clearInterval(heartbeatTimer);
-    heartbeatTimer = null;
+/* ============ Initialisierung ============ */
+function initAnalytics() {
+  sessionId = generateSessionId();
+  sessionStartMs = nowMs();
+  pageStartMs = nowMs();
+  currentPage = window.location.pathname;
+  isEnabled = isAnalyticsEnabled();
+  if (isEnabled) { startFlushTimer(); startHeartbeat(); }
+  enqueue('page_view', { path: currentPage, device: detectDeviceType(), browser: detectBrowser(), referrer: document.referrer || null });
+  enqueue('session_start', { device: detectDeviceType(), browser: detectBrowser(), screen: { w: screen.width, h: screen.height }, viewport: { w: window.innerWidth, h: window.innerHeight } });
+  document.addEventListener('click', function(evt) {
+    if (!isEnabled) return;
+    var el = evt.target;
+    while (el && el !== document.body) {
+      if (el.tagName === 'BUTTON' || el.tagName === 'A' || el.classList.contains('chip') || el.id) {
+        enqueue('click', { tag: el.tagName, id: el.id || null, className: el.className || null, text: (el.textContent || '').trim().substring(0, 100), x: evt.clientX, y: evt.clientY });
+        return;
+      }
+      el = el.parentElement;
+    }
+  }, true);
+  function endSession() {
+    if (!isEnabled) return;
+    enqueue('session_end', { durationMs: nowMs() - sessionStartMs });
+    flush(); stopFlushTimer(); stopHeartbeat();
   }
+  window.addEventListener('beforeunload', endSession);
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) endSession();
+    else { pageStartMs = nowMs(); currentPage = window.location.pathname; enqueue('page_view', { path: currentPage, device: detectDeviceType(), browser: detectBrowser() }); }
+  });
+  setTimeout(flush, 1000);
 }
+initAnalytics();
+})();
 
 
 

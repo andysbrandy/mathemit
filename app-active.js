@@ -461,6 +461,82 @@ function saveProgress(){
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }catch(e){ /* z. B. Privatmodus ohne Speicherzugriff - Fortschritt bleibt dann nur für diese Sitzung erhalten */ }
+  /* Fortschritt an Backend senden (wenn eingeloggt und online) */
+  if(getToken() && navigator.onLine){
+    saveProgressToAPI(data);
+  }
+}
+
+/* ============ Progress-Sync mit Backend (DB) ============ */
+/* Lädt Fortschritt vom Server nach erfolgreichem Login */
+function loadProgressFromAPI(token){
+  apiFetch('/progress.php', { method: 'GET' })
+    .then(function(res){
+      if(res.status === 'ok' && res.points !== undefined){
+        state.points      = res.points      || 0;
+        state.streak      = res.streak      || 0;
+        state.bestStreak  = res.best_streak || 0;
+        state.solved      = res.solved      || 0;
+        state.correct     = res.correct     || 0;
+        state.badges      = res.badges      || [];
+        state.mode        = res.mode        || 'alles';
+        state.grade       = res.grade       || 'all';
+        state.diff        = res.diff        || 2;
+        state.repeatQ     = sanitizeRepeatQ(res.repeat_q);
+        state.spaced      = spacedSanitize(res.spaced);
+        state.owls        = sanitizeOwls(res.owls);
+        ensureOwls();
+        state.weekly      = sanitizeWochen(res.weekly);
+        console.log('[mathemit] Progress vom Server geladen:', state.points, 'P', state.owls.length, 'Eulen');
+        /* In localStorage spiegeln, damit offline weiter nutzbar */
+        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(dataSnapshot())); }catch(e){}
+      } else {
+        console.log('[mathemit] Kein Fortschritt auf Server gefunden, starte mit Default');
+      }
+    }).catch(function(err){
+      console.warn('[mathemit] Progress laden vom Server fehlgeschlagen:', err.message);
+    });
+}
+
+/* Sendet Fortschritt an Backend (wird von saveProgress() aufgerufen) */
+function saveProgressToAPI(data){
+  apiFetch('/progress.php', {
+    method: 'POST',
+    body: {
+      points:      data.points,
+      streak:      data.streak,
+      best_streak: data.bestStreak,
+      solved:      data.solved,
+      correct:     data.correct,
+      badges:      data.badges,
+      spaced:      data.spaced,
+      owls:        data.owls,
+      goals:       data.weekly ? data.weekly.goals : null,
+      mode:        data.mode,
+      grade:       data.grade,
+      diff:        data.diff,
+      repeat_q:    data.repeatQ
+    }
+  }).then(function(res){
+    if(res.status === 'ok'){
+      console.log('[mathemit] Progress an Server gesendet');
+    } else {
+      console.warn('[mathemit] Progress senden fehlgeschlagen:', res.message);
+    }
+  }).catch(function(err){
+    console.warn('[mathemit] Progress senden fehlgeschlagen:', err.message);
+  });
+}
+
+/* Hilfsfunktion: erstellt Snapshot des aktuellen Fortschritts für localStorage */
+function dataSnapshot(){
+  return {
+    points:state.points, streak:state.streak, bestStreak:state.bestStreak,
+    solved:state.solved, correct:state.correct, badges:state.badges,
+    mode:state.mode, grade:state.grade, diff:state.diff,
+    repeatQ:state.repeatQ, owls:state.owls, weekly:state.weekly,
+    spaced:state.spaced
+  };
 }
 function loadProgress(){
   try{
@@ -2272,6 +2348,8 @@ function clearAuth() {
 
 // ---------- API Helper ----------
 function apiFetch(endpoint, options) {
+  options = options || {};
+  var method = options.method || 'POST';
   var headers = {
     'Content-Type': 'application/json'
   };
@@ -2285,9 +2363,9 @@ function apiFetch(endpoint, options) {
   var controller = new AbortController();
   var timeout = setTimeout(function() { controller.abort(); }, 8000);
   return fetch(API + endpoint, {
-    method: 'POST',
+    method: method,
     headers: headers,
-    body: options && options.body ? JSON.stringify(options.body) : null,
+    body: (method !== 'GET' && options.body) ? JSON.stringify(options.body) : null,
     signal: controller.signal
   }).then(function(res) {
     clearTimeout(timeout);

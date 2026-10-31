@@ -58,8 +58,8 @@ var missByGen = {}, hitByGen = {}; // P2.2: Fehler-/Treffer-Serien je Übungstyp
 (function() {
   "use strict";
   var CONSENT_KEY      = 'mathemit_consent_v1';
-  var ANALYTICS_URL    = '/backend/analytics.php';
-  var HEARTBEAT_URL    = '/backend/analytics_heartbeat.php';
+  var ANALYTICS_URL    = 'https://mapi.andybrandy.at/analytics.php';
+  var HEARTBEAT_URL    = 'https://mapi.andybrandy.at/analytics_heartbeat.php';
   var HEARTBEAT_INTERVAL = 30000;
   var FLUSH_INTERVAL     = 10000;
   var MAX_QUEUE_SIZE     = 50;

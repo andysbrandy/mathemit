@@ -131,6 +131,12 @@ try {
 
     } elseif ($method === 'POST') {
         $input = validate_json_body(65536);
+        if ($input === null && !empty($_POST)) {
+            /* Fallback für Browser, bei denen php://input leer bleibt
+             * (z. B. World4You/FastCGI bei Cross-Origin-POST mit Cookie).
+             * Dann lesen wir die Daten über $_POST. */
+            $input = $_POST;
+        }
         if ($input === null) {
             http_response_code(400);
             echo json_encode(['status' => 'error', 'message' => 'Request body required']);

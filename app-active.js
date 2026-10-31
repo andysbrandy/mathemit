@@ -2347,26 +2347,67 @@ function clearAuth() {
 }
 
 // ---------- API Helper ----------
+/* Sendet Daten per XMLHttpRequest mit application/x-www-form-urlencoded.
+   Das ist robuster als fetch mit JSON bei World4You/FastCGI, da hier
+   kein CORS-Preflight mit Authorization-Header Probleme macht und
+   php://input sowie $_POST beide befüllt werden. */
+function sendViaXHR(endpoint, body, token) {
+  return new Promise(function(resolve) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', API + endpoint, true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    if (token) {
+      xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+      xhr.setRequestHeader('X-API-Token', token);
+    }
+    var xhrTimeout = setTimeout(function() { xhr.abort(); }, 8000);
+    xhr.onload = function() {
+      clearTimeout(xhrTimeout);
+      try {
+        var data = JSON.parse(xhr.responseText) || { _httpStatus: xhr.status, status: 'ok' };
+        data._httpStatus = xhr.status;
+        resolve(data);
+      } catch(e) {
+        resolve({ _httpStatus: xhr.status, status: 'error', message: 'Invalid response' });
+      }
+    };
+    xhr.onerror = function() {
+      clearTimeout(xhrTimeout);
+      resolve({ _httpStatus: 0, status: 'error', message: 'Netzwerkfehler (XHR)' });
+    };
+    var params = [];
+    for (var key in body) {
+      if (body.hasOwnProperty(key)) {
+        var val = body[key];
+        if (typeof val === 'object') val = JSON.stringify(val);
+        params.push(encodeURIComponent(key) + '=' + encodeURIComponent(val));
+      }
+    }
+    xhr.send(params.join('&'));
+  });
+}
+
 function apiFetch(endpoint, options) {
   options = options || {};
   var method = options.method || 'POST';
+  var token = getToken();
   var headers = {
     'Content-Type': 'application/json'
   };
-  var token = getToken();
   if (token) {
     headers['Authorization'] = 'Bearer ' + token;
-    /* World4You (FastCGI) streicht den Authorization-Header, bevor PHP ihn sieht.
-       Der Custom-Header X-API-Token kommt an und wird von security.php akzeptiert. */
     headers['X-API-Token'] = token;
   }
   var controller = new AbortController();
   var timeout = setTimeout(function() { controller.abort(); }, 8000);
+  var bodyJson = (method !== 'GET' && options.body) ? JSON.stringify(options.body) : null;
+
   return fetch(API + endpoint, {
     method: method,
     headers: headers,
-    body: (method !== 'GET' && options.body) ? JSON.stringify(options.body) : null,
-    signal: controller.signal
+    body: bodyJson,
+    signal: controller.signal,
+    credentials: 'same-origin'
   }).then(function(res) {
     clearTimeout(timeout);
     return res.json().then(function(data) {
@@ -2377,8 +2418,13 @@ function apiFetch(endpoint, options) {
     });
   }).catch(function(err) {
     clearTimeout(timeout);
+    /* Bei JEDEM Fehler (CORS, 400, Netzwerk, etc.) auf XHR-Fallback ausweichen.
+       Safari blockiert fetch mit Authorization-Header oft wegen CORS-Preflight. */
     if (err.name === 'AbortError') {
       return { _httpStatus: 0, status: 'error', message: 'Zeitüberschreitung – bitte erneut versuchen.' };
+    }
+    if (method !== 'GET' && options.body) {
+      return sendViaXHR(endpoint, options.body, token);
     }
     return { _httpStatus: 0, status: 'error', message: 'Netzwerkfehler' };
   });

@@ -78,6 +78,20 @@ var missByGen = {}, hitByGen = {}; // P2.2: Fehler-/Treffer-Serien je Übungstyp
   }
   function setConsent(val) { try { localStorage.setItem(CONSENT_KEY, val); } catch(e) {} }
   function isAnalyticsEnabled() { return getConsent() === 'granted'; }
+  function detectDeviceType() {
+    var ua = navigator.userAgent || '';
+    if (/android|iphone|ipad|ipod|opera mini|webos/i.test(ua)) { if (/android/i.test(ua)) return 'mobile'; return 'tablet'; }
+    return 'desktop';
+  }
+  function detectBrowser() {
+    var ua = navigator.userAgent || '';
+    if (/edg/i.test(ua)) return 'Edge';
+    if (/chrome/i.test(ua) && /opr/i.test(ua) === false) return 'Chrome';
+    if (/firefox/i.test(ua)) return 'Firefox';
+    if (/safari/i.test(ua) && /chrome/i.test(ua) === false) return 'Safari';
+    if (/opr/i.test(ua)) return 'Opera';
+    return 'Unknown';
+  }
   function generateSessionId() {
     try { var stored = localStorage.getItem('mathemit_session_id'); if (stored) return stored; } catch(e) {}
     var id = 'm' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9);
@@ -461,8 +475,8 @@ function saveProgress(){
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }catch(e){ /* z. B. Privatmodus ohne Speicherzugriff - Fortschritt bleibt dann nur für diese Sitzung erhalten */ }
-  /* Fortschritt an Backend senden (wenn eingeloggt und online) */
-  if(getToken() && navigator.onLine){
+  /* Fortschritt an Backend senden (wenn eingeloggt; bei Offline in lokale Warteschlange) */
+  if(getToken()){
     saveProgressToAPI(data);
   }
 }
@@ -498,33 +512,72 @@ function loadProgressFromAPI(token){
     });
 }
 
-/* Sendet Fortschritt an Backend (wird von saveProgress() aufgerufen) */
+/* ---------- Lokaler Pending-Queue für Progress-Sync (Offline-Fallback) ---------- */
+var PROGRESS_PENDING_KEY = 'formenwerkstatt_progress_pending_v1';
+
+function progressPendingRead(){
+  try{ var raw = localStorage.getItem(PROGRESS_PENDING_KEY); return raw ? JSON.parse(raw) : null; }catch(e){ return null; }
+}
+function progressPendingWrite(payload){
+  try{ localStorage.setItem(PROGRESS_PENDING_KEY, JSON.stringify(payload)); }catch(e){}
+}
+function progressPendingClear(){
+  try{ localStorage.removeItem(PROGRESS_PENDING_KEY); }catch(e){}
+}
+
+/* Sendet Fortschritt an Backend mit Retry (3 Versuche, Backoff) + lokaler Warteschlange */
 function saveProgressToAPI(data){
-  apiFetch('/progress.php', {
-    method: 'POST',
-    body: {
-      points:      data.points,
-      streak:      data.streak,
-      best_streak: data.bestStreak,
-      solved:      data.solved,
-      correct:     data.correct,
-      badges:      data.badges,
-      spaced:      data.spaced,
-      owls:        data.owls,
-      goals:       data.weekly ? data.weekly.goals : null,
-      mode:        data.mode,
-      grade:       data.grade,
-      diff:        data.diff,
-      repeat_q:    data.repeatQ
+  var payload = {
+    points:      data.points,
+    streak:      data.streak,
+    best_streak: data.bestStreak,
+    solved:      data.solved,
+    correct:     data.correct,
+    badges:      data.badges,
+    spaced:      data.spaced,
+    owls:        data.owls,
+    goals:       data.weekly ? data.weekly.goals : null,
+    mode:        data.mode,
+    grade:       data.grade,
+    diff:        data.diff,
+    repeat_q:    data.repeatQ,
+    timestamp:   Date.now()
+  };
+  function attempt(tryCount){
+    if(tryCount > 3){
+      progressPendingWrite(payload);
+      console.warn('[mathemit] Progress in lokale Warteschlange geschrieben (nach 3 fehlgeschlagenen Versuchen)');
+      return;
     }
-  }).then(function(res){
+    apiFetch('/progress.php', { method: 'POST', body: payload }).then(function(res){
+      if(res.status === 'ok'){
+        console.log('[mathemit] Progress an Server gesendet');
+        progressPendingClear();
+      } else {
+        console.warn('[mathemit] Progress senden fehlgeschlagen (Versuch ' + tryCount + '):', res.message);
+        setTimeout(function(){ attempt(tryCount + 1); }, tryCount === 1 ? 2000 : 5000 );
+      }
+    }).catch(function(err){
+      console.warn('[mathemit] Progress senden fehlgeschlagen (Versuch ' + tryCount + '):', err.message);
+      setTimeout(function(){ attempt(tryCount + 1); }, tryCount === 1 ? 2000 : 5000 );
+    });
+  }
+  attempt(1);
+}
+
+/* Verarbeitet ausstehende Einträge im lokalen Queue bei Wiederverbindung */
+function processProgressQueue(){
+  var pending = progressPendingRead();
+  if(!pending) return;
+  apiFetch('/progress.php', { method: 'POST', body: pending }).then(function(res){
     if(res.status === 'ok'){
-      console.log('[mathemit] Progress an Server gesendet');
+      progressPendingClear();
+      console.log('[mathemit] Warteschlange: Progress nachgesendet');
     } else {
-      console.warn('[mathemit] Progress senden fehlgeschlagen:', res.message);
+      console.warn('[mathemit] Warteschlange: Nachsenden fehlgeschlagen:', res.message);
     }
   }).catch(function(err){
-    console.warn('[mathemit] Progress senden fehlgeschlagen:', err.message);
+    console.warn('[mathemit] Warteschlange: Nachsenden fehlgeschlagen:', err.message);
   });
 }
 
@@ -566,6 +619,11 @@ function resetProgress(){
 }
 
 loadProgress();
+
+/* Bei Wiederverbindung: ausstehende Fortschritt-Einträge nachsenden */
+window.addEventListener('online', function(){
+  processProgressQueue();
+});
 
 /* ============ Rendering ============ */
 var chipsHost = document.getElementById("chips");

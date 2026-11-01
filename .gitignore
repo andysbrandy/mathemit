@@ -3,6 +3,10 @@
 /backend/**/config.php
 /backend/logs/
 
+# Lokale Dokumentation/Kontext — nicht ins Repository commiten
+SETUP.md
+SETUP_NICHT_COMMITTEN.md
+
 # Generated content pipeline artifacts (source code remains versioned)
 /content-pipeline/node_modules/
 /content-pipeline/output/

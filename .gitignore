@@ -7,6 +7,9 @@
 SETUP.md
 SETUP_NICHT_COMMITTEN.md
 
+# Backup-Dateien niemals tracken
+*.bak
+
 # Generated content pipeline artifacts (source code remains versioned)
 /content-pipeline/node_modules/
 /content-pipeline/output/

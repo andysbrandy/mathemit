@@ -32,17 +32,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
 }
 
 // JSON-Body validieren
-$raw = file_get_contents('php://input');
-if ($raw === false || strlen($raw) === 0) {
+require_once __DIR__ . '/security.php';
+$data = validate_json_body(1024);
+if ($data === null) {
     http_response_code(400);
-    echo json_encode(['status' => 'error', 'message' => 'Request body required']);
-    exit;
-}
-
-$data = json_decode($raw, true);
-if (json_last_error() !== JSON_ERROR_NONE || !is_array($data)) {
-    http_response_code(400);
-    echo json_encode(['status' => 'error', 'message' => 'Invalid JSON']);
+    echo json_encode(['status' => 'error', 'message' => 'Request body required or invalid JSON']);
     exit;
 }
 

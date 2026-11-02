@@ -4,7 +4,7 @@
  * erreichbar ist und CORS korrekt konfiguriert ist – bevor irgendeine
  * echte Logik (Login, Registrierung, Fortschritt) dazukommt.
  *
- * Aufruf: GET https://api.andybrandy.at/ping.php
+ * Aufruf: GET https://mapi.andybrandy.at/ping.php
  * Erwartete Antwort bei Erfolg: {"status":"ok","db":"connected"}
  */
 

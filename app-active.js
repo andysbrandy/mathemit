@@ -50,6 +50,22 @@ var state = {
 };
 var missByGen = {}, hitByGen = {}; // P2.2: Fehler-/Treffer-Serien je Übungstyp (Session)
 
+/* ---------- Hilfsfunktionen: Gerät/Browser erkennen (außerhalb des Analytics-IIFE) ---------- */
+function detectDeviceType() {
+  var ua = navigator.userAgent || '';
+  if (/android|iphone|ipad|ipod|opera mini|webos/i.test(ua)) { if (/android/i.test(ua)) return 'mobile'; return 'tablet'; }
+  return 'desktop';
+}
+function detectBrowser() {
+  var ua = navigator.userAgent || '';
+  if (/edg/i.test(ua)) return 'Edge';
+  if (/chrome/i.test(ua) && /opr/i.test(ua) === false) return 'Chrome';
+  if (/firefox/i.test(ua)) return 'Firefox';
+  if (/safari/i.test(ua) && /chrome/i.test(ua) === false) return 'Safari';
+  if (/opr/i.test(ua)) return 'Opera';
+  return 'Unknown';
+}
+
 /* ============ Analytics-Client (P9.2) ============ */
 // Umfassendes client-seitiges Event-Tracking für Lern-Analytics.
 // Trackt lückenlos die gesamte User Journey: Sessions, Page Views, Klicks,
@@ -78,20 +94,6 @@ var missByGen = {}, hitByGen = {}; // P2.2: Fehler-/Treffer-Serien je Übungstyp
   }
   function setConsent(val) { try { localStorage.setItem(CONSENT_KEY, val); } catch(e) {} }
   function isAnalyticsEnabled() { return getConsent() === 'granted'; }
-  function detectDeviceType() {
-    var ua = navigator.userAgent || '';
-    if (/android|iphone|ipad|ipod|opera mini|webos/i.test(ua)) { if (/android/i.test(ua)) return 'mobile'; return 'tablet'; }
-    return 'desktop';
-  }
-  function detectBrowser() {
-    var ua = navigator.userAgent || '';
-    if (/edg/i.test(ua)) return 'Edge';
-    if (/chrome/i.test(ua) && /opr/i.test(ua) === false) return 'Chrome';
-    if (/firefox/i.test(ua)) return 'Firefox';
-    if (/safari/i.test(ua) && /chrome/i.test(ua) === false) return 'Safari';
-    if (/opr/i.test(ua)) return 'Opera';
-    return 'Unknown';
-  }
   function generateSessionId() {
     try { var stored = localStorage.getItem('mathemit_session_id'); if (stored) return stored; } catch(e) {}
     var id = 'm' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9);
@@ -121,15 +123,14 @@ var missByGen = {}, hitByGen = {}; // P2.2: Fehler-/Treffer-Serien je Übungstyp
     if (!isEnabled || eventQueue.length === 0) return;
     var batch = eventQueue.splice(0, eventQueue.length);
     var payload = { sessionId: sessionId, userId: null, events: batch };
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', ANALYTICS_URL, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState === 4 && xhr.status >= 400) {
+    apiFetch(ANALYTICS_URL, { method: 'POST', body: payload }).then(function(res){
+      if(res.status !== 'ok' && res._httpStatus >= 400) {
         try { setConsent('denied'); isEnabled = false; stopFlushTimer(); stopHeartbeat(); } catch(e) {}
       }
-    };
-    xhr.send(JSON.stringify(payload));
+    }).catch(function(err){
+      // Bei Netzwerkfehler: Events verbleiben in der Queue und werden beim nächsten flush-Versuch erneut gesendet
+      console.warn('[mathemit] Analytics-Flush fehlgeschlagen:', err.message);
+    });
   }
   function startFlushTimer() { if (flushTimer !== null) return; flushTimer = setInterval(flush, FLUSH_INTERVAL); }
   function stopFlushTimer() { if (flushTimer !== null) { clearInterval(flushTimer); flushTimer = null; } }
@@ -138,15 +139,13 @@ var missByGen = {}, hitByGen = {}; // P2.2: Fehler-/Treffer-Serien je Übungstyp
 function sendHeartbeat() {
   if (!isEnabled) return;
   var currentGen = state.current ? (state.current.generator || null) : null;
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', HEARTBEAT_URL, true);
-  xhr.setRequestHeader('Content-Type', 'application/json');
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState === 4 && xhr.status >= 400) {
+  apiFetch(HEARTBEAT_URL, { method: 'POST', body: { sessionId: sessionId, currentGenerator: currentGen, timestamp: nowUnix() } }).then(function(res){
+    if(res.status !== 'ok' && res._httpStatus >= 400) {
       try { setConsent('denied'); isEnabled = false; stopFlushTimer(); stopHeartbeat(); } catch(e) {}
     }
-  };
-  xhr.send(JSON.stringify({ sessionId: sessionId, currentGenerator: currentGen, timestamp: nowUnix() }));
+  }).catch(function(err){
+    console.warn('[mathemit] Heartbeat fehlgeschlagen:', err.message);
+  });
 }
 function startHeartbeat() { if (heartbeatTimer !== null) return; sendHeartbeat(); heartbeatTimer = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL); }
 function stopHeartbeat() { if (heartbeatTimer !== null) { clearInterval(heartbeatTimer); heartbeatTimer = null; } }
@@ -2405,15 +2404,14 @@ function clearAuth() {
 }
 
 // ---------- API Helper ----------
-/* Sendet Daten per XMLHttpRequest mit application/x-www-form-urlencoded.
-   Das ist robuster als fetch mit JSON bei World4You/FastCGI, da hier
-   kein CORS-Preflight mit Authorization-Header Probleme macht und
-   php://input sowie $_POST beide befüllt werden. */
+/* Sendet Daten per XMLHttpRequest mit application/json.
+   XHR-Fallback für fetch bei CORS-Problemen (Safari/World4You).
+   php://input erhält gültiges JSON für progress.php etc. */
 function sendViaXHR(endpoint, body, token) {
   return new Promise(function(resolve) {
     var xhr = new XMLHttpRequest();
     xhr.open('POST', API + endpoint, true);
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.setRequestHeader('Content-Type', 'application/json');
     if (token) {
       xhr.setRequestHeader('Authorization', 'Bearer ' + token);
       xhr.setRequestHeader('X-API-Token', token);
@@ -2433,15 +2431,7 @@ function sendViaXHR(endpoint, body, token) {
       clearTimeout(xhrTimeout);
       resolve({ _httpStatus: 0, status: 'error', message: 'Netzwerkfehler (XHR)' });
     };
-    var params = [];
-    for (var key in body) {
-      if (body.hasOwnProperty(key)) {
-        var val = body[key];
-        if (typeof val === 'object') val = JSON.stringify(val);
-        params.push(encodeURIComponent(key) + '=' + encodeURIComponent(val));
-      }
-    }
-    xhr.send(params.join('&'));
+    xhr.send(JSON.stringify(body));
   });
 }
 

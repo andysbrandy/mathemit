@@ -3406,6 +3406,17 @@
     einkauf:    ["BILLA","Hofer","Spar","Lidl","Merkur","Interspar","Penny"],
     lebensmittel:["Semmel","Weckerl","Leberkäse","Mozartkugel","Sachertorte","Apfelstrudel","Kaiserschmarrn","Würstel","Breze","Kipferl","Manner-Schnitten","Milch","Butter","Topfen"],
     produkte:   ["Hauptschulheft","Lineatur-3-Heft","Bleistift","Füllfeder","Geodreieck","Zirkel","Taschenrechner","Turnbeutel","Turnpatscherl"],
+    produktePlural:{
+      "Hauptschulheft":     "Hauptschulhefte",
+      "Lineatur-3-Heft":    "Lineatur-3-Hefte",
+      "Bleistift":          "Bleistifte",
+      "Füllfeder":          "Füllfedern",
+      "Geodreieck":         "Geodreiecke",
+      "Zirkel":             "Zirkel",
+      "Taschenrechner":     "Taschenrechner",
+      "Turnbeutel":         "Turnbeutel",
+      "Turnpatscherl":      "Turnpatscherl"
+    },
     aktivitaeten:["Wandern","Schifahren","Rodeln","Schwimmen","Radfahren","Klettern","Eislaufen","Spielen am Spielplatz"],
     saisonales:{
       winter:["Punsch","Glühwein","Christkindlmarkt","Schneemann","Skikurs","Rodeln","Adventkranz"],
@@ -3734,7 +3745,9 @@ function genKreisdiagramm(diff){
   function genTextaufgabeSchulheft(diff){
     diff = diff || 2;
     var name = choice(AUSTRIA.vornamen);
-    var produkt = choice(AUSTRIA.produkte);
+    var produktSingular = choice(AUSTRIA.produkte);
+    var produktPlural   = AUSTRIA.produktePlural[produktSingular] || produktSingular+"e";
+    var produktAnzeige  = anzahlBenoetigt > 1 ? produktPlural : produktSingular;
     var preis = (diff===1?rand(10,40):(diff===3?rand(60,150):rand(20,80))) / 10; // 1,00 - 15,00 €
     var nenner = diff===1?choice([2,5]):(diff===3?choice([4,8,10]):choice([2, 4, 5, 10]));
     var zaehler = rand(1, nenner-1);
@@ -3744,7 +3757,7 @@ function genKreisdiagramm(diff){
     var anzahlBezahlt = anzahlBenoetigt - anzahlGekauft; // geschenkt bekommen
     var gesamtKosten = Math.round(anzahlGekauft * preis * 100) / 100;
     var ex = baseEx("textaufgabe","textaufgabe");
-    ex.question = name+" braucht "+anzahlBenoetigt+" "+produkt+" für die Schule. Im Geschäft gilt diese Woche: Wer "+anzahlBenoetigt+" Stück kauft, zahlt nur für "+zaehler+" Stück. Ein "+produkt+" kostet "+fmtEUR(preis)+". Wie viel muss "+name+" bezahlen?";
+    ex.question = name+" braucht "+anzahlBenoetigt+" "+produktAnzeige+" für die Schule. Im Geschäft gilt diese Woche: Wer "+anzahlBenoetigt+" Stück kauft, zahlt nur für "+zaehler+" Stück. Ein "+produktSingular+" kostet "+fmtEUR(preis)+". Wie viel muss "+name+" bezahlen?";
     ex.hint = "1) Bezahlte Stück: "+zaehler+" (die restlichen "+anzahlBezahlt+" sind gratis dazu). 2) Gesamtpreis = bezahlte Stück · Einzelpreis.";
     ex.svg=austriaMapSVG({city:"St. Pölten", icon:"📚", label:"Schulstart", color:"#9C4F96"});
     ex.badge="Alltag · Schulstart"; ex.badgeColor=COLORS.textaufgabe.main;

@@ -2404,14 +2404,16 @@ function clearAuth() {
 }
 
 // ---------- API Helper ----------
-/* Sendet Daten per XMLHttpRequest mit application/json.
-   XHR-Fallback für fetch bei CORS-Problemen (Safari/World4You).
-   php://input erhält gültiges JSON für progress.php etc. */
+/* Sendet Daten per XMLHttpRequest mit application/x-www-form-urlencoded.
+   Das ist robuster als fetch mit JSON bei World4You/FastCGI, da hier
+   kein CORS-Preflight mit Authorization-Header Probleme macht und
+   php://input sowie $_POST beide befüllt werden. progress.php nutzt
+   den $_POST-Fallback bei leeren php://input. */
 function sendViaXHR(endpoint, body, token) {
   return new Promise(function(resolve) {
     var xhr = new XMLHttpRequest();
     xhr.open('POST', API + endpoint, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     if (token) {
       xhr.setRequestHeader('Authorization', 'Bearer ' + token);
       xhr.setRequestHeader('X-API-Token', token);
@@ -2431,7 +2433,15 @@ function sendViaXHR(endpoint, body, token) {
       clearTimeout(xhrTimeout);
       resolve({ _httpStatus: 0, status: 'error', message: 'Netzwerkfehler (XHR)' });
     };
-    xhr.send(JSON.stringify(body));
+    var params = [];
+    for (var key in body) {
+      if (body.hasOwnProperty(key)) {
+        var val = body[key];
+        if (typeof val === 'object') val = JSON.stringify(val);
+        params.push(encodeURIComponent(key) + '=' + encodeURIComponent(val));
+      }
+    }
+    xhr.send(params.join('&'));
   });
 }
 
@@ -2458,6 +2468,12 @@ function apiFetch(endpoint, options) {
     credentials: 'same-origin'
   }).then(function(res) {
     clearTimeout(timeout);
+    /* Bei HTTP-Fehlern (≥400) mit Body auf XHR-Fallback ausweichen.
+       World4You/FastCGI liefert bei application/json manchmal leeres
+       php://input – XHR mit form-urlencoded befüllt dagegen $_POST. */
+    if (res.status >= 400 && method !== 'GET' && options.body) {
+      return sendViaXHR(endpoint, options.body, token);
+    }
     return res.json().then(function(data) {
       data._httpStatus = res.status;
       return data;
@@ -2466,8 +2482,7 @@ function apiFetch(endpoint, options) {
     });
   }).catch(function(err) {
     clearTimeout(timeout);
-    /* Bei JEDEM Fehler (CORS, 400, Netzwerk, etc.) auf XHR-Fallback ausweichen.
-       Safari blockiert fetch mit Authorization-Header oft wegen CORS-Preflight. */
+    /* Bei Netzwerkfehlern (CORS, Abort, etc.) auf XHR-Fallback ausweichen. */
     if (err.name === 'AbortError') {
       return { _httpStatus: 0, status: 'error', message: 'Zeitüberschreitung – bitte erneut versuchen.' };
     }

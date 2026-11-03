@@ -123,7 +123,7 @@ function detectBrowser() {
     if (!isEnabled || eventQueue.length === 0) return;
     var batch = eventQueue.splice(0, eventQueue.length);
     var payload = { sessionId: sessionId, userId: null, events: batch };
-    apiFetch(ANALYTICS_URL, { method: 'POST', body: payload }).then(function(res){
+    apiFetch('/analytics.php', { method: 'POST', body: payload }).then(function(res){
       if(res.status !== 'ok' && res._httpStatus >= 400) {
         try { setConsent('denied'); isEnabled = false; stopFlushTimer(); stopHeartbeat(); } catch(e) {}
       }
@@ -139,7 +139,7 @@ function detectBrowser() {
 function sendHeartbeat() {
   if (!isEnabled) return;
   var currentGen = state.current ? (state.current.generator || null) : null;
-  apiFetch(HEARTBEAT_URL, { method: 'POST', body: { sessionId: sessionId, currentGenerator: currentGen, timestamp: nowUnix() } }).then(function(res){
+  apiFetch('/analytics_heartbeat.php', { method: 'POST', body: { sessionId: sessionId, currentGenerator: currentGen, timestamp: nowUnix() } }).then(function(res){
     if(res.status !== 'ok' && res._httpStatus >= 400) {
       try { setConsent('denied'); isEnabled = false; stopFlushTimer(); stopHeartbeat(); } catch(e) {}
     }

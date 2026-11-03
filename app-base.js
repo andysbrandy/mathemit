@@ -3923,8 +3923,8 @@ function genKreisdiagramm(diff){
       svg += punktSVG(P, farbe, "P");
       svg += '<text class="angle-label" x="'+(S.x+30)+'" y="'+(S.y-36)+'" fill="'+farbe+'">'+(winkel/2)+"°</text>";
       svg += '<text class="dim-label" x="'+(S.x+40)+'" y="'+(S.y-16)+'" fill="'+farbe+'">'+(winkel/2)+"°</text>";
-      svg += '<text class="dim-label" x="150" y="30" text-anchor="middle" fill="'+farbe+'">Schritt 1: Radius SP mit dem Zirkel absetzen</text>';
-      svg += '<text class="dim-label" x="150" y="212" text-anchor="middle" fill="'+farbe+'">Schritt 2: am zweiten Schenkel den Schnittpunkt suchen</text>';
+      svg += '<text class="dim-label" x="150" y="30" text-anchor="middle" fill="'+farbe+'">Schritt 1: Radius SP mit Zirkel absetzen</text>';
+      svg += '<text class="dim-label" x="150" y="212" text-anchor="middle" fill="'+farbe+'">Schritt 2: Schnittpunkt Q auf 2. Schenkel</text>';
       svg += '</svg>';
 
       var ex = baseEx("konstruktion","winkelsymmetrale");

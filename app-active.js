@@ -473,19 +473,44 @@ function saveProgress(){
     spaced:state.spaced
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }catch(e){ /* z. B. Privatmodus ohne Speicherzugriff - Fortschritt bleibt dann nur für diese Sitzung erhalten */ }
+    console.log('[mathemit::debug] saveProgress(): localStorage geschrieben: ' + JSON.stringify(data));
+  }catch(e){
+    console.log('[mathemit::debug] saveProgress(): localStorage FEHLER: ' + (e && e.message ? e.message : String(e)));
+    /* z. B. Privatmodus ohne Speicherzugriff - Fortschritt bleibt dann nur für diese Sitzung erhalten */
+  }
   /* Fortschritt an Backend senden (wenn eingeloggt; bei Offline in lokale Warteschlange) */
-  if(getToken()){
+  var token = getToken();
+  console.log('[mathemit::debug] saveProgress(): Token-Check: token=' + (token ? token.substring(0, 8) + '...' : 'null') + ', data.points=' + data.points);
+  if(token){
+    console.log('[mathemit::debug] saveProgress(): rufe saveProgressToAPI() auf');
     saveProgressToAPI(data);
+  } else {
+    console.log('[mathemit::debug] saveProgress(): kein Token, Fortschritt wird nur lokal gespeichert');
   }
 }
 
 /* ============ Progress-Sync mit Backend (DB) ============ */
 /* Lädt Fortschritt vom Server nach erfolgreichem Login */
 function loadProgressFromAPI(token){
+  console.log('[mathemit::debug] loadProgressFromAPI(): aufgerufen mit token=' + (token ? token.substring(0, 8) + '...' : 'null'));
   apiFetch('/progress.php', { method: 'GET' })
     .then(function(res){
+      console.log('[mathemit::debug] loadProgressFromAPI(): API-Antwort: status=' + res.status + ', _httpStatus=' + res._httpStatus + ', data=' + JSON.stringify(res));
       if(res.status === 'ok' && res.points !== undefined){
+        console.log('[mathemit::debug] loadProgressFromAPI(): Server-Fortschritt gefunden, überschreibe state:');
+        console.log('[mathemit::debug]   state.points:      ' + state.points + ' -> ' + (res.points || 0));
+        console.log('[mathemit::debug]   state.streak:      ' + state.streak + ' -> ' + (res.streak || 0));
+        console.log('[mathemit::debug]   state.bestStreak:  ' + state.bestStreak + ' -> ' + (res.best_streak || 0));
+        console.log('[mathemit::debug]   state.solved:      ' + state.solved + ' -> ' + (res.solved || 0));
+        console.log('[mathemit::debug]   state.correct:     ' + state.correct + ' -> ' + (res.correct || 0));
+        console.log('[mathemit::debug]   state.badges:      ' + JSON.stringify(state.badges) + ' -> ' + JSON.stringify(res.badges || []));
+        console.log('[mathemit::debug]   state.mode:        ' + state.mode + ' -> ' + (res.mode || 'alles'));
+        console.log('[mathemit::debug]   state.grade:       ' + state.grade + ' -> ' + (res.grade || 'all'));
+        console.log('[mathemit::debug]   state.diff:        ' + state.diff + ' -> ' + (res.diff || 2));
+        console.log('[mathemit::debug]   state.repeatQ:     ' + JSON.stringify(state.repeatQ) + ' -> ' + JSON.stringify(res.repeat_q));
+        console.log('[mathemit::debug]   state.spaced:      ' + JSON.stringify(state.spaced) + ' -> ' + JSON.stringify(res.spaced));
+        console.log('[mathemit::debug]   state.owls:        ' + JSON.stringify(state.owls) + ' -> ' + JSON.stringify(res.owls));
+        console.log('[mathemit::debug]   state.weekly:      ' + JSON.stringify(state.weekly) + ' -> ' + JSON.stringify(res.weekly));
         state.points      = res.points      || 0;
         state.streak      = res.streak      || 0;
         state.bestStreak  = res.best_streak || 0;
@@ -502,11 +527,19 @@ function loadProgressFromAPI(token){
         state.weekly      = sanitizeWochen(res.weekly);
         console.log('[mathemit] Progress vom Server geladen:', state.points, 'P', state.owls.length, 'Eulen');
         /* In localStorage spiegeln, damit offline weiter nutzbar */
-        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(dataSnapshot())); }catch(e){}
+        try{
+          var snapshot = dataSnapshot();
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+          console.log('[mathemit::debug] loadProgressFromAPI(): localStorage gespiegelt: ' + JSON.stringify(snapshot));
+        }catch(e){
+          console.log('[mathemit::debug] loadProgressFromAPI(): localStorage-Schreibung FEHLER: ' + (e && e.message ? e.message : String(e)));
+        }
       } else {
+        console.log('[mathemit::debug] loadProgressFromAPI(): Kein Fortschritt auf Server gefunden (status=' + res.status + ', points=' + (res.points !== undefined ? res.points : 'undefined') + '), starte mit Default');
         console.log('[mathemit] Kein Fortschritt auf Server gefunden, starte mit Default');
       }
     }).catch(function(err){
+      console.log('[mathemit::debug] loadProgressFromAPI(): API-Fehler: ' + (err && err.message ? err.message : String(err)));
       console.warn('[mathemit] Progress laden vom Server fehlgeschlagen:', err.message);
     });
 }
@@ -542,21 +575,28 @@ function saveProgressToAPI(data){
     repeat_q:    data.repeatQ,
     timestamp:   Date.now()
   };
+  console.log('[mathemit::debug] saveProgressToAPI(): Payload erstellt: ' + JSON.stringify(payload));
   function attempt(tryCount){
     if(tryCount > 3){
       progressPendingWrite(payload);
+      console.log('[mathemit::debug] saveProgressToAPI(): 3 Versuche fehlgeschlagen, schreibe in lokale Warteschlange: ' + JSON.stringify(payload));
       console.warn('[mathemit] Progress in lokale Warteschlange geschrieben (nach 3 fehlgeschlagenen Versuchen)');
       return;
     }
+    console.log('[mathemit::debug] saveProgressToAPI(): Versuch ' + tryCount + '/3, sende Payload an /progress.php: ' + JSON.stringify(payload));
     apiFetch('/progress.php', { method: 'POST', body: payload }).then(function(res){
+      console.log('[mathemit::debug] saveProgressToAPI() Versuch ' + tryCount + ': Antwort erhalten: status=' + res.status + ', message=' + (res.message || 'keine') + ', data=' + JSON.stringify(res));
       if(res.status === 'ok'){
+        console.log('[mathemit::debug] saveProgressToAPI() Versuch ' + tryCount + ': Erfolgreich, clear Warteschlange');
         console.log('[mathemit] Progress an Server gesendet');
         progressPendingClear();
       } else {
+        console.log('[mathemit::debug] saveProgressToAPI() Versuch ' + tryCount + ': fehlgeschlagen, message=' + res.message);
         console.warn('[mathemit] Progress senden fehlgeschlagen (Versuch ' + tryCount + '):', res.message);
         setTimeout(function(){ attempt(tryCount + 1); }, tryCount === 1 ? 2000 : 5000 );
       }
     }).catch(function(err){
+      console.log('[mathemit::debug] saveProgressToAPI() Versuch ' + tryCount + ': Netzwerkfehler: ' + (err && err.message ? err.message : String(err)));
       console.warn('[mathemit] Progress senden fehlgeschlagen (Versuch ' + tryCount + '):', err.message);
       setTimeout(function(){ attempt(tryCount + 1); }, tryCount === 1 ? 2000 : 5000 );
     });
@@ -567,8 +607,10 @@ function saveProgressToAPI(data){
 /* Verarbeitet ausstehende Einträge im lokalen Queue bei Wiederverbindung */
 function processProgressQueue(){
   var pending = progressPendingRead();
+  console.log('[mathemit::debug] processProgressQueue(): pending=' + (pending ? JSON.stringify(pending) : 'null'));
   if(!pending) return;
   apiFetch('/progress.php', { method: 'POST', body: pending }).then(function(res){
+    console.log('[mathemit::debug] processProgressQueue(): Antwort: status=' + res.status + ', message=' + (res.message || 'keine') + ', data=' + JSON.stringify(res));
     if(res.status === 'ok'){
       progressPendingClear();
       console.log('[mathemit] Warteschlange: Progress nachgesendet');
@@ -576,6 +618,7 @@ function processProgressQueue(){
       console.warn('[mathemit] Warteschlange: Nachsenden fehlgeschlagen:', res.message);
     }
   }).catch(function(err){
+    console.log('[mathemit::debug] processProgressQueue(): Netzwerkfehler: ' + (err && err.message ? err.message : String(err)));
     console.warn('[mathemit] Warteschlange: Nachsenden fehlgeschlagen:', err.message);
   });
 }
@@ -621,6 +664,7 @@ loadProgress();
 
 /* Bei Wiederverbindung: ausstehende Fortschritt-Einträge nachsenden */
 window.addEventListener('online', function(){
+  console.log('[mathemit::debug] online-Event: Verbindung wiederhergestellt, rufe processProgressQueue() auf');
   processProgressQueue();
 });
 
@@ -2384,17 +2428,23 @@ var auth = {
 
 // ---------- Token Management ----------
 function getToken() {
-  return localStorage.getItem('mathemit_token');
+  var t = localStorage.getItem('mathemit_token');
+  console.log('[mathemit::debug] getToken(): token=' + (t ? t.substring(0, 8) + '...' : 'null') + ' (length=' + (t ? t.length : 0) + ')');
+  return t;
 }
 function getUser() {
   var u = localStorage.getItem('mathemit_user');
-  return u ? JSON.parse(u) : null;
+  var user = u ? JSON.parse(u) : null;
+  console.log('[mathemit::debug] getUser(): user=' + (user ? JSON.stringify(user) : 'null'));
+  return user;
 }
 function saveAuth(token, user) {
+  console.log('[mathemit::debug] saveAuth(): token=' + (token ? token.substring(0, 8) + '...' : 'null') + ', user=' + JSON.stringify(user));
   localStorage.setItem('mathemit_token', token);
   localStorage.setItem('mathemit_user', JSON.stringify(user));
   auth.token = token;
   auth.user = user;
+  console.log('[mathemit::debug] saveAuth(): nach lokalStorage-Schreibung, getToken()=' + (getToken() ? getToken().substring(0, 8) + '...' : 'null'));
 }
 function clearAuth() {
   localStorage.removeItem('mathemit_token');
@@ -2410,6 +2460,7 @@ function clearAuth() {
    php://input sowie $_POST beide befüllt werden. progress.php nutzt
    den $_POST-Fallback bei leeren php://input. */
 function sendViaXHR(endpoint, body, token) {
+  console.log('[mathemit::debug] sendViaXHR(): endpoint=' + endpoint + ', body=' + JSON.stringify(body) + ', token=' + (token ? token.substring(0, 8) + '...' : 'null'));
   return new Promise(function(resolve) {
     var xhr = new XMLHttpRequest();
     xhr.open('POST', API + endpoint, true);
@@ -2421,6 +2472,7 @@ function sendViaXHR(endpoint, body, token) {
     var xhrTimeout = setTimeout(function() { xhr.abort(); }, 8000);
     xhr.onload = function() {
       clearTimeout(xhrTimeout);
+      console.log('[mathemit::debug] sendViaXHR() onload: endpoint=' + endpoint + ', status=' + xhr.status + ', responseText=' + xhr.responseText);
       try {
         var data = JSON.parse(xhr.responseText) || { _httpStatus: xhr.status, status: 'ok' };
         data._httpStatus = xhr.status;
@@ -2431,6 +2483,7 @@ function sendViaXHR(endpoint, body, token) {
     };
     xhr.onerror = function() {
       clearTimeout(xhrTimeout);
+      console.log('[mathemit::debug] sendViaXHR() onerror: endpoint=' + endpoint + ', status=0');
       resolve({ _httpStatus: 0, status: 'error', message: 'Netzwerkfehler (XHR)' });
     };
     var params = [];
@@ -2460,6 +2513,8 @@ function apiFetch(endpoint, options) {
   var timeout = setTimeout(function() { controller.abort(); }, 8000);
   var bodyJson = (method !== 'GET' && options.body) ? JSON.stringify(options.body) : null;
 
+  console.log('[mathemit::debug] apiFetch(): endpoint=' + endpoint + ', method=' + method + ', body=' + (bodyJson ? bodyJson : 'null') + ', token=' + (token ? token.substring(0, 8) + '...' : 'null'));
+
   return fetch(API + endpoint, {
     method: method,
     headers: headers,
@@ -2468,13 +2523,16 @@ function apiFetch(endpoint, options) {
     credentials: 'same-origin'
   }).then(function(res) {
     clearTimeout(timeout);
+    console.log('[mathemit::debug] apiFetch() fetch-response: endpoint=' + endpoint + ', status=' + res.status + ', ok=' + res.ok);
     /* Bei HTTP-Fehlern (≥400) mit Body auf XHR-Fallback ausweichen.
        World4You/FastCGI liefert bei application/json manchmal leeres
        php://input – XHR mit form-urlencoded befüllt dagegen $_POST. */
     if (res.status >= 400 && method !== 'GET' && options.body) {
+      console.log('[mathemit::debug] apiFetch(): HTTP-Fehler >=400, weiche auf XHR-Fallback aus: endpoint=' + endpoint);
       return sendViaXHR(endpoint, options.body, token);
     }
     return res.json().then(function(data) {
+      console.log('[mathemit::debug] apiFetch() fetch-json: endpoint=' + endpoint + ', data=' + JSON.stringify(data));
       data._httpStatus = res.status;
       return data;
     }).catch(function() {
@@ -2482,11 +2540,13 @@ function apiFetch(endpoint, options) {
     });
   }).catch(function(err) {
     clearTimeout(timeout);
+    console.log('[mathemit::debug] apiFetch() fetch-error: endpoint=' + endpoint + ', error=' + (err && err.message ? err.message : String(err)) + ', name=' + (err && err.name ? err.name : 'unknown'));
     /* Bei Netzwerkfehlern (CORS, Abort, etc.) auf XHR-Fallback ausweichen. */
     if (err.name === 'AbortError') {
       return { _httpStatus: 0, status: 'error', message: 'Zeitüberschreitung – bitte erneut versuchen.' };
     }
     if (method !== 'GET' && options.body) {
+      console.log('[mathemit::debug] apiFetch(): Netzwerkfehler, weiche auf XHR-Fallback aus: endpoint=' + endpoint);
       return sendViaXHR(endpoint, options.body, token);
     }
     return { _httpStatus: 0, status: 'error', message: 'Netzwerkfehler' };
@@ -2723,22 +2783,30 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
   var form = e.target;
   setSubmitLoading(form, true);
 
+  console.log('[mathemit::debug] Login-Handler: sende Login-Request für nickname=' + nickname + ', pin=****');
   apiFetch('/login.php', { body: { nickname: nickname, pin: pin } })
     .then(function(data) {
       setSubmitLoading(form, false);
+      console.log('[mathemit::debug] Login-Handler: API-Antwort erhalten: status=' + data.status + ', data=' + JSON.stringify(data));
       if (data.status === 'ok') {
-        console.log('[mathemit] Login OK, user:', data.user.nickname);
+        console.log('[mathemit::debug] Login-Handler: Login erfolgreich, user=' + data.user.nickname + ', token=' + (data.token ? data.token.substring(0, 8) + '...' : 'null'));
         showMsg('Willkommen, ' + data.user.nickname + '!', 'success');
         saveAuth(data.token, data.user);
-        console.log('[mathemit] nach saveAuth, getUser():', getUser());
+        console.log('[mathemit::debug] Login-Handler: nach saveAuth, getUser()=' + JSON.stringify(getUser()) + ', getToken()=' + (getToken() ? getToken().substring(0, 8) + '...' : 'null'));
         renderUserInfo();
         setTimeout(function() {
           hideAuthOverlay();
+          console.log('[mathemit::debug] Login-Handler: rufe loadProgressFromAPI() auf mit token=' + (data.token ? data.token.substring(0, 8) + '...' : 'null'));
           loadProgressFromAPI(data.token);
         }, 600);
       } else {
+        console.log('[mathemit::debug] Login-Handler: Login fehlgeschlagen, message=' + data.message);
         showMsg(data.message || 'Anmeldung fehlgeschlagen.', 'error');
       }
+    }).catch(function(err) {
+      setSubmitLoading(form, false);
+      console.log('[mathemit::debug] Login-Handler: API-Call Fehler: ' + (err && err.message ? err.message : String(err)));
+      showMsg('Netzwerkfehler beim Login.', 'error');
     });
 });
 
@@ -3055,7 +3123,11 @@ function queueFlushen(fertig) {
 }
 function loadProgressFromAPI(customToken) {
   var token = customToken || getToken();
-  if (!token) return;
+  console.log('[mathemit::debug] loadProgressFromAPI(v2): aufgerufen, customToken=' + (customToken ? customToken.substring(0, 8) + '...' : 'null') + ', final token=' + (token ? token.substring(0, 8) + '...' : 'null'));
+  if (!token) {
+    console.log('[mathemit::debug] loadProgressFromAPI(v2): kein Token, breche ab');
+    return;
+  }
 
   /*
    * SICHERHEITSREGEL gegen stillen Datenverlust.
@@ -3070,15 +3142,19 @@ function loadProgressFromAPI(customToken) {
    * der Serverstand erst danach geladen.
    */
   var p = pendingLesen();
+  console.log('[mathemit::debug] loadProgressFromAPI(v2): pendingLesen()=' + (p ? JSON.stringify(p) : 'null'));
   if (p && p.nutzer !== null && nutzerKennung() !== p.nutzer) {
     /* Fremdes Konto: gar nicht erst laden. Sonst wuerde der Serverstand
      * des neuen Kontos den lokalen Stand ueberschreiben und der Nutzer
      * glaubt, seine Punkte seien weg. */
+    console.log('[mathemit::debug] loadProgressFromAPI(v2): Fremdes Konto erkannt, breche ab');
     pendingAnzeigenFremd();
     return;
   }
   if (p) {
+    console.log('[mathemit::debug] loadProgressFromAPI(v2): Warteschlange vorhanden, rufe queueFlushen() auf');
     queueFlushen(function (ok) {
+      console.log('[mathemit::debug] loadProgressFromAPI(v2): queueFlushen() Ergebnis: ok=' + ok);
       if (ok) { fortschrittLaden(token); return; }
       /* Konnte nicht gesendet werden: wir laden trotzdem NICHT, sonst
        * waere die Offline-Arbeit jetzt wirklich verloren. */
@@ -3086,13 +3162,23 @@ function loadProgressFromAPI(customToken) {
     });
     return;
   }
+  console.log('[mathemit::debug] loadProgressFromAPI(v2): keine Warteschlange, rufe fortschrittLaden() auf');
   fortschrittLaden(token);
 }
 
 function fortschrittLaden(token) {
+  console.log('[mathemit::debug] fortschrittLaden(): aufgerufen mit token=' + (token ? token.substring(0, 8) + '...' : 'null'));
   apiFetch('/progress.php').then(function(data) {
+    console.log('[mathemit::debug] fortschrittLaden(): API-Antwort: status=' + data.status + ', _httpStatus=' + data._httpStatus + ', data=' + JSON.stringify(data));
     if (data.status === 'ok' && data.data) {
       var d = data.data;
+      console.log('[mathemit::debug] fortschrittLaden(): Server-Daten: ' + JSON.stringify(d));
+      console.log('[mathemit::debug] fortschrittLaden(): state-Überschreibung:');
+      console.log('[mathemit::debug]   state.points:   ' + state.points + ' -> ' + (d.points || 0));
+      console.log('[mathemit::debug]   state.streak:   ' + state.streak + ' -> ' + (d.streak || 0));
+      console.log('[mathemit::debug]   state.bestStreak: ' + state.bestStreak + ' -> ' + (d.best_streak || 0));
+      console.log('[mathemit::debug]   state.solved:   ' + state.solved + ' -> ' + (d.solved || 0));
+      console.log('[mathemit::debug]   state.correct:  ' + state.correct + ' -> ' + (d.correct || 0));
       /* Server ist Source-of-Truth und überschreibt den lokalen Stand */
       state.points  = d.points      || 0;
       state.points  = d.points      || 0;
@@ -3124,8 +3210,11 @@ function fortschrittLaden(token) {
       if(typeof updateRepeatChip === "function") updateRepeatChip();
       updateModeAmpel();
       syncProgressToAPI();
+    } else {
+      console.log('[mathemit::debug] fortschrittLaden(): Keine gültigen Server-Daten (status=' + data.status + ', data=' + JSON.stringify(data) + ')');
     }
   }, function(err) {
+    console.log('[mathemit::debug] fortschrittLaden(): API-Fehler: ' + (err && err.message ? err.message : String(err)));
     console.warn('[mathemit] Fortschritt konnte nicht vom Server geladen werden:', err);
   });
 }

@@ -930,17 +930,20 @@
     {t:"In einem spitzwinkligen Dreieck sind alle Winkel kleiner als 90°.", v:true},
     {t:"Ein ungleichseitiges Dreieck hat drei unterschiedlich lange Seiten.", v:true}
   ];
+  /* Jede Aussage trägt den passenden Viereck-Typ (k), damit Bild und
+   * Frage immer zum selben Viereck gehören. k: null = gilt für alle
+   * Vierecke (beliebiges Bild). */
   var QUAD_STATEMENTS = [
-    {t:"Ein Quadrat hat vier gleich lange Seiten und vier rechte Winkel.", v:true},
-    {t:"Ein Rechteck hat immer vier gleich lange Seiten.", v:false},
-    {t:"Bei einem Parallelogramm sind gegenüberliegende Seiten gleich lang und parallel.", v:true},
-    {t:"Eine Raute hat vier gleich lange Seiten, aber nicht zwingend rechte Winkel.", v:true},
-    {t:"Ein Trapez hat mindestens ein Paar paralleler Seiten.", v:true},
-    {t:"Die Winkelsumme in jedem Viereck beträgt 360°.", v:true},
-    {t:"Jedes Quadrat ist auch ein Rechteck.", v:true},
-    {t:"Jedes Rechteck ist auch ein Quadrat.", v:false},
-    {t:"Ein Drachenviereck hat zwei Paare gleich langer, benachbarter Seiten.", v:true},
-    {t:"Bei einem Parallelogramm sind alle vier Winkel gleich groß.", v:false}
+    {t:"Ein Quadrat hat vier gleich lange Seiten und vier rechte Winkel.", v:true, k:"quadrat"},
+    {t:"Ein Rechteck hat immer vier gleich lange Seiten.", v:false, k:"rechteck"},
+    {t:"Bei einem Parallelogramm sind gegenüberliegende Seiten gleich lang und parallel.", v:true, k:"parallelogramm"},
+    {t:"Eine Raute hat vier gleich lange Seiten, aber nicht zwingend rechte Winkel.", v:true, k:"raute"},
+    {t:"Ein Trapez hat mindestens ein Paar paralleler Seiten.", v:true, k:"trapez"},
+    {t:"Die Winkelsumme in jedem Viereck beträgt 360°.", v:true, k:null},
+    {t:"Jedes Quadrat ist auch ein Rechteck.", v:true, k:"quadrat"},
+    {t:"Jedes Rechteck ist auch ein Quadrat.", v:false, k:"rechteck"},
+    {t:"Ein Drachenviereck hat zwei Paare gleich langer, benachbarter Seiten.", v:true, k:"drachen"},
+    {t:"Bei einem Parallelogramm sind alle vier Winkel gleich groß.", v:false, k:"parallelogramm"}
   ];
 
   function genEigenschaftenDreieck(diff){
@@ -962,7 +965,9 @@
   function genEigenschaftenViereck(diff){
     diff = diff || 2;
     var s = choice(QUAD_STATEMENTS);
-    var key = choice(Object.keys(QUAD_TEMPLATES));
+    /* Bild-Typ an die Aussage koppeln, sonst zeigt z. B. eine Raute-Frage
+     * ein Trapez (Zugriff auf QUAD_TEMPLATES[key] mit zufälligem key). */
+    var key = s.k || choice(Object.keys(QUAD_TEMPLATES));
     var pts = normalizeAndScale(QUAD_TEMPLATES[key],300,220,30);
     var svg = polygonSVG(pts,{color:COLORS.viereck.main, soft:COLORS.viereck.soft});
     var ex = baseEx("viereck","eigenschaften");

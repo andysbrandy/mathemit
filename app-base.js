@@ -1834,7 +1834,7 @@
     else mode = choice(["wuerfel2","glueck","komplement"]);
     var svg = '<svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">';
     if(mode==="urne"){
-      // Urne mit roten + blauen Kugeln; gefragt: P(rot) als Bruch
+      // Schachtel mit roten + blauen Bällen; gefragt: P(rot) als Bruch
       var rot = diff===1 ? rand(1,4) : rand(2,6);
       var blau = diff===1 ? rand(1,4) : rand(2,6);
       var total = rot+blau;
@@ -1864,9 +1864,9 @@
       if(total>8) svg += '<text class="dim-label" x="150" y="205" text-anchor="middle">… insgesamt '+rot+' rote + '+blau+' blaue</text>';
       else svg += '<text class="dim-label" x="150" y="205" text-anchor="middle">'+rot+' rote · '+blau+' blaue Kugeln</text>';
       svg += '</svg>';
-      ex.question = "In einer Urne liegen "+rot+" rote und "+blau+" blaue Kugeln. Du ziehst blind eine Kugel. Wie groß ist die Wahrscheinlichkeit, dass sie rot ist? (Antwort als gekürzter Bruch, z. B. 1/2.)";
+      ex.question = "In einer Schachtel liegen "+rot+" rote und "+blau+" blaue Bälle. Du ziehst blind einen Ball. Wie groß ist die Wahrscheinlichkeit, dass er rot ist? (Antwort als gekürzter Bruch, z. B. 1/2.)";
       ex.hint = "Günstige Fälle (rot: "+rot+") durch mögliche Fälle (alle: "+total+"). Kürze den Bruch so weit wie möglich.";
-      ex.svg=svg; ex.badge="Wahrscheinlichkeit · Urne"; ex.badgeColor=COLORS.gleichung.main;
+      ex.svg=svg; ex.badge="Wahrscheinlichkeit · Schachtel"; ex.badgeColor=COLORS.gleichung.main;
       ex.inputType="mc"; ex.choices=options; ex.correctIndex=options.indexOf(correct);
       ex.answer = correct;
       ex.explanation = "P(rot) = "+rot+"/"+total+" = "+correct+".";
@@ -1947,7 +1947,7 @@
       ex.answer = pct;
       ex.explanation = "P(Gewinn) = "+k+"/"+n+" = "+pct+" %.";
     } else {
-      // Komplement: Urne, gefragt P(NICHT rot) = P(blau) in %
+      // Komplement: Schachtel, gefragt P(NICHT rot) = P(blau) in %
       var kr = rand(1,5), kb = rand(1,5);
       var kt = kr+kb;
       while((kb*100)%kt!==0){ kr = rand(1,5); kb = rand(1,5); kt = kr+kb; }
@@ -1963,9 +1963,9 @@
       }
       svg += '<text class="dim-label" x="150" y="205" text-anchor="middle">'+kr+' rote · '+kb+' blaue Kugeln</text>';
       svg += '</svg>';
-      ex.question = "In einer Urne liegen "+kr+" rote und "+kb+" blaue Kugeln. Du ziehst blind eine Kugel. Wie groß ist die Wahrscheinlichkeit, dass sie NICHT rot ist? (Antwort in Prozent, ganze Zahl ohne %-Zeichen.)";
-      ex.hint = "„Nicht rot“ heißt blau: "+kb+" von "+kt+" Kugeln. Rechne "+kb+"/"+kt+" in Prozent um.";
-      ex.svg=svg; ex.badge="Wahrscheinlichkeit · Urne"; ex.badgeColor=COLORS.gleichung.main;
+      ex.question = "In einer Schachtel liegen "+kr+" rote und "+kb+" blaue Bälle. Du ziehst blind einen Ball. Wie groß ist die Wahrscheinlichkeit, dass er NICHT rot ist? (Antwort in Prozent, ganze Zahl ohne %-Zeichen.)";
+      ex.hint = "„Nicht rot“ heißt blau: "+kb+" von "+kt+" Bällen. Rechne "+kb+"/"+kt+" in Prozent um.";
+      ex.svg=svg; ex.badge="Wahrscheinlichkeit · Schachtel"; ex.badgeColor=COLORS.gleichung.main;
       ex.inputType="number"; ex.unit="%";
       ex.answer = kpct;
       ex.explanation = "P(nicht rot) = P(blau) = "+kb+"/"+kt+" = "+kpct+" %.";

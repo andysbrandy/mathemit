@@ -3344,6 +3344,57 @@ if (token) {
     }).catch(function(){ /* Logo nicht kritisch */ });
   })();
 
+/* ============ Consent-Banner (DSGVO) ============ */
+/* In app-active.js IIFE integriert, damit direkter Zugriff auf
+ * getConsent()/setConsent() und window.__mbAnalytics.enable()/disable()
+ * ohne IIFE-Scope-Grenze besteht. Banner-HTML + CSS bleiben in index.html. */
+function initConsentBanner() {
+  var banner = document.getElementById('consentBanner');
+  var btnYes = document.getElementById('btnConsentYes');
+  var btnNo  = document.getElementById('btnConsentNo');
+  var btnOut = document.getElementById('btnAnalyticsOptOut');
+
+  if (!banner || !btnYes || !btnNo || !btnOut) return;
+
+  function upd() {
+    var on = getConsent() === 'granted';
+    btnOut.textContent   = on ? 'Analyse: Ein' : 'Analyse: Aus';
+    btnOut.style.background = on ? '#16a34a' : '#334155';
+    btnOut.style.color      = on ? '#fff' : '#cbd5e1';
+    btnOut.style.borderColor= on ? '#16a34a' : '#475569';
+  }
+
+  /* Initial: Banner nur zeigen, wenn noch kein Consent gespeichert */
+  var c = getConsent();
+  banner.style.display = c === null ? 'block' : 'none';
+  upd();
+
+  btnYes.onclick = function() {
+    setConsent('granted');
+    banner.style.display = 'none';
+    upd();
+    window.__mbAnalytics.enable();
+  };
+
+  btnNo.onclick = function() {
+    setConsent('denied');
+    banner.style.display = 'none';
+    upd();
+    window.__mbAnalytics.disable();
+  };
+
+  btnOut.onclick = function() {
+    var cur = getConsent();
+    var next = cur === 'granted' ? 'denied' : 'granted';
+    setConsent(next);
+    banner.style.display = 'none';
+    upd();
+    window.__mbAnalytics[next === 'granted' ? 'enable' : 'disable']();
+  };
+}
+
+initConsentBanner();
+
 updateStatsUI();
 updateModeAmpel();
 nextExercise();

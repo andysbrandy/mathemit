@@ -100,6 +100,20 @@ Indexierbarer Abdeckungs-Abschnitt in `index.html` (Sichtbarer Dokumentfluss, ke
 
 ---
 
+## 🎨 UX-Roadmap (nächste Phase)
+
+| # | Bereich | Inhalt | Status | Geplante Lösung |
+|---|---------|--------|--------|-----------------|
+| UX.1 | Consent-Banner | Banner erscheint nicht zuverlässig; zwei getrennte IIFE-Scopes (`app-active.js` + `index.html`) verhindern stabilen Zugriff auf `__mbAnalytics.enable()/disable()` | 🔧 in Arbeit | Consent-Code komplett in `app-active.js` IIFE überführen, direktes `localStorage` + DOM-Zugriff. Banner-Skript aus `index.html` entfernen. |
+| UX.2 | Offline-Warteschlange | Chip existiert, ist aber dezent; Nutzer merkt nicht immer, dass Fortschritt noch nicht synchronisiert ist | offen | Offline-Chip prominenter (z. B. Toast bei Wiederverbindung, Anzahl ausstehender Einträge, Fortschrittsbalken beim Sync) |
+| UX.3 | Wissensgarten | Fokus-Modus pro Frucht vorhanden, aber keine Reife-Animation oder Fortschrittsbalken pro Baum | offen | Ampel-Wechsel-Animation (🔴→🟡→🟢), Fortschrittsbalken pro Kompetenz-Baum, leere Zustände für neue Nutzer |
+| UX.4 | Eulenhain | Endloser Modus mit Eule pro Stufe, aber kein Stufen-Fortschritt oder Belohnungs-Feedback | offen | Stufen-Fortschrittsanzeige, Belohnung nach X Stufen, „Weiter“-Button nach korrekter Antwort |
+| UX.5 | Wiederholungstraining (🔁-Chip) | Falsche Aufgaben werden wiederholt, aber kein Erfolgsscreen beim Abschluss | offen | Erfolgsscreen („Alle Wiederholungen geschafft!“), visuelles Feedback bei Completed-State |
+| UX.6 | Tipp-System | Progressive Offenlegung implementiert, aber keine Tipp-Historie für nachträgliches Nachlesen | offen | Tipp-Historie speichern, frühere Tipps nachlesbar machen |
+| UX.7 | Mobile / PWA-UX | App ist installierbar, aber Touch-Ziele und Tastatur-Navigation könnten optimiert sein | offen | Touch-Ziele vergrößern, Tastatur-Navigation (Tab-Order, Enter auf Buttons), Screenreader-Unterstützung prüfen |
+
+---
+
 ## 🎨 UX-Optimierung
 
 > Motivation: Bei 64+ Generatoren und 23 Topic-Chips muss die App auch mobil

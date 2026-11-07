@@ -3168,7 +3168,7 @@ function loadProgressFromAPI(customToken) {
 
 function fortschrittLaden(token) {
   console.log('[mathemit::debug] fortschrittLaden(): aufgerufen mit token=' + (token ? token.substring(0, 8) + '...' : 'null'));
-  apiFetch('/progress.php').then(function(data) {
+  apiFetch('/progress.php', { method: 'GET' }).then(function(data) {
     console.log('[mathemit::debug] fortschrittLaden(): API-Antwort: status=' + data.status + ', _httpStatus=' + data._httpStatus + ', data=' + JSON.stringify(data));
     if (data.status === 'ok' && data.data) {
       var d = data.data;

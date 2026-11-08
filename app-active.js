@@ -3393,7 +3393,13 @@ function initConsentBanner() {
   };
 }
 
-initConsentBanner();
+/* Consent-Banner erst initialisieren, wenn das DOM bereit ist (Banner-Element
+ * steht in index.html nach den Script-Tags). */
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initConsentBanner);
+} else {
+  initConsentBanner();
+}
 
 updateStatsUI();
 updateModeAmpel();

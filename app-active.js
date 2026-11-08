@@ -3344,10 +3344,14 @@ if (token) {
     }).catch(function(){ /* Logo nicht kritisch */ });
   })();
 
+updateStatsUI();
+updateModeAmpel();
+nextExercise();
+
 /* ============ Consent-Banner (DSGVO) ============ */
-/* In app-active.js IIFE integriert, damit direkter Zugriff auf
- * getConsent()/setConsent() und window.__mbAnalytics.enable()/disable()
- * ohne IIFE-Scope-Grenze besteht. Banner-HTML + CSS bleiben in index.html. */
+/* Direkt auf localStorage zugreifen (Key: mathemit_consent_v1), da diese
+ * Funktion außerhalb des Analytics-IIFE läuft und darauf keinen Zugriff hat.
+ * Banner-HTML + CSS bleiben in index.html. */
 function initConsentBanner() {
   var banner = document.getElementById('consentBanner');
   var btnYes = document.getElementById('btnConsentYes');
@@ -3355,6 +3359,11 @@ function initConsentBanner() {
   var btnOut = document.getElementById('btnAnalyticsOptOut');
 
   if (!banner || !btnYes || !btnNo || !btnOut) return;
+
+  function getConsent() {
+    try { var raw = localStorage.getItem('mathemit_consent_v1'); return raw === null ? null : raw; } catch(e) { return null; }
+  }
+  function setConsent(val) { try { localStorage.setItem('mathemit_consent_v1', val); } catch(e) {} }
 
   function upd() {
     var on = getConsent() === 'granted';
@@ -3373,14 +3382,14 @@ function initConsentBanner() {
     setConsent('granted');
     banner.style.display = 'none';
     upd();
-    window.__mbAnalytics.enable();
+    if(window.__mbAnalytics && typeof window.__mbAnalytics.enable === 'function') window.__mbAnalytics.enable();
   };
 
   btnNo.onclick = function() {
     setConsent('denied');
     banner.style.display = 'none';
     upd();
-    window.__mbAnalytics.disable();
+    if(window.__mbAnalytics && typeof window.__mbAnalytics.disable === 'function') window.__mbAnalytics.disable();
   };
 
   btnOut.onclick = function() {
@@ -3389,7 +3398,9 @@ function initConsentBanner() {
     setConsent(next);
     banner.style.display = 'none';
     upd();
-    window.__mbAnalytics[next === 'granted' ? 'enable' : 'disable']();
+    if(window.__mbAnalytics && typeof window.__mbAnalytics[next === 'granted' ? 'enable' : 'disable'] === 'function') {
+      window.__mbAnalytics[next === 'granted' ? 'enable' : 'disable']();
+    }
   };
 }
 
@@ -3400,8 +3411,4 @@ if (document.readyState === 'loading') {
 } else {
   initConsentBanner();
 }
-
-updateStatsUI();
-updateModeAmpel();
-nextExercise();
 })();
